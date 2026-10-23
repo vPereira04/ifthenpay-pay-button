@@ -1,0 +1,21 @@
+/* Puts the ifthenpay glyph in the menu slot that add_menu_page( …, 'none' ) leaves empty, on every admin page. */
+@font-face {
+	font-family: ifthenpay-icons;
+	src: url("../fonts/ifthenpay-icons.woff2") format("woff2"),
+		url("../fonts/ifthenpay-icons.woff") format("woff"),
+		url("../fonts/ifthenpay-icons.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+	font-display: block;
+}
+
+#adminmenu .toplevel_page_iftp-btn div.wp-menu-image::before {
+	font-family: ifthenpay-icons;
+	font-size: 20px;
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	content: "\e002";
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}

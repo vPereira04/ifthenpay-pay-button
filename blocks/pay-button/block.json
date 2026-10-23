@@ -1,0 +1,55 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "ifthenpay-pay-button/button",
+	"title": "ifthenpay Pay Button",
+	"category": "widgets",
+	"icon": "money-alt",
+	"description": "A button that takes a payment through ifthenpay. Pick one of your pay buttons.",
+	"keywords": [ "ifthenpay", "pay", "payment", "multibanco", "mbway" ],
+	"textdomain": "ifthenpay-pay-button",
+	"attributes": {
+		"buttonId": {
+			"type": "number",
+			"default": 0
+		},
+		"label": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "left", "center", "right" ],
+		"color": {
+			"__experimentalSkipSerialization": true,
+			"gradients": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			}
+		},
+		"typography": {
+			"fontSize": true,
+			"__experimentalFontWeight": true,
+			"__experimentalDefaultControls": {
+				"fontSize": true
+			}
+		},
+		"spacing": {
+			"margin": true,
+			"padding": [ "horizontal", "vertical" ],
+			"__experimentalSkipSerialization": [ "padding" ]
+		},
+		"__experimentalBorder": {
+			"radius": true,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"radius": true
+			}
+		}
+	},
+	"editorScript": "iftp-btn-block-editor",
+	"style": "iftp-btn-checkout"
+}

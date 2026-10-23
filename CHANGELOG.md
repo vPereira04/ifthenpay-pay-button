@@ -1,0 +1,36 @@
+# Changelog
+
+All notable changes to ifthenpay | Pay Button are listed here. Releases that fix a security issue say so in their entry, prefixed with **Security:**.
+
+## [1.0.0] — Unreleased
+
+Initial public release.
+
+### Changed
+
+- Payment links always stay open for Gateway Configuration › **Expiry days**; the per-button "Link stays open (days)" setting is gone.
+- The "Checking your payment" popup wears the paying button's own look from the start, instead of the site's look until the status came back.
+
+### Added
+
+- Pay buttons for any page: the `[ifthenpay_button]` shortcode (`id`, `label`, `align`), the **ifthenpay Pay Button** block, and a pay page per button at `/pay/{button}/` (the base is configurable).
+- Amount modes: **Fixed**, **Payer chooses** (suggested amounts, minimum and maximum) and **From the link**.
+- Checkout form builder: name, email, phone, tax number (NIF) and note as Off, Optional or Required, plus custom questions (short text, paragraph, email, phone, number, date, dropdown, single choice, multiple choice, agreement, text block) and page breaks with a step bar.
+- **Spots**: No limit, Limited spots, or Spots per option with a price per option, an optional total, a quantity picker, "Only X left" and sold-out states. An unpaid payment holds its spot until its ifthenpay link expires.
+- Button design: match the theme's buttons or a custom style (presets, colours, corners, size, icon, width, shadow, payment logos under the button). Custom styles are Filled, Outline, Soft, **Gradient** (with a second colour, or one picked for you) and **Glass**, with a **Lift**, **Shine** or **Pulse** effect and optional capital letters; new Sunset and Glass presets.
+- Checkout look, site-wide or per button: colours, shape, fonts, pay page background (glow, gradient, plain, image or **video**, with effects), popups and Custom CSS, with a live preview.
+- Pay page **video** background: an MP4 or WebM from the Media Library, or a YouTube or Vimeo link, looping muted behind the card, with darken and blur. The background image shows while it loads and to payers who turn motion off; a checkout opened on it only loads the video when it opens.
+- Two more generated pay page effects next to Crystals and Grain: **Waves** (contour lines with lit and shaded bands) and **Bokeh** (soft lights in the accent and second colour). Both are seamless SVG tiles, drawn the same in the preview.
+- **Checkout card opacity** and **Glass blur**: under 100% the checkout card, the pay page card and the popups turn to frosted glass over the background.
+- **Dark mode**: Off or Follow the payer's device, with its own background, text and accent colours. The Design preview has a light/dark (sun/moon) switch to see both before saving.
+- **Texts**: every payer-facing string can be rewritten, in any language. **Messages**: the Paid, Pending, Failed and Cancelled popups, or a WordPress page or custom URL when paid, with merge tags.
+- Bridge for other plugins: a redirect link builder with merge tags, "Go straight to ifthenpay", signed links through `iftp_btn_payment_url()`, and a signed outgoing webhook (`X-Iftp-Signature`) with retries and a test ping.
+- Gateway Configuration: Backoffice Key connect/disconnect, Gateway Key choice, payment methods table with a default method and **Request Activation**, hosted payment page description with merge tags, expiry days, weekly summary email and display modes.
+- ifthenpay callback with anti-phishing key check on every status, signed return and result links, and automatic expiry of unpaid payments.
+- Payments screen: performance chart, totals by status, search, filters, columns, CSV export, single payment view with timeline, manual status change, copy payment link and payment email.
+- Payer receipt and owner notice once ifthenpay confirms a payment; Dashboard widget; WordPress personal data export and erase.
+- Method logos switch to ifthenpay's dark variants on dark backgrounds, with no box around them.
+- Conditional questions: any checkout question or text block can show only when an earlier choice or agreement is (or isn't) answered a certain way. Hidden questions are neither required nor stored.
+- **Open the checkout on this background** (on by default): clicking a pay button opens the checkout, and the popups after paying, over the pay page's background instead of a dimmed page.
+- **Send to your invoicing app** in a button's After payment tab: each paid payment goes straight to InvoiceXpress, Moloni, Vendus, TOConline or any API, as JSON or form fields written with merge tags (plus `{amount_raw}`, `{unit_price}`, `{nif_final}` and `{date_iso}`), with custom headers, retries, a test that shows the app's reply, and a log of the last deliveries.
+- Buttons screen stats: money collected with the last 30 days drawn under it, the share of opened checkouts that weren't paid (per button and overall), and how full the spots are.

@@ -1,0 +1,1809 @@
+/* ==========================================================================
+   ifthenpay Pay Button — frontend
+   The button takes the theme's own look unless it has a custom one; the checkout sheet, the pay page and the
+   outcome popup are ours, drawn from a few base tokens the site's Checkout look sets (CheckoutLook).
+   ========================================================================== */
+
+/* stylelint-disable selector-class-pattern -- BEM with the iftp-btn- prefix. */
+
+/* Base tokens: what the Checkout look sets. These are its defaults. */
+.iftp-btn-pay,
+.iftp-btn-sheet,
+.iftp-btn-page-body,
+.iftp-btn-look {
+	--iftp-brand: #00609c;
+	--iftp-on-brand: #fff;
+	--iftp-surface: #fdfdfe;
+	--iftp-ink: #121a2c;
+	--iftp-paid: #0b6b35;
+	--iftp-pending: #8a5300;
+	--iftp-failed: #a3201f;
+	--iftp-radius: 20px;
+	--iftp-field-r: 10px;
+	--iftp-field-bg: var(--iftp-surface);
+	--iftp-field-bd: var(--iftp-line-strong);
+	--iftp-field-bw: 1px;
+	--iftp-field-px: 12px;
+	--iftp-sheet-w: 440px;
+	--iftp-backdrop: rgb(12 22 40 / 48%);
+	--iftp-backdrop-blur: 3px;
+	--iftp-result-align: center;
+	--iftp-card-bg: var(--iftp-surface);
+	--iftp-chip-bg: var(--iftp-surface);
+	--iftp-card-filter: none;
+	--iftp-card-ring: 0 0 #0000;
+	--iftp-font: -apple-system, blinkmacsystemfont, "Segoe UI", "Inter", roboto, "Helvetica Neue", arial, sans-serif;
+	--iftp-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+	/* The shades in between, for browsers that can't mix them from the base below. */
+	--iftp-brand-hover: #004f80;
+	--iftp-brand-tint: #e6f1f9;
+	--iftp-ink-2: #2f3a50;
+	--iftp-muted: #66708a;
+	--iftp-inset: #f2f4f8;
+	--iftp-line: rgb(18 26 44 / 10%);
+	--iftp-line-strong: rgb(18 26 44 / 18%);
+	--iftp-paid-bg: #e4f6ea;
+	--iftp-pending-bg: #fff4de;
+	--iftp-failed-bg: #fdeaea;
+	--iftp-ring: 0 0 0 3px rgb(0 96 156 / 24%);
+	--iftp-shadow: 0 4px 12px rgb(16 30 54 / 8%), 0 32px 64px -16px rgb(0 40 70 / 36%);
+}
+
+/* Mixed from the base, so any accent, surface or ink keeps its shades in step (a dark checkout included). */
+@supports (color: color-mix(in srgb, red, blue)) {
+
+	.iftp-btn-pay,
+	.iftp-btn-sheet,
+	.iftp-btn-page-body,
+	.iftp-btn-look {
+		--iftp-brand-hover: color-mix(in srgb, var(--iftp-brand) 84%, #000);
+		--iftp-brand-tint: color-mix(in srgb, var(--iftp-brand) 11%, var(--iftp-surface));
+		--iftp-ink-2: color-mix(in srgb, var(--iftp-ink) 86%, var(--iftp-surface));
+		--iftp-muted: color-mix(in srgb, var(--iftp-ink) 62%, var(--iftp-surface));
+		--iftp-inset: color-mix(in srgb, var(--iftp-ink) 5%, var(--iftp-surface));
+		--iftp-line: color-mix(in srgb, var(--iftp-ink) 10%, transparent);
+		--iftp-line-strong: color-mix(in srgb, var(--iftp-ink) 18%, transparent);
+		--iftp-paid-bg: color-mix(in srgb, var(--iftp-paid) 12%, var(--iftp-surface));
+		--iftp-pending-bg: color-mix(in srgb, var(--iftp-pending) 12%, var(--iftp-surface));
+		--iftp-failed-bg: color-mix(in srgb, var(--iftp-failed) 11%, var(--iftp-surface));
+		--iftp-ring: 0 0 0 3px color-mix(in srgb, var(--iftp-brand) 24%, transparent);
+	}
+}
+
+/* Dark mode: on a payer's dark device, a look that follows it swaps its colours for the dark ones it carries
+   (CheckoutLook::dark_palette()). Important, so it also wins over a button's own look set inline. */
+@media (prefers-color-scheme: dark) {
+
+	.iftp-btn-dark {
+		--iftp-brand: var(--iftp-dark-brand) !important;
+		--iftp-on-brand: var(--iftp-dark-on-brand) !important;
+		--iftp-surface: var(--iftp-dark-surface) !important;
+		--iftp-ink: var(--iftp-dark-ink) !important;
+		--iftp-card-bg: var(--iftp-dark-card-bg) !important;
+		--iftp-chip-bg: var(--iftp-dark-chip-bg) !important;
+		--iftp-logo-filter: var(--iftp-dark-logo-filter) !important;
+		--iftp-page-bg: var(--iftp-dark-page-bg) !important;
+		--iftp-page-glow: var(--iftp-dark-page-glow) !important;
+		--iftp-page-glow2: var(--iftp-dark-page-glow2) !important;
+		--iftp-page-orb: var(--iftp-dark-page-orb) !important;
+		--iftp-page-orb2: var(--iftp-dark-page-orb2) !important;
+		color-scheme: dark;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   The button
+   -------------------------------------------------------------------------- */
+.iftp-btn-pay {
+	display: block;
+}
+
+.iftp-btn-pay.alignleft,
+.iftp-btn-pay--align-left {
+	text-align: left;
+}
+
+.iftp-btn-pay.aligncenter,
+.iftp-btn-pay--align-center {
+	text-align: center;
+}
+
+.iftp-btn-pay.alignright,
+.iftp-btn-pay--align-right {
+	text-align: right;
+}
+
+.iftp-btn-pay__button {
+	cursor: pointer;
+}
+
+.iftp-btn-pay__button:disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
+.iftp-btn-pay__admin-hint {
+	display: block;
+	margin-top: 6px;
+	color: var(--iftp-failed);
+	font-family: var(--iftp-font);
+	font-size: 13px;
+}
+
+/* Icon and text inside any button look, the theme's included. */
+.iftp-btn-pay__button:has(.iftp-btn-pay__icon) {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+}
+
+.iftp-btn-pay__icon {
+	flex: none;
+	width: 1.15em;
+	height: 1.15em;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--full {
+	display: flex;
+	width: 100%;
+	justify-content: center;
+}
+
+/* --------------------------------------------------------------------------
+   Custom look: drawn from the CSS variables ButtonDesign sets inline.
+   Two classes deep, so it beats a theme's bare `button` and `.wp-element-button` rules. Size only sets
+   variables, which the base rule reads with fallbacks.
+   -------------------------------------------------------------------------- */
+.iftp-btn-pay .iftp-btn-pay__button--custom {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+	min-height: 0;
+	margin: 0;
+	padding: var(--iftp-pb-pad, 0.8em 1.45em);
+	color: var(--iftp-pb-text);
+	background: var(--iftp-pb-color);
+	border: 2px solid var(--iftp-pb-color);
+	border-radius: var(--iftp-pb-radius);
+	box-shadow: none;
+	font-family: inherit;
+	font-size: var(--iftp-pb-size, 16px);
+	font-weight: 650;
+	line-height: 1.2;
+	letter-spacing: 0.005em;
+	text-align: center;
+	text-decoration: none;
+	text-shadow: none;
+	text-transform: none;
+	cursor: pointer;
+	transition: background-color 160ms var(--iftp-ease), border-color 160ms var(--iftp-ease), box-shadow 200ms var(--iftp-ease), filter 160ms var(--iftp-ease), transform 160ms var(--iftp-ease);
+}
+
+.iftp-btn-pay__button--sm {
+	--iftp-pb-pad: 0.6em 1.15em;
+	--iftp-pb-size: 14px;
+}
+
+.iftp-btn-pay__button--lg {
+	--iftp-pb-pad: 0.9em 1.8em;
+	--iftp-pb-size: 18px;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--custom:hover:not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--custom:focus:not(:disabled) {
+	color: var(--iftp-pb-text);
+	background: var(--iftp-pb-color);
+	border-color: var(--iftp-pb-color);
+	text-decoration: none;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--filled:hover:not(:disabled) {
+	filter: brightness(0.92) saturate(1.05);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--outline,
+.iftp-btn-pay .iftp-btn-pay__button--outline:focus:not(:disabled) {
+	background: transparent;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--outline:hover:not(:disabled) {
+	background: var(--iftp-pb-tint);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--soft,
+.iftp-btn-pay .iftp-btn-pay__button--soft:focus:not(:disabled) {
+	background: var(--iftp-pb-tint);
+	border-color: transparent;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--soft:hover:not(:disabled) {
+	background: var(--iftp-pb-tint-strong);
+	border-color: transparent;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--shadow {
+	box-shadow: 0 1px 2px rgb(16 30 54 / 10%), 0 10px 24px -10px var(--iftp-pb-glow);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--shadow:hover:not(:disabled) {
+	box-shadow: 0 2px 4px rgb(16 30 54 / 10%), 0 14px 30px -10px var(--iftp-pb-glow);
+	transform: translateY(-1px);
+}
+
+/* Gradient: the two colours, sliding along on hover. */
+.iftp-btn-pay .iftp-btn-pay__button--gradient,
+.iftp-btn-pay .iftp-btn-pay__button--gradient:hover:not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--gradient:focus:not(:disabled) {
+	background: linear-gradient(120deg, var(--iftp-pb-color), var(--iftp-pb-color2, var(--iftp-pb-color)), var(--iftp-pb-color)) 0 0 / 200% 100%;
+	border-color: transparent;
+	transition: background-position 420ms var(--iftp-ease), box-shadow 200ms var(--iftp-ease), filter 160ms var(--iftp-ease), transform 160ms var(--iftp-ease);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--gradient:hover:not(:disabled) {
+	background-position: 100% 0;
+}
+
+/* Glass: the colour see-through and frosted, with a light top edge; it reads on light and dark pages alike,
+   and shines over a photo or a colourful section. */
+.iftp-btn-pay .iftp-btn-pay__button--glass,
+.iftp-btn-pay .iftp-btn-pay__button--glass:focus:not(:disabled) {
+	background:
+		linear-gradient(rgb(255 255 255 / 26%), rgb(255 255 255 / 2%)),
+		var(--iftp-pb-glass, var(--iftp-pb-color));
+	border: 1px solid rgb(255 255 255 / 40%);
+	box-shadow: inset 0 1px 0 rgb(255 255 255 / 50%), 0 8px 24px -14px var(--iftp-pb-glow);
+	backdrop-filter: blur(10px) saturate(1.6);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--glass:hover:not(:disabled) {
+	background:
+		linear-gradient(rgb(255 255 255 / 34%), rgb(255 255 255 / 6%)),
+		var(--iftp-pb-glass, var(--iftp-pb-color));
+	border-color: rgb(255 255 255 / 55%);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--upper {
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+/* Lift: it rises on hover, its glow growing under it. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-lift:hover:not(:disabled) {
+	box-shadow: 0 3px 6px rgb(16 30 54 / 12%), 0 16px 30px -12px var(--iftp-pb-glow);
+	transform: translateY(-2px);
+}
+
+/* Shine: a band of light sweeps across on hover. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-shine {
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--fx-shine::after {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 45%) 50%, transparent 65%) -150% 0 / 250% 100% no-repeat;
+	pointer-events: none;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--fx-shine:hover:not(:disabled)::after {
+	animation: iftp-btn-shine 900ms var(--iftp-ease);
+}
+
+/* The filled look's hover darkening would dull the light. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-shine:hover:not(:disabled) {
+	filter: none;
+}
+
+@keyframes iftp-btn-shine {
+
+	to {
+		background-position: 250% 0;
+	}
+}
+
+/* Pulse: a soft ring that keeps breathing out from the button, until it's hovered. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-pulse:not(:disabled) {
+	animation: iftp-btn-pulse 2.2s var(--iftp-ease) infinite;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--fx-pulse:hover:not(:disabled) {
+	animation: none;
+}
+
+@keyframes iftp-btn-pulse {
+
+	0% {
+		box-shadow: 0 0 0 0 var(--iftp-pb-glow);
+	}
+
+	70%,
+	100% {
+		box-shadow: 0 0 0 14px rgb(0 0 0 / 0%);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.iftp-btn-pay .iftp-btn-pay__button--fx-pulse:not(:disabled),
+	.iftp-btn-pay .iftp-btn-pay__button--fx-shine:hover:not(:disabled)::after {
+		animation: none;
+	}
+
+	.iftp-btn-pay .iftp-btn-pay__button--fx-lift:hover:not(:disabled) {
+		transform: none;
+	}
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--custom:active:not(:disabled) {
+	transform: translateY(1px);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--custom:focus-visible {
+	outline: 2px solid var(--iftp-pb-color);
+	outline-offset: 3px;
+}
+
+/* The offered methods under the button. Inline, so they follow the block's alignment. */
+.iftp-btn-pay__logos {
+	display: block;
+	margin-top: 10px;
+	line-height: 0;
+}
+
+.iftp-btn-pay__logos img {
+	display: inline-block;
+	width: auto;
+	max-width: 56px;
+	height: 16px;
+	margin: 0 4px;
+	vertical-align: middle;
+	object-fit: contain;
+}
+
+
+/* --------------------------------------------------------------------------
+   Dialogs: the sheet is a column, so a long form scrolls inside it while its header and actions stay put
+   -------------------------------------------------------------------------- */
+.iftp-btn-sheet {
+	box-sizing: border-box;
+	width: min(var(--iftp-sheet-w), calc(100vw - 24px));
+	max-height: min(760px, calc(100dvh - 24px));
+	margin: auto;
+	padding: 0;
+	overflow: hidden;
+	color: var(--iftp-ink);
+	background: var(--iftp-card-bg, var(--iftp-surface));
+	border: 0;
+	border-radius: var(--iftp-radius);
+	box-shadow: var(--iftp-card-ring, 0 0 #0000), var(--iftp-shadow);
+	font-family: var(--iftp-font);
+	backdrop-filter: var(--iftp-card-filter, none);
+}
+
+.iftp-btn-sheet[open] {
+	display: flex;
+	flex-direction: column;
+	animation: iftp-btn-rise 240ms var(--iftp-ease);
+}
+
+.iftp-btn-sheet:focus {
+	outline: none;
+}
+
+.iftp-btn-sheet::backdrop {
+	background: var(--iftp-backdrop, rgb(12 22 40 / 48%));
+	backdrop-filter: blur(var(--iftp-backdrop-blur, 3px));
+}
+
+.iftp-btn-sheet > .iftp-btn-form {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+@keyframes iftp-btn-rise {
+
+	from {
+		opacity: 0;
+		transform: translateY(12px) scale(0.98);
+	}
+}
+
+/* A button's own font choice, over the site's. */
+.iftp-btn-sheet.iftp-btn-font--theme,
+.iftp-btn-font--theme .iftp-btn-form {
+	font-family: inherit;
+}
+
+.iftp-btn-sheet.iftp-btn-font--system,
+.iftp-btn-font--system .iftp-btn-form {
+	font-family: var(--iftp-font);
+}
+
+/* --------------------------------------------------------------------------
+   Scene: the dialog fills the screen with the pay page's background (the pagebg classes below), and the
+   form or outcome box is the card on it. A click outside the card still lands on the dialog, which closes it.
+   -------------------------------------------------------------------------- */
+.iftp-btn-sheet--scene {
+	width: 100vw;
+	max-width: none;
+	height: 100vh;
+	height: 100dvh;
+	max-height: none;
+	margin: 0;
+	border-radius: 0;
+	box-shadow: none;
+	isolation: isolate;
+	backdrop-filter: none;
+}
+
+.iftp-btn-sheet--scene[open] {
+	display: grid;
+	place-items: center;
+	padding: 24px 16px;
+	animation: iftp-btn-fade 220ms var(--iftp-ease);
+}
+
+.iftp-btn-sheet--scene::backdrop {
+	background: none;
+	backdrop-filter: none;
+}
+
+/* The layers stay inside the dialog; two classes, so this beats the pay page's fixed layers further down. */
+.iftp-btn-sheet.iftp-btn-sheet--scene::before,
+.iftp-btn-sheet.iftp-btn-sheet--scene::after {
+	position: absolute;
+}
+
+.iftp-btn-sheet--scene > .iftp-btn-form,
+.iftp-btn-sheet--scene > .iftp-btn-result__box {
+	width: 100%;
+	max-width: var(--iftp-sheet-w);
+	max-height: min(760px, calc(100dvh - 48px));
+	color: var(--iftp-ink);
+	background: var(--iftp-card-bg, var(--iftp-surface));
+	border-radius: var(--iftp-radius);
+	box-shadow: var(--iftp-card-ring, 0 0 #0000), var(--iftp-shadow);
+	overflow: hidden;
+	backdrop-filter: var(--iftp-card-filter, none);
+	animation: iftp-btn-rise 240ms var(--iftp-ease);
+}
+
+.iftp-btn-sheet--scene > .iftp-btn-result__box {
+	overflow-y: auto;
+}
+
+@keyframes iftp-btn-fade {
+
+	from {
+		opacity: 0;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Checkout form (in a dialog, or on the pay page)
+   -------------------------------------------------------------------------- */
+.iftp-btn-form {
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	color: var(--iftp-ink);
+	font-family: var(--iftp-font);
+	font-size: 15px;
+	line-height: 1.45;
+	text-align: left;
+}
+
+.iftp-btn-form *,
+.iftp-btn-form *::before,
+.iftp-btn-form *::after {
+	box-sizing: border-box;
+}
+
+.iftp-btn-form__header {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 28px;
+	padding: 18px 22px 0;
+}
+
+.iftp-btn-form__site {
+	color: var(--iftp-muted);
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+.iftp-btn-form__close {
+	display: inline-grid;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	margin: -4px -6px -4px 0;
+	padding: 0;
+	color: var(--iftp-muted);
+	background: transparent;
+	border: 0;
+	border-radius: 999px;
+	cursor: pointer;
+}
+
+.iftp-btn-form__close:hover {
+	color: var(--iftp-ink);
+	background: var(--iftp-inset);
+}
+
+/* The body scrolls on its own; the soft shadows at its edges only show while there's more to scroll to. */
+.iftp-btn-form__body {
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 16px 22px 6px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: thin;
+
+	/* A see-through card sets --iftp-body-bg to transparent; the shading needs a solid one to hide behind. */
+	background: var(--iftp-body-bg,
+		linear-gradient(var(--iftp-surface) 30%, transparent) top / 100% 28px no-repeat local,
+		linear-gradient(transparent, var(--iftp-surface) 70%) bottom / 100% 28px no-repeat local,
+		radial-gradient(farthest-side at 50% 0, rgb(16 30 54 / 14%), transparent) top / 100% 10px no-repeat scroll,
+		radial-gradient(farthest-side at 50% 100%, rgb(16 30 54 / 14%), transparent) bottom / 100% 10px no-repeat scroll,
+		var(--iftp-surface));
+}
+
+.iftp-btn-form__step {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	align-content: start;
+	gap: 16px 12px;
+}
+
+.iftp-btn-form__step[hidden] {
+	display: none;
+}
+
+/* Shown or hidden by an earlier answer (checkout.js bindConditions). */
+.iftp-btn-form [data-iftp-btn-when][hidden] {
+	display: none;
+}
+
+.iftp-btn-form [data-iftp-btn-when].is-revealed {
+	animation: iftp-btn-reveal 220ms var(--iftp-ease);
+}
+
+@keyframes iftp-btn-reveal {
+
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+}
+
+.iftp-btn-form__step > * {
+	grid-column: 1 / -1;
+}
+
+.iftp-btn-form__step > .iftp-btn-form__field--half {
+	grid-column: auto;
+}
+
+.iftp-btn-form__step.is-forward {
+	animation: iftp-btn-step-forward 260ms var(--iftp-ease);
+}
+
+.iftp-btn-form__step.is-backward {
+	animation: iftp-btn-step-backward 260ms var(--iftp-ease);
+}
+
+@keyframes iftp-btn-step-forward {
+
+	from {
+		opacity: 0;
+		transform: translateX(14px);
+	}
+}
+
+@keyframes iftp-btn-step-backward {
+
+	from {
+		opacity: 0;
+		transform: translateX(-14px);
+	}
+}
+
+.iftp-btn-form__summary {
+	display: grid;
+	gap: 4px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid var(--iftp-line);
+}
+
+.iftp-btn-form .iftp-btn-form__title {
+	margin: 0;
+	padding: 0;
+	color: var(--iftp-ink);
+	font-family: inherit;
+	font-size: 19px;
+	font-weight: 700;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+	text-transform: none;
+}
+
+.iftp-btn-form .iftp-btn-form__text {
+	margin: 0;
+	color: var(--iftp-muted);
+	font-size: 14px;
+}
+
+.iftp-btn-form .iftp-btn-form__amount {
+	margin: 6px 0 0;
+	color: var(--iftp-ink);
+	font-size: 30px;
+	font-weight: 750;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+	font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Step bar: one segment per step. Done ones are full; the current one fills as its fields are answered.
+   -------------------------------------------------------------------------- */
+.iftp-btn-steps {
+	display: grid;
+	flex: none;
+	gap: 9px;
+	padding: 14px 22px 2px;
+}
+
+.iftp-btn-steps__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	min-width: 0;
+}
+
+.iftp-btn-steps__title {
+	overflow: hidden;
+	color: var(--iftp-ink);
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: -0.005em;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.iftp-btn-steps__count {
+	flex: none;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.iftp-btn-form .iftp-btn-steps__track {
+	display: grid;
+	grid-template-columns: repeat(var(--iftp-steps, 2), minmax(0, 1fr));
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.iftp-btn-form .iftp-btn-steps__bar {
+	position: relative;
+	height: 5px;
+	margin: 0;
+	overflow: hidden;
+	border-radius: 999px;
+	background: var(--iftp-line);
+}
+
+.iftp-btn-steps__fill {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: var(--iftp-brand);
+	transform: scaleX(var(--iftp-fill, 0));
+	transform-origin: left center;
+	transition: transform 420ms var(--iftp-ease);
+}
+
+.iftp-btn-steps__bar.is-current .iftp-btn-steps__fill {
+	transform: scaleX(max(0.08, var(--iftp-fill, 0)));
+}
+
+.iftp-btn-steps__bar.is-done .iftp-btn-steps__fill {
+	transform: scaleX(1);
+}
+
+.iftp-btn-steps__sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Fields
+   -------------------------------------------------------------------------- */
+.iftp-btn-form__field {
+	display: grid;
+	align-content: start;
+	gap: 6px;
+	min-width: 0;
+}
+
+fieldset.iftp-btn-form__field {
+	display: block;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.iftp-btn-form__label {
+	color: var(--iftp-ink-2);
+	font-size: 13px;
+	font-weight: 600;
+}
+
+legend.iftp-btn-form__label {
+	margin-bottom: 8px;
+	padding: 0;
+}
+
+.iftp-btn-form__optional {
+	color: var(--iftp-muted);
+	font-weight: 400;
+}
+
+.iftp-btn-form .iftp-btn-form__input {
+	width: 100%;
+	min-height: 44px;
+	margin: 0;
+	padding: 10px var(--iftp-field-px);
+	color: var(--iftp-ink);
+	background: var(--iftp-field-bg);
+	border-color: var(--iftp-field-bd);
+	border-style: solid;
+	border-width: var(--iftp-field-bw);
+	border-radius: var(--iftp-field-r);
+	box-shadow: none;
+	font: inherit;
+	font-size: 16px;
+	line-height: 1.3;
+	transition: border-color 140ms var(--iftp-ease), box-shadow 140ms var(--iftp-ease), background-color 140ms var(--iftp-ease);
+}
+
+.iftp-btn-form textarea.iftp-btn-form__input {
+	min-height: 64px;
+	resize: vertical;
+}
+
+.iftp-btn-form .iftp-btn-form__input:focus {
+	border-color: var(--iftp-brand);
+	outline: none;
+	box-shadow: var(--iftp-field-focus, var(--iftp-ring));
+}
+
+.iftp-btn-form .iftp-btn-form__input::placeholder {
+	color: var(--iftp-muted);
+	opacity: 0.8;
+}
+
+.iftp-btn-form__select {
+	position: relative;
+	display: block;
+}
+
+.iftp-btn-form select.iftp-btn-form__input {
+	padding-right: 38px;
+	appearance: none;
+	cursor: pointer;
+}
+
+.iftp-btn-form__select::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	right: 16px;
+	width: 8px;
+	height: 8px;
+	border-right: 2px solid var(--iftp-muted);
+	border-bottom: 2px solid var(--iftp-muted);
+	transform: translateY(-70%) rotate(45deg);
+	pointer-events: none;
+}
+
+.iftp-btn-form__money {
+	position: relative;
+	display: block;
+}
+
+.iftp-btn-form .iftp-btn-form__money .iftp-btn-form__input {
+	padding-right: 36px;
+	font-size: 20px;
+	font-weight: 650;
+	font-variant-numeric: tabular-nums;
+}
+
+.iftp-btn-form__currency {
+	position: absolute;
+	top: 50%;
+	right: 14px;
+	color: var(--iftp-muted);
+	font-size: 18px;
+	font-weight: 600;
+	transform: translateY(-50%);
+	pointer-events: none;
+}
+
+.iftp-btn-form__help {
+	color: var(--iftp-muted);
+	font-size: 12.5px;
+}
+
+fieldset .iftp-btn-form__help {
+	display: block;
+	margin-top: 6px;
+}
+
+/* Choices: each option a tappable row. */
+.iftp-btn-form__choices {
+	display: grid;
+	gap: 8px;
+}
+
+.iftp-btn-form__choice,
+.iftp-btn-form__agree {
+	display: flex;
+	align-items: center;
+	gap: 11px;
+	color: var(--iftp-ink-2);
+	font-size: 14.5px;
+	cursor: pointer;
+}
+
+.iftp-btn-form__choice {
+	min-height: 46px;
+	padding: 10px 12px;
+	background: var(--iftp-chip-bg, var(--iftp-surface));
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-field-r);
+	transition: border-color 140ms var(--iftp-ease), background-color 140ms var(--iftp-ease);
+}
+
+.iftp-btn-form__choice:hover {
+	border-color: var(--iftp-brand);
+}
+
+.iftp-btn-form__choice:has(:checked) {
+	color: var(--iftp-ink);
+	background: var(--iftp-brand-tint);
+	border-color: var(--iftp-brand);
+}
+
+.iftp-btn-form__agree {
+	align-items: flex-start;
+	line-height: 1.4;
+}
+
+.iftp-btn-form__agree .iftp-btn-form__tick {
+	margin-top: 1px;
+}
+
+.iftp-btn-form .iftp-btn-form__tick {
+	display: inline-grid;
+	flex: none;
+	place-content: center;
+	width: 20px;
+	height: 20px;
+	margin: 0;
+	padding: 0;
+	background: var(--iftp-surface);
+	border: 1.5px solid var(--iftp-muted);
+	border-radius: 6px;
+	box-shadow: none;
+	cursor: pointer;
+	appearance: none;
+	transition: background-color 140ms var(--iftp-ease), border-color 140ms var(--iftp-ease), box-shadow 140ms var(--iftp-ease);
+}
+
+.iftp-btn-form .iftp-btn-form__tick[type="radio"] {
+	border-radius: 50%;
+}
+
+.iftp-btn-form .iftp-btn-form__tick:checked {
+	background: var(--iftp-brand);
+	border-color: var(--iftp-brand);
+}
+
+.iftp-btn-form .iftp-btn-form__tick[type="radio"]:checked {
+	box-shadow: inset 0 0 0 4px var(--iftp-surface);
+}
+
+.iftp-btn-form .iftp-btn-form__tick[type="checkbox"]:checked::before {
+	content: "";
+	width: 10px;
+	height: 5px;
+	margin-top: -2px;
+	border-bottom: 2px solid var(--iftp-on-brand);
+	border-left: 2px solid var(--iftp-on-brand);
+	transform: rotate(-45deg);
+}
+
+.iftp-btn-form .iftp-btn-form__tick:focus-visible {
+	outline: none;
+	box-shadow: var(--iftp-ring);
+}
+
+.iftp-btn-form .iftp-btn-form__tick[type="radio"]:checked:focus-visible {
+	box-shadow: inset 0 0 0 4px var(--iftp-surface), var(--iftp-ring);
+}
+
+/* Spots: an option's price and what's left beside it, a sold-out one greyed out. */
+.iftp-btn-form__choice-text {
+	flex: 1;
+	min-width: 0;
+}
+
+.iftp-btn-form__choice-meta {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: 8px;
+}
+
+.iftp-btn-form__choice-price {
+	color: var(--iftp-ink);
+	font-weight: 650;
+	font-variant-numeric: tabular-nums;
+}
+
+.iftp-btn-form__badge {
+	padding: 2px 8px;
+	color: var(--iftp-pending);
+	background: var(--iftp-pending-bg);
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 650;
+	white-space: nowrap;
+}
+
+.iftp-btn-form__badge--out {
+	color: var(--iftp-failed);
+	background: var(--iftp-failed-bg);
+}
+
+.iftp-btn-form__choice.is-sold-out {
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+.iftp-btn-form__choice.is-sold-out:hover {
+	border-color: var(--iftp-line-strong);
+}
+
+.iftp-btn-form__choice.is-sold-out .iftp-btn-form__choice-text {
+	text-decoration: line-through;
+}
+
+.iftp-btn-form .iftp-btn-form__left {
+	justify-self: start;
+	margin: 8px 0 0;
+	padding: 3px 10px;
+	color: var(--iftp-pending);
+	background: var(--iftp-pending-bg);
+	border-radius: 999px;
+	font-size: 13px;
+	font-weight: 650;
+}
+
+/* Quantity: − and + either side of the number. */
+.iftp-btn-form__stepper {
+	display: inline-flex;
+	align-items: stretch;
+	justify-self: start;
+	gap: 6px;
+}
+
+.iftp-btn-form .iftp-btn-form__stepper .iftp-btn-form__input {
+	width: 76px;
+	text-align: center;
+	font-size: 17px;
+	font-weight: 650;
+	font-variant-numeric: tabular-nums;
+	appearance: textfield;
+}
+
+.iftp-btn-form__stepper .iftp-btn-form__input::-webkit-inner-spin-button,
+.iftp-btn-form__stepper .iftp-btn-form__input::-webkit-outer-spin-button {
+	margin: 0;
+	appearance: none;
+}
+
+.iftp-btn-form .iftp-btn-form__stepper-button {
+	display: inline-grid;
+	place-content: center;
+	width: 44px;
+	min-height: 44px;
+	margin: 0;
+	padding: 0;
+	color: var(--iftp-ink-2);
+	background: var(--iftp-inset);
+	border: 1px solid transparent;
+	border-radius: var(--iftp-field-r);
+	cursor: pointer;
+	transition: background-color 140ms var(--iftp-ease), color 140ms var(--iftp-ease);
+}
+
+.iftp-btn-form .iftp-btn-form__stepper-button:hover:not(:disabled) {
+	color: var(--iftp-brand);
+	background: var(--iftp-brand-tint);
+}
+
+.iftp-btn-form .iftp-btn-form__stepper-button:focus-visible {
+	outline: none;
+	box-shadow: var(--iftp-ring);
+}
+
+.iftp-btn-form .iftp-btn-form__stepper-button:disabled {
+	cursor: default;
+	opacity: 0.45;
+}
+
+/* Text blocks between fields. */
+.iftp-btn-form__content {
+	display: grid;
+	gap: 4px;
+	padding-top: 4px;
+}
+
+.iftp-btn-form .iftp-btn-form__heading {
+	margin: 0;
+	color: var(--iftp-ink);
+	font-size: 15.5px;
+	font-weight: 700;
+	line-height: 1.35;
+}
+
+.iftp-btn-form__content .iftp-btn-form__help {
+	margin: 0;
+	font-size: 13.5px;
+	line-height: 1.5;
+}
+
+.iftp-btn-form__presets {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.iftp-btn-form .iftp-btn-form__preset {
+	min-height: 38px;
+	margin: 0;
+	padding: 6px 14px;
+	color: var(--iftp-ink-2);
+	background: var(--iftp-inset);
+	border: 1px solid transparent;
+	border-radius: 999px;
+	font: inherit;
+	font-size: 14px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	cursor: pointer;
+	transition: background-color 140ms var(--iftp-ease), color 140ms var(--iftp-ease), border-color 140ms var(--iftp-ease);
+}
+
+.iftp-btn-form .iftp-btn-form__preset:hover {
+	background: var(--iftp-brand-tint);
+}
+
+.iftp-btn-form .iftp-btn-form__preset[aria-pressed="true"] {
+	color: var(--iftp-brand);
+	background: var(--iftp-brand-tint);
+	border-color: var(--iftp-brand);
+}
+
+/* The honeypot: out of sight and out of the tab order, but still in the form. */
+.iftp-btn-form__trap {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Actions and footer
+   -------------------------------------------------------------------------- */
+.iftp-btn-form__actions {
+	display: grid;
+	flex: none;
+	gap: 10px;
+	padding: 12px 22px 0;
+}
+
+.iftp-btn-form__actions:last-child {
+	padding-bottom: 20px;
+}
+
+.iftp-btn-form .iftp-btn-form__error {
+	margin: 0;
+	padding: 10px 12px;
+	color: var(--iftp-failed);
+	background: var(--iftp-failed-bg);
+	border-radius: 10px;
+	font-size: 14px;
+}
+
+.iftp-btn-form__buttons {
+	display: flex;
+	gap: 10px;
+}
+
+.iftp-btn-form .iftp-btn-form__back {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: 4px;
+	min-height: 50px;
+	margin: 0;
+	padding: 0 16px 0 12px;
+	color: var(--iftp-ink-2);
+	background: var(--iftp-inset);
+	border: 0;
+	border-radius: calc(var(--iftp-field-r) + 2px);
+	font: inherit;
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 140ms var(--iftp-ease), color 140ms var(--iftp-ease);
+}
+
+.iftp-btn-form .iftp-btn-form__back:hover {
+	color: var(--iftp-ink);
+	background: var(--iftp-line);
+}
+
+.iftp-btn-form .iftp-btn-form__back[hidden] {
+	display: none;
+}
+
+.iftp-btn-form .iftp-btn-form__submit {
+	position: relative;
+	display: inline-flex;
+	flex: 1;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	width: 100%;
+	min-height: 50px;
+	margin: 0;
+	padding: 12px 18px;
+	color: var(--iftp-on-brand);
+	background: var(--iftp-brand);
+	border: 0;
+	border-radius: calc(var(--iftp-field-r) + 2px);
+	font: inherit;
+	font-size: 16px;
+	font-weight: 650;
+	letter-spacing: 0.005em;
+	cursor: pointer;
+	transition: background-color 140ms var(--iftp-ease), transform 140ms var(--iftp-ease);
+}
+
+.iftp-btn-form .iftp-btn-form__submit:hover {
+	background: var(--iftp-brand-hover);
+}
+
+.iftp-btn-form .iftp-btn-form__submit:active {
+	transform: translateY(1px);
+}
+
+.iftp-btn-form .iftp-btn-form__submit:focus-visible,
+.iftp-btn-form .iftp-btn-form__back:focus-visible {
+	outline: 2px solid var(--iftp-brand);
+	outline-offset: 3px;
+}
+
+.iftp-btn-form .iftp-btn-form__submit:disabled {
+	cursor: progress;
+	opacity: 0.85;
+}
+
+.iftp-btn-form__spinner {
+	display: none;
+	width: 18px;
+	height: 18px;
+	border: 2px solid currentcolor;
+	border-top-color: transparent;
+	border-radius: 999px;
+	animation: iftp-btn-spin 700ms linear infinite;
+}
+
+.iftp-btn-form.is-busy .iftp-btn-form__spinner {
+	display: inline-block;
+}
+
+@keyframes iftp-btn-spin {
+
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.iftp-btn-form__footer {
+	display: grid;
+	flex: none;
+	justify-items: center;
+	gap: 10px;
+	padding: 14px 22px 18px;
+}
+
+.iftp-btn-form .iftp-btn-form__methods {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 14px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Bare logos, no chip: method-logos.js swaps in ifthenpay's dark variants on a dark background. */
+.iftp-btn-form__methods li {
+	display: inline-grid;
+	place-items: center;
+	height: 24px;
+	margin: 0;
+	padding: 0;
+}
+
+.iftp-btn-form__methods img {
+	display: block;
+	width: auto;
+	max-width: 64px;
+	height: 18px;
+	object-fit: contain;
+}
+
+.iftp-btn-form__secure {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--iftp-muted);
+	font-size: 12px;
+}
+
+.iftp-btn-form__secure img {
+	display: block;
+	width: auto;
+	height: 14px;
+	filter: var(--iftp-logo-filter, none);
+}
+
+/* --------------------------------------------------------------------------
+   Pay page: the page itself scrolls, so the body doesn't need to
+   -------------------------------------------------------------------------- */
+.iftp-btn-page-body {
+	position: relative;
+	min-height: 100vh;
+	margin: 0;
+	background: var(--iftp-page-bg, #eef1f6);
+	font-family: var(--iftp-font);
+	isolation: isolate;
+}
+
+/* Pay page backgrounds. Also on the admin preview's page layer, which is why they're plain classes. */
+.iftp-btn-pagebg--glow {
+	background:
+		radial-gradient(1200px 600px at 50% -10%, var(--iftp-page-glow, rgb(0 96 156 / 16%)) 0%, transparent 60%),
+		var(--iftp-page-bg, #eef1f6);
+}
+
+.iftp-btn-pagebg--plain {
+	background: var(--iftp-page-bg, #eef1f6);
+}
+
+.iftp-btn-pagebg--gradient {
+	background:
+		radial-gradient(circle at 100% 100%, var(--iftp-page-glow2, rgb(0 96 156 / 16%)), transparent 55%),
+		linear-gradient(155deg, var(--iftp-page-glow, rgb(0 96 156 / 16%)) 0%, transparent 60%),
+		var(--iftp-page-bg, #eef1f6);
+}
+
+/* Aurora: soft orbs of the two colours drifting across the page. */
+.iftp-btn-pagebg--gradient.iftp-btn-pagegrad--aurora {
+	background:
+		radial-gradient(42% 52% at 12% 18%, var(--iftp-page-orb, rgb(0 96 156 / 45%)) 0%, transparent 70%),
+		radial-gradient(46% 56% at 88% 28%, var(--iftp-page-orb2, rgb(0 167 226 / 45%)) 0%, transparent 70%),
+		radial-gradient(55% 60% at 55% 100%, var(--iftp-page-orb, rgb(0 96 156 / 45%)) 0%, transparent 72%),
+		var(--iftp-page-bg, #eef1f6);
+}
+
+.iftp-btn-pagebg--gradient.iftp-btn-pagegrad--diagonal {
+	background:
+		linear-gradient(135deg, var(--iftp-page-orb, rgb(0 96 156 / 45%)) 0%, transparent 55%),
+		linear-gradient(315deg, var(--iftp-page-orb2, rgb(0 167 226 / 45%)) 0%, transparent 55%),
+		var(--iftp-page-bg, #eef1f6);
+}
+
+/* A video shows the image (if any) while it loads, and to payers who'd rather not have motion. */
+.iftp-btn-pagebg--image,
+.iftp-btn-pagebg--video {
+	background:
+		var(--iftp-page-image, none) center / cover no-repeat,
+		var(--iftp-page-bg, #eef1f6);
+}
+
+/* Layers over the background, under the page: the dim (and frost) on top, a blurred copy of the image under it. */
+.iftp-btn-pagebg--image::before,
+.iftp-btn-pagebg--image::after,
+.iftp-btn-pagebg--video::before,
+.iftp-btn-pagefx--crystals:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after,
+.iftp-btn-pagefx--waves:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after,
+.iftp-btn-pagefx--bokeh:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after,
+.iftp-btn-pagefx--grain:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after {
+	content: "";
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+}
+
+/* The image's blur types don't reach a video, frost included; it has its own blur. */
+.iftp-btn-pagebg--video {
+	--iftp-page-frost: transparent;
+}
+
+/* Fixed with its layers, so the sharp and blurred copies line up while the page scrolls. */
+.iftp-btn-page-body.iftp-btn-pagebg--image,
+.iftp-btn-page-body.iftp-btn-pagebg--video {
+	background-attachment: fixed;
+}
+
+.iftp-btn-pagebg--image::before,
+.iftp-btn-pagebg--video::before {
+	z-index: -1;
+	background:
+		linear-gradient(var(--iftp-page-frost, transparent), var(--iftp-page-frost, transparent)),
+		linear-gradient(var(--iftp-page-dim, rgb(0 0 0 / 35%)), var(--iftp-page-dim, rgb(0 0 0 / 35%)));
+}
+
+/* No blur: the image layer stays empty. */
+.iftp-btn-pagebg--image.iftp-btn-pageblur--none::after {
+	content: none;
+}
+
+/* Blurred copy, bigger than the page so its soft edges stay out of sight; the blur type masks where it shows. */
+.iftp-btn-pagebg--image::after {
+	z-index: -2;
+	inset: calc(var(--iftp-page-blur, 12px) * -2);
+	background: var(--iftp-page-image, none) center / cover no-repeat;
+	filter: var(--iftp-page-blur-filter, blur(12px));
+	mask-image: var(--iftp-page-blur-mask, none);
+}
+
+/* The video: under the dim, cut to cover. Blurred, it grows past the edges so they don't go soft. */
+.iftp-btn-pagevideo {
+	position: fixed;
+	z-index: -2;
+	inset: calc(var(--iftp-page-video-blur, 0px) * -2);
+	overflow: hidden;
+	pointer-events: none;
+	container-type: size;
+	filter: blur(var(--iftp-page-video-blur, 0px));
+}
+
+.iftp-btn-sheet--scene > .iftp-btn-pagevideo {
+	position: absolute;
+}
+
+.iftp-btn-pagevideo__media {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	object-fit: cover;
+}
+
+/* A YouTube or Vimeo player has no object-fit, so it's sized to cover its box at 16:9, and a little more, so
+   the title and "More videos" YouTube draws at its edges fall outside. */
+.iftp-btn-pagevideo__media--embed {
+	inset: auto;
+	top: 50%;
+	left: 50%;
+	width: max(100cqw, 177.78cqh);
+	height: max(100cqh, 56.25cqw);
+	transform: translate(-50%, -50%) scale(1.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.iftp-btn-pagevideo {
+		display: none;
+	}
+}
+
+/* The patterns (CheckoutLook::crystals(), waves() and bokeh()): seamless SVG tiles over the background. */
+.iftp-btn-pagefx--crystals:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after,
+.iftp-btn-pagefx--waves:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after,
+.iftp-btn-pagefx--bokeh:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after {
+	z-index: -1;
+	background: var(--iftp-page-pattern, none) 0 0 / var(--iftp-page-pattern-tile, 840px) var(--iftp-page-pattern-tile, 840px);
+}
+
+/* Crystals' facets and the waves' bands are light and shade, so they light up whatever colour is under them. */
+.iftp-btn-pagefx--crystals:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after,
+.iftp-btn-pagefx--waves:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after {
+	mix-blend-mode: overlay;
+}
+
+/* Grain: fine film noise; size sets how coarse it is. */
+.iftp-btn-pagefx--grain:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after {
+	z-index: -1;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / var(--iftp-page-crystal, 140px) var(--iftp-page-crystal, 140px);
+	opacity: var(--iftp-page-fx-opacity, 0.5);
+	mix-blend-mode: overlay;
+}
+
+.iftp-btn-page {
+	box-sizing: border-box;
+	display: grid;
+	align-content: center;
+	justify-items: center;
+	gap: 18px;
+	min-height: 100vh;
+	min-height: 100dvh;
+	padding: 32px 16px;
+}
+
+.iftp-btn-page__logo {
+	display: inline-flex;
+	align-items: center;
+	color: var(--iftp-ink);
+	text-decoration: none;
+}
+
+.iftp-btn-page__logo-image {
+	display: block;
+	width: auto;
+	max-width: 200px;
+	height: auto;
+	max-height: 52px;
+}
+
+.iftp-btn-page__name {
+	font-size: 19px;
+	font-weight: 750;
+	letter-spacing: -0.015em;
+}
+
+/* Over a photo or video, the logo sits on frosted glass and the back link goes white. */
+.iftp-btn-pagebg--image .iftp-btn-page__logo,
+.iftp-btn-pagebg--video .iftp-btn-page__logo {
+	padding: 10px 18px;
+	border-radius: 14px;
+	background: rgb(255 255 255 / 86%);
+	box-shadow: 0 6px 20px -8px rgb(0 0 0 / 35%);
+	backdrop-filter: blur(8px);
+}
+
+.iftp-btn-pagebg--image .iftp-btn-page__name,
+.iftp-btn-pagebg--video .iftp-btn-page__name {
+	color: #121a2c;
+}
+
+.iftp-btn-pagebg--image .iftp-btn-page__back a,
+.iftp-btn-pagebg--video .iftp-btn-page__back a {
+	color: #fff;
+	text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+}
+
+.iftp-btn-page .iftp-btn-form {
+	width: 100%;
+	max-width: var(--iftp-sheet-w);
+	background: var(--iftp-card-bg, var(--iftp-surface));
+	border-radius: var(--iftp-radius);
+	box-shadow: var(--iftp-card-ring, 0 0 #0000), 0 1px 2px rgb(16 30 54 / 5%), 0 18px 40px -18px rgb(0 40 70 / 28%);
+	backdrop-filter: var(--iftp-card-filter, none);
+}
+
+.iftp-btn-page .iftp-btn-form__body {
+	overflow: visible;
+	background: none;
+}
+
+.iftp-btn-page .iftp-btn-form.is-auto .iftp-btn-form__field {
+	opacity: 0.6;
+}
+
+.iftp-btn-page .iftp-btn-form--notice .iftp-btn-form__summary {
+	padding: 16px 22px 22px;
+	border: 0;
+}
+
+.iftp-btn-page__back {
+	margin: 0;
+	font-size: 13px;
+}
+
+.iftp-btn-page__back a {
+	color: var(--iftp-muted);
+	text-decoration: none;
+}
+
+.iftp-btn-page__back a:hover {
+	color: var(--iftp-brand);
+	text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   Outcome popup
+   -------------------------------------------------------------------------- */
+.iftp-btn-result__box {
+	display: grid;
+	justify-items: var(--iftp-result-align);
+	gap: 10px;
+	padding: 28px 24px 22px;
+	overflow-y: auto;
+	text-align: var(--iftp-result-align);
+}
+
+.iftp-btn-result__icon {
+	display: inline-grid;
+	place-items: center;
+	width: 56px;
+	height: 56px;
+	margin-bottom: 4px;
+	color: var(--iftp-brand);
+	background: var(--iftp-brand-tint);
+	border-radius: 999px;
+}
+
+.iftp-btn-result__icon svg {
+	display: none;
+}
+
+.iftp-btn-result__spinner {
+	width: 26px;
+	height: 26px;
+	border: 3px solid var(--iftp-line-strong);
+	border-top-color: var(--iftp-brand);
+	border-radius: 999px;
+	animation: iftp-btn-spin 700ms linear infinite;
+}
+
+.iftp-btn-result:not(.is-checking) .iftp-btn-result__spinner {
+	display: none;
+}
+
+.iftp-btn-result:not(.is-checking) .iftp-btn-result__icon svg {
+	display: block;
+}
+
+.iftp-btn-result--paid .iftp-btn-result__icon {
+	color: var(--iftp-paid);
+	background: var(--iftp-paid-bg);
+}
+
+.iftp-btn-result--pending .iftp-btn-result__icon {
+	color: var(--iftp-pending);
+	background: var(--iftp-pending-bg);
+}
+
+.iftp-btn-result--failed .iftp-btn-result__icon,
+.iftp-btn-result--cancelled .iftp-btn-result__icon {
+	color: var(--iftp-failed);
+	background: var(--iftp-failed-bg);
+}
+
+/* Solid icons: the outcome's colour fills the circle. */
+.iftp-btn-result--solid.iftp-btn-result--paid .iftp-btn-result__icon {
+	color: var(--iftp-surface);
+	background: var(--iftp-paid);
+}
+
+.iftp-btn-result--solid.iftp-btn-result--pending .iftp-btn-result__icon {
+	color: var(--iftp-surface);
+	background: var(--iftp-pending);
+}
+
+.iftp-btn-result--solid.iftp-btn-result--failed .iftp-btn-result__icon,
+.iftp-btn-result--solid.iftp-btn-result--cancelled .iftp-btn-result__icon {
+	color: var(--iftp-surface);
+	background: var(--iftp-failed);
+}
+
+.iftp-btn-result .iftp-btn-result__title {
+	margin: 0;
+	color: var(--iftp-ink);
+	font-family: inherit;
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1.3;
+}
+
+.iftp-btn-result__message {
+	color: var(--iftp-ink-2);
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+.iftp-btn-result__message p {
+	margin: 0 0 0.5em;
+}
+
+.iftp-btn-result__message a {
+	color: var(--iftp-brand);
+}
+
+.iftp-btn-result .iftp-btn-result__details {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 6px 16px;
+	width: 100%;
+	margin: 8px 0 0;
+	padding: 12px 14px;
+	background: var(--iftp-inset);
+	border-radius: 12px;
+	font-size: 14px;
+	text-align: left;
+}
+
+.iftp-btn-result__details dt {
+	color: var(--iftp-muted);
+}
+
+.iftp-btn-result__details dd {
+	margin: 0;
+	color: var(--iftp-ink);
+	font-weight: 600;
+	text-align: right;
+	overflow-wrap: anywhere;
+}
+
+.iftp-btn-result .iftp-btn-form__submit {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 46px;
+	margin-top: 8px;
+	color: var(--iftp-on-brand);
+	background: var(--iftp-brand);
+	border: 0;
+	border-radius: calc(var(--iftp-field-r) + 2px);
+	font: inherit;
+	font-weight: 650;
+	cursor: pointer;
+}
+
+.iftp-btn-result .iftp-btn-form__submit:hover {
+	background: var(--iftp-brand-hover);
+}
+
+/* Their display beats [hidden] otherwise, and "Checking" has nothing to list or close yet. */
+.iftp-btn-result .iftp-btn-result__details[hidden],
+.iftp-btn-result .iftp-btn-form__submit[hidden] {
+	display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Small screens, motion and forced colours
+   -------------------------------------------------------------------------- */
+@media (width <= 480px) {
+
+	.iftp-btn-sheet {
+		width: 100vw;
+		max-width: none;
+		max-height: 92dvh;
+		margin: auto 0 0;
+		border-radius: var(--iftp-radius) var(--iftp-radius) 0 0;
+	}
+
+	.iftp-btn-sheet[open] {
+		animation-name: iftp-btn-sheet;
+	}
+
+	/* On a phone the card still rises from the bottom, over the background. */
+	.iftp-btn-sheet--scene {
+		width: 100vw;
+		max-height: none;
+		margin: 0;
+		border-radius: 0;
+	}
+
+	.iftp-btn-sheet--scene[open] {
+		align-content: end;
+		padding: 48px 0 0;
+		animation-name: iftp-btn-fade;
+	}
+
+	.iftp-btn-sheet--scene > .iftp-btn-form,
+	.iftp-btn-sheet--scene > .iftp-btn-result__box {
+		max-width: none;
+		max-height: 92dvh;
+		border-radius: var(--iftp-radius) var(--iftp-radius) 0 0;
+		animation-name: iftp-btn-sheet;
+	}
+
+	@keyframes iftp-btn-sheet {
+
+		from {
+			transform: translateY(40px);
+		}
+	}
+}
+
+@media (width <= 400px) {
+
+	.iftp-btn-form__step > .iftp-btn-form__field--half {
+		grid-column: 1 / -1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.iftp-btn-sheet[open],
+	.iftp-btn-sheet--scene > .iftp-btn-form,
+	.iftp-btn-sheet--scene > .iftp-btn-result__box,
+	.iftp-btn-form [data-iftp-btn-when].is-revealed,
+	.iftp-btn-form__step.is-forward,
+	.iftp-btn-form__step.is-backward {
+		animation: none;
+	}
+
+	.iftp-btn-steps__fill,
+	.iftp-btn-pay .iftp-btn-pay__button--custom {
+		transition: none;
+	}
+
+	.iftp-btn-pay .iftp-btn-pay__button--custom:hover:not(:disabled),
+	.iftp-btn-pay .iftp-btn-pay__button--custom:active:not(:disabled) {
+		transform: none;
+	}
+
+	.iftp-btn-form__spinner,
+	.iftp-btn-result__spinner {
+		animation-duration: 2s;
+	}
+}
+
+@media (forced-colors: active) {
+
+	.iftp-btn-form .iftp-btn-form__submit,
+	.iftp-btn-form .iftp-btn-form__back,
+	.iftp-btn-form .iftp-btn-form__preset,
+	.iftp-btn-form__choice,
+	.iftp-btn-sheet {
+		border: 1px solid CanvasText;
+	}
+
+	.iftp-btn-steps__fill {
+		forced-color-adjust: none;
+		background: Highlight;
+	}
+
+	.iftp-btn-form .iftp-btn-form__preset[aria-pressed="true"] {
+		forced-color-adjust: none;
+		color: HighlightText;
+		background: Highlight;
+	}
+}

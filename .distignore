@@ -1,0 +1,16 @@
+# Left out of the release zip. WordPress.org assets (.wordpress-org) go to SVN /assets instead.
+# vendor/ ships: the plugin loads its classes from vendor/autoload.php. SECURITY.md ships too (CRA).
+.wordpress-org
+.git
+.github
+.gitignore
+.gitattributes
+.distignore
+.DS_Store
+node_modules
+tests
+phpcs.xml
+phpcs.xml.dist
+phpstan.neon
+phpstan.neon.dist
+composer.lock
