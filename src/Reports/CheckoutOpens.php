@@ -22,6 +22,9 @@ class CheckoutOpens {
 	public const COUNT_META = '_iftp_btn_opens';
 	public const SINCE_META = '_iftp_btn_opens_since';
 
+	// Below this many opens one test visit reads as 100%, so I don't show a rate yet.
+	public const MIN_OPENS = 10;
+
 	/**
 	 * Adds one open. An UPDATE that adds in SQL, so two payers at once both count.
 	 *
@@ -67,12 +70,12 @@ class CheckoutOpens {
 	}
 
 	/**
-	 * The share of opens that didn't end in a payment, 0 to 1; null before anyone opened the checkout.
+	 * The share of opens that didn't end in a payment, 0 to 1; null until the checkout has MIN_OPENS opens.
 	 *
 	 * @param int $opens Checkout opens.
 	 * @param int $paid  Paid payments since counting began.
 	 */
 	public static function abandon_rate( int $opens, int $paid ): ?float {
-		return $opens > 0 ? max( 0.0, min( 1.0, ( $opens - $paid ) / $opens ) ) : null;
+		return $opens >= self::MIN_OPENS ? max( 0.0, min( 1.0, ( $opens - $paid ) / $opens ) ) : null;
 	}
 }

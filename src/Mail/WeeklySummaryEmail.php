@@ -69,7 +69,7 @@ class WeeklySummaryEmail {
 	public function render(): array {
 		$period    = ( new Insights( $this->transactions ) )->period( '7d' );
 		$revenue   = $period['kpis']['revenue'];
-		$waiting   = $this->transactions->waiting( 0 );
+		$waiting   = $this->transactions->waiting();
 		$customers = $this->transactions->top_customers( time() - 7 * DAY_IN_SECONDS, time() + 1, 3 );
 		$site      = wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
 

@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * one right before it, of the same length: the last 7 days against the 7 before them, and so on.
  *
  * @phpstan-type Kpi array{key: string, label: string, value: float, display: string, delta: float|null, trend: string}
- * @phpstan-type Period array{key: string, label: string, compare: string, series: array{labels: array<int, string>, tooltips: array<int, string>, values: array<int, float>, previous: array<int, float>}, kpis: array<string, Kpi>, statuses: array<string, Kpi>, split: array<string, int>, methods: array<int, MethodShare>}
+ * @phpstan-type Period array{key: string, label: string, compare: string, series: array{labels: array<int, string>, tooltips: array<int, string>, values: array<int, float>, averages: array<int, float>}, kpis: array<string, Kpi>, split: array<string, int>, methods: array<int, MethodShare>}
  * @phpstan-type MethodShare array{label: string, amount: float, count: int, share: float, kpi: Kpi}
  */
 class Insights {
@@ -101,22 +101,17 @@ class Insights {
 		$then_from = $first * self::SECONDS_PER_DAY - $offset;
 		$now_to    = ( $last + 1 ) * self::SECONDS_PER_DAY - $offset;
 
-		$now    = $this->totals( $current, $rows );
-		$then   = $this->totals( $previous, $rows );
-		$series = $this->series( $current, $rows, '12m' === $key );
-
-		// The previous period, point for point, so the chart can lay it behind the current one.
-		$series['previous'] = $this->series( $previous, $rows, '12m' === $key )['values'];
+		$now  = $this->totals( $current, $rows );
+		$then = $this->totals( $previous, $rows );
 
 		$this->memo[ $key ] = array(
-			'key'      => $key,
-			'label'    => self::period_label( $key ),
-			'compare'  => self::compare_label( $key ),
-			'series'   => $series,
-			'kpis'     => $this->kpis( $now, $then ),
-			'statuses' => $this->status_kpis( $now, $then ),
-			'split'    => $now['split'],
-			'methods'  => $this->methods( $now_from, $now_to, $then_from ),
+			'key'     => $key,
+			'label'   => self::period_label( $key ),
+			'compare' => self::compare_label( $key ),
+			'series'  => $this->series( $current, $rows, '12m' === $key ),
+			'kpis'    => $this->kpis( $now, $then ),
+			'split'   => $now['split'],
+			'methods' => $this->methods( $now_from, $now_to, $then_from ),
 		);
 
 		return $this->memo[ $key ];
@@ -195,56 +190,6 @@ class Insights {
 	}
 
 	/**
-	 * This calendar month so far: paid revenue, the day it is and how many days the month has. For the goal.
-	 *
-	 * @param float $goal The monthly goal, for the even-pace line (0 for none).
-	 * @return array{revenue: float, day: int, days: int, label: string, series: array{labels: array<int, string>, tooltips: array<int, string>, values: array<int, float>, previous: array<int, float>}}
-	 */
-	public function month( float $goal = 0.0 ): array {
-		$offset = wp_timezone()->getOffset( new \DateTimeImmutable( 'now' ) );
-		$now    = current_datetime();
-		$start  = $now->modify( 'first day of this month' )->setTime( 0, 0 );
-		$rows   = $this->transactions->daily_totals( $start->getTimestamp(), time() + 1, $offset );
-		$paid   = 0.0;
-		$daily  = array();
-
-		foreach ( $rows as $row ) {
-			if ( TransactionStore::STATUS_PAID === $row['status'] ) {
-				$paid                += $row['amount'];
-				$daily[ $row['day'] ] = ( $daily[ $row['day'] ] ?? 0.0 ) + $row['amount'];
-			}
-		}
-
-		$day    = (int) $now->format( 'j' );
-		$days   = (int) $now->format( 't' );
-		$first  = intdiv( $start->getTimestamp() + $offset, self::SECONDS_PER_DAY );
-		$total  = 0.0;
-		$series = array(
-			'labels'   => array(),
-			'tooltips' => array(),
-			'values'   => array(),
-			'previous' => array(),
-		);
-
-		// Running total per day so far, against where an even pace to the goal would be that day.
-		for ( $i = 0; $i < $day; $i++ ) {
-			$total               += $daily[ $first + $i ] ?? 0.0;
-			$series['labels'][]   = Dates::day( 'j M', ( $first + $i ) * self::SECONDS_PER_DAY );
-			$series['tooltips'][] = Dates::day( 'l, j F', ( $first + $i ) * self::SECONDS_PER_DAY );
-			$series['values'][]   = round( $total, 2 );
-			$series['previous'][] = round( $goal * ( $i + 1 ) / $days, 2 );
-		}
-
-		return array(
-			'revenue' => round( $paid, 2 ),
-			'day'     => $day,
-			'days'    => $days,
-			'label'   => Dates::local( 'F Y' ),
-			'series'  => $series,
-		);
-	}
-
-	/**
 	 * The last $count days as one-day buckets, oldest first.
 	 *
 	 * @param int $today The site's current day number.
@@ -300,22 +245,24 @@ class Insights {
 	 * @param array<int, array{from: int, to: int, start: int}>                      $buckets The current period's buckets.
 	 * @param array<int, array{day: int, status: string, count: int, amount: float}> $rows    From daily_totals().
 	 * @param bool                                                                   $monthly Whether the buckets are months.
-	 * @return array{labels: array<int, string>, tooltips: array<int, string>, values: array<int, float>, previous: array<int, float>}
+	 * @return array{labels: array<int, string>, tooltips: array<int, string>, values: array<int, float>, averages: array<int, float>}
 	 */
 	private function series( array $buckets, array $rows, bool $monthly ): array {
 		$series = array(
 			'labels'   => array(),
 			'tooltips' => array(),
 			'values'   => array(),
-			'previous' => array(),
+			'averages' => array(),
 		);
 
 		foreach ( $buckets as $bucket ) {
 			$revenue = 0.0;
+			$paid    = 0;
 
 			foreach ( $rows as $row ) {
 				if ( TransactionStore::STATUS_PAID === $row['status'] && $row['day'] >= $bucket['from'] && $row['day'] <= $bucket['to'] ) {
 					$revenue += $row['amount'];
+					$paid    += $row['count'];
 				}
 			}
 
@@ -323,17 +270,18 @@ class Insights {
 			$series['labels'][]   = Dates::day( $monthly ? 'M' : 'j M', $bucket['start'] );
 			$series['tooltips'][] = Dates::day( $monthly ? 'F Y' : 'l, j F', $bucket['start'] );
 			$series['values'][]   = round( $revenue, 2 );
+			$series['averages'][] = $paid > 0 ? round( $revenue / $paid, 2 ) : 0.0;
 		}
 
 		return $series;
 	}
 
 	/**
-	 * Revenue, paid count, all payments started and the status split, over some buckets.
+	 * Revenue, paid count and the status split, over some buckets.
 	 *
 	 * @param array<int, array{from: int, to: int, start: int}>                      $buckets The buckets to add up.
 	 * @param array<int, array{day: int, status: string, count: int, amount: float}> $rows    From daily_totals().
-	 * @return array{revenue: float, paid: int, started: int, split: array<string, int>, amounts: array<string, float>}
+	 * @return array{revenue: float, paid: int, split: array<string, int>}
 	 */
 	private function totals( array $buckets, array $rows ): array {
 		$first  = $buckets[0]['from'];
@@ -341,18 +289,11 @@ class Insights {
 		$totals = array(
 			'revenue' => 0.0,
 			'paid'    => 0,
-			'started' => 0,
 			'split'   => array(
 				TransactionStore::STATUS_PAID    => 0,
 				TransactionStore::STATUS_EXPIRED => 0,
 				TransactionStore::STATUS_PENDING => 0,
 				TransactionStore::STATUS_FAILED  => 0,
-			),
-			'amounts' => array(
-				TransactionStore::STATUS_PAID    => 0.0,
-				TransactionStore::STATUS_PENDING => 0.0,
-				TransactionStore::STATUS_FAILED  => 0.0,
-				TransactionStore::STATUS_EXPIRED => 0.0,
 			),
 		);
 
@@ -363,11 +304,8 @@ class Insights {
 
 			$status = TransactionStore::STATUS_CANCELLED === $row['status'] ? TransactionStore::STATUS_FAILED : $row['status'];
 
-			$totals['started'] += $row['count'];
-
 			if ( isset( $totals['split'][ $status ] ) ) {
-				$totals['split'][ $status ]   += $row['count'];
-				$totals['amounts'][ $status ] += $row['amount'];
+				$totals['split'][ $status ] += $row['count'];
 			}
 
 			if ( TransactionStore::STATUS_PAID === $status ) {
@@ -380,41 +318,20 @@ class Insights {
 	}
 
 	/**
-	 * Each status's amount over the period, with its change, for the status cards.
+	 * The three KPIs, each with its change against the previous period.
 	 *
-	 * @param array{revenue: float, paid: int, started: int, split: array<string, int>, amounts: array<string, float>} $now  This period.
-	 * @param array{revenue: float, paid: int, started: int, split: array<string, int>, amounts: array<string, float>} $then The previous one.
-	 * @return array<string, Kpi>
-	 */
-	private function status_kpis( array $now, array $then ): array {
-		$kpis = array();
-
-		foreach ( $now['amounts'] as $status => $amount ) {
-			$kpis[ $status ] = self::kpi( $status, $status, $amount, $then['amounts'][ $status ] ?? 0.0, self::money( $amount ) );
-		}
-
-		return $kpis;
-	}
-
-	/**
-	 * The four KPIs, each with its change against the previous period.
-	 *
-	 * @param array{revenue: float, paid: int, started: int, split: array<string, int>, amounts: array<string, float>} $now  This period.
-	 * @param array{revenue: float, paid: int, started: int, split: array<string, int>, amounts: array<string, float>} $then The previous one.
+	 * @param array{revenue: float, paid: int, split: array<string, int>} $now  This period.
+	 * @param array{revenue: float, paid: int, split: array<string, int>} $then The previous one.
 	 * @return array<string, Kpi>
 	 */
 	private function kpis( array $now, array $then ): array {
 		$average      = $now['paid'] > 0 ? $now['revenue'] / $now['paid'] : 0.0;
 		$then_average = $then['paid'] > 0 ? $then['revenue'] / $then['paid'] : 0.0;
-		$conversion   = $now['started'] > 0 ? $now['paid'] / $now['started'] * 100 : 0.0;
-		$then_conv    = $then['started'] > 0 ? $then['paid'] / $then['started'] * 100 : 0.0;
 
 		return array(
-			'revenue'    => self::kpi( 'revenue', __( 'Revenue', 'ifthenpay-pay-button' ), $now['revenue'], $then['revenue'], self::money( $now['revenue'] ) ),
-			'paid'       => self::kpi( 'paid', __( 'Paid payments', 'ifthenpay-pay-button' ), (float) $now['paid'], (float) $then['paid'], number_format_i18n( $now['paid'] ) ),
-			'average'    => self::kpi( 'average', __( 'Average payment', 'ifthenpay-pay-button' ), $average, $then_average, self::money( $average ) ),
-			/* translators: %s: a percentage number */
-			'conversion' => self::kpi( 'conversion', __( 'Conversion', 'ifthenpay-pay-button' ), $conversion, $then_conv, sprintf( __( '%s%%', 'ifthenpay-pay-button' ), number_format_i18n( $conversion, 1 ) ) ),
+			'revenue' => self::kpi( 'revenue', __( 'Revenue', 'ifthenpay-pay-button' ), $now['revenue'], $then['revenue'], self::money( $now['revenue'] ) ),
+			'paid'    => self::kpi( 'paid', __( 'Paid payments', 'ifthenpay-pay-button' ), (float) $now['paid'], (float) $then['paid'], number_format_i18n( $now['paid'] ) ),
+			'average' => self::kpi( 'average', __( 'Average payment', 'ifthenpay-pay-button' ), $average, $then_average, self::money( $average ) ),
 		);
 	}
 

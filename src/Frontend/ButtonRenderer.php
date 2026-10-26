@@ -98,7 +98,7 @@ class ButtonRenderer {
 		wp_register_style( self::STYLE_HANDLE, IFTP_BTN_URL . $css, array(), Plugin::asset_version( $css ) );
 		// The site's checkout look, and the merchant's own CSS after it.
 		wp_add_inline_style( self::STYLE_HANDLE, CheckoutLook::css( $this->checkout_settings->get_look() ) );
-		wp_register_script( self::SCRIPT_HANDLE, IFTP_BTN_URL . $js, array( Plugin::METHOD_LOGOS_HANDLE ), Plugin::asset_version( $js ), true );
+		wp_register_script( self::SCRIPT_HANDLE, IFTP_BTN_URL . $js, array( Plugin::METHOD_LOGOS_HANDLE, Plugin::VIDEO_LOOP_HANDLE ), Plugin::asset_version( $js ), true );
 		wp_localize_script( self::SCRIPT_HANDLE, 'iftpBtnCheckout', $this->script_data() );
 	}
 
@@ -170,7 +170,7 @@ class ButtonRenderer {
 	/**
 	 * The own look of the button a returning payer paid with, or null for the site's look.
 	 *
-	 * @return array{style: string, icon: string, font: string, scene: string, dark: bool, video: array{kind: string, src: string}|null}|null
+	 * @return array{style: string, icon: string, font: string, scene: string, dark: bool, video: array{kind: string, src: string, start: int|null, end: int|null}|null}|null
 	 */
 	private function returning_look(): ?array {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only, and the signature authenticates it.
@@ -279,8 +279,9 @@ class ButtonRenderer {
 	 * @param string               $id      Unique id prefix for this form.
 	 * @param array<string, mixed> $prefill What a pay link carries, from PayLinks::read_query().
 	 * @param bool                 $closable Whether it sits in a dialog with a close button.
+	 * @param bool                 $preview  Whether it's the AI studio's preview: checkout.js shows a note instead of paying.
 	 */
-	public function print_form( Button $button, string $id, array $prefill, bool $closable ): void {
+	public function print_form( Button $button, string $id, array $prefill, bool $closable, bool $preview = false ): void {
 		$fields    = is_array( $prefill['fields'] ?? null ) ? $prefill['fields'] : array();
 		$amount    = is_string( $prefill['amount'] ?? null ) ? $prefill['amount'] : '';
 		$reference = is_string( $prefill['reference'] ?? null ) ? $prefill['reference'] : '';
@@ -309,7 +310,7 @@ class ButtonRenderer {
 			'visible' => FormFields::visibility( $button->config['form'], FormFields::answers( $button->config['form'], $fields ) ),
 		);
 		?>
-		<form class="iftp-btn-form<?php echo $count > 1 ? ' iftp-btn-form--steps' : ''; ?>" method="post" novalidate data-iftp-btn-form data-button="<?php echo esc_attr( (string) $button->id ); ?>" data-skip="<?php echo esc_attr( $button->config['skip_form'] ? '1' : '0' ); ?>"<?php echo $per_spot ? ' data-unit="' . esc_attr( number_format( $button->config['amount'], 2, '.', '' ) ) . '"' : ''; ?>>
+		<form class="iftp-btn-form<?php echo $count > 1 ? ' iftp-btn-form--steps' : ''; ?>" method="post" novalidate data-iftp-btn-form data-button="<?php echo esc_attr( (string) $button->id ); ?>" data-skip="<?php echo esc_attr( $button->config['skip_form'] ? '1' : '0' ); ?>"<?php echo $per_spot ? ' data-unit="' . esc_attr( number_format( $button->config['amount'], 2, '.', '' ) ) . '"' : ''; ?><?php echo $preview ? ' data-preview="' . esc_attr__( 'This is a preview, so it doesn\'t take payments. Save the button to try it for real.', 'ifthenpay-pay-button' ) . '"' : ''; ?>>
 			<header class="iftp-btn-form__header">
 				<span class="iftp-btn-form__site"><?php echo esc_html( $site ); ?></span>
 				<?php if ( $closable ) : ?>
@@ -320,7 +321,16 @@ class ButtonRenderer {
 			</header>
 
 			<?php if ( $count > 1 ) : ?>
-				<?php self::print_step_bar( $steps, $id ); ?>
+				<?php
+				StepBar::render(
+					array_column( $steps, 'title' ),
+					$look['steps'],
+					array(
+						'id'   => $id,
+						'live' => true,
+					)
+				);
+				?>
 			<?php endif; ?>
 
 			<div class="iftp-btn-form__body" data-iftp-btn-body>
@@ -391,42 +401,6 @@ class ButtonRenderer {
 				</footer>
 			<?php endif; ?>
 		</form>
-		<?php
-	}
-
-	/**
-	 * The step bar: one segment per step, the current step's title and where the payer is.
-	 *
-	 * @param array<int, array{title: string, items: array<int, array<string, mixed>>}> $steps The steps.
-	 * @param string                                                                    $id    The form's id prefix.
-	 * @phpstan-param array<int, FormStep> $steps
-	 */
-	private static function print_step_bar( array $steps, string $id ): void {
-		$count = count( $steps );
-		?>
-		<div class="iftp-btn-steps" data-iftp-btn-steps style="--iftp-steps: <?php echo esc_attr( (string) $count ); ?>">
-			<div class="iftp-btn-steps__head">
-				<span class="iftp-btn-steps__title" id="<?php echo esc_attr( $id ); ?>-step-title" data-iftp-btn-step-title aria-live="polite"><?php echo esc_html( $steps[0]['title'] ); ?></span>
-				<span class="iftp-btn-steps__count">
-					<?php
-					// Escaped before the tokens go in, since {step} becomes markup checkout.js counts up in.
-					$step_of = strtr(
-						esc_html( CheckoutTexts::get( 'step_of' ) ),
-						array(
-							'{step}'  => '<span data-iftp-btn-step-now>1</span>',
-							'{steps}' => esc_html( (string) $count ),
-						)
-					);
-					echo wp_kses( $step_of, array( 'span' => array( 'data-iftp-btn-step-now' => true ) ) );
-					?>
-				</span>
-			</div>
-			<ol class="iftp-btn-steps__track">
-				<?php foreach ( $steps as $index => $step ) : ?>
-					<li class="iftp-btn-steps__bar<?php echo 0 === $index ? ' is-current' : ''; ?>" data-iftp-btn-bar data-title="<?php echo esc_attr( $step['title'] ); ?>"><span class="iftp-btn-steps__fill"></span><span class="iftp-btn-steps__sr"><?php echo esc_html( $step['title'] ); ?></span></li>
-				<?php endforeach; ?>
-			</ol>
-		</div>
 		<?php
 	}
 

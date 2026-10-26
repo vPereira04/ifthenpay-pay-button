@@ -24,8 +24,17 @@ $iftp_btn_uninstall_site = static function (): void {
 		$settings->delete_all();
 		$settings->delete_anti_phishing_keys();
 		$settings->delete_payment_email();
-		$settings->delete_display_mode();
+		$settings->delete_summary_settings();
 	}
+
+	// The sealed AI connection, under the name only this site's secret can work out.
+	if ( class_exists( \Ifthenpay\PayButton\Ai\Vault::class ) ) {
+		delete_option( \Ifthenpay\PayButton\Ai\Vault::name( 'connection' ) );
+	}
+
+	// The AI chats and their limits, per admin and per button.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time cleanup of transients with dynamic names; no core API lists them.
+	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( '_transient_iftp_btn_ai_' ) . '%', $wpdb->esc_like( '_transient_timeout_iftp_btn_ai_' ) . '%' ) );
 
 	if ( class_exists( \Ifthenpay\PayButton\Repository\CheckoutSettings::class ) ) {
 		( new \Ifthenpay\PayButton\Repository\CheckoutSettings() )->delete_all();
@@ -52,7 +61,6 @@ $iftp_btn_uninstall_site = static function (): void {
 	delete_transient( 'iftp_btn_methods_catalog' );
 	delete_transient( 'iftp_btn_gateway_rows' );
 	wp_clear_scheduled_hook( 'iftp_btn_expire_payments' );
-	wp_clear_scheduled_hook( 'iftp_btn_send_reminders' );
 	wp_clear_scheduled_hook( 'iftp_btn_weekly_summary' );
 	// Retries carry arguments, which wp_clear_scheduled_hook() only matches one set at a time.
 	wp_unschedule_hook( 'iftp_btn_retry_webhook' );
@@ -78,4 +86,3 @@ if ( is_multisite() ) {
 delete_metadata( 'user', 0, 'iftp_btn_entries_hidden_cols', '', true );
 delete_metadata( 'user', 0, 'iftp_btn_entries_col_order', '', true );
 delete_metadata( 'user', 0, 'iftp_btn_entries_per_page', '', true );
-delete_metadata( 'user', 0, 'iftp_btn_layout', '', true );

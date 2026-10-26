@@ -1,14 +1,12 @@
 // Our own SVG charts for the Entries Performance card and the Dashboard widget. No library.
-// One area chart: a smooth gradient line with a soft glow and a wash under it, the previous period as a quiet
-// grey line behind, hairline grid, and a crosshair tooltip on hover and on the arrow keys.
+// One area chart: a smooth gradient line with a light wash under it, hairline grid, and a crosshair tooltip on
+// hover and on the arrow keys.
 // Every container with data-iftp-chart='{…}' renders itself, and redraws when its size changes.
 ( function () {
 	'use strict';
 
 	var ns = 'http://www.w3.org/2000/svg';
 	var uid = 0;
-	// Every chart's forced redraw, for refresh(): editor mode changes heights and lines without a resize.
-	var redraws = [];
 
 	function svgEl( name, attrs ) {
 		var node = document.createElementNS( ns, name );
@@ -115,23 +113,19 @@
 
 	function area( container, data ) {
 		var values = ( data.values || [] ).map( Number );
-		var previous = ( data.previous || [] ).map( Number );
-		var hasPrevious = false;
 		var fmt = formatters( data );
 		var id = 'iftp-btn-chart-' + ++uid;
 		var compact = !! data.compact;
-		var interactive = ! compact || !! data.interactive;
+		var interactive = ! compact;
 		var index = values.length - 1;
 		var reduceMotion = window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
 		var animated = false;
 		var lastWidth = 0;
-		var lastHeight = 0;
 		var geometry = null;
 
 		var tooltip = document.createElement( 'div' );
 		var live = document.createElement( 'span' );
 
-		container.classList.add( 'iftp-btn-chart--ready' );
 		tooltip.className = 'iftp-btn-chart__tooltip';
 		tooltip.setAttribute( 'aria-hidden', 'true' );
 
@@ -147,52 +141,39 @@
 
 		function draw() {
 			var width = container.clientWidth;
-			// "fill" charts take whatever height their box has (the goal card); the rest use a set height.
-			var boxHeight = data.fill ? container.clientHeight : 0;
 
-			if ( ! width || ( width === lastWidth && boxHeight === lastHeight ) ) {
+			if ( ! width || width === lastWidth ) {
 				return;
 			}
 
 			lastWidth = width;
-			lastHeight = boxHeight;
 
-			// The previous period draws unless a display mode or the layout turns it off (then one line, no legend needed).
-			hasPrevious = ( ! data.compact || data.compare ) && previous.length === values.length && previous.some( Boolean ) && 'off' !== cssVar( container, '--iftp-chart-compare', 'on' );
-
-			// A display mode can ask for a shorter chart through --iftp-chart-height; otherwise the data's own height.
-			var height = boxHeight || parseInt( cssVar( container, '--iftp-chart-height', '' ), 10 ) || Number( data.height ) || 220;
+			var height = Number( data.height ) || 220;
 			var pad = compact ? { t: 10, r: 8, b: 6, l: 8 } : { t: 18, r: 20, b: 34, l: 62 };
 			var plotW = width - pad.l - pad.r;
 			var plotH = height - pad.t - pad.b;
 			var base = pad.t + plotH;
-			var max = niceMax( Math.max.apply( null, values.concat( hasPrevious ? previous : [], [ 0 ] ) ) );
+			var max = niceMax( Math.max.apply( null, values.concat( [ 0 ] ) ) );
 			var lineFrom = cssVar( container, '--iftp-chart-from', '#00a7e2' );
 			var lineTo = cssVar( container, '--iftp-chart-to', '#00609c' );
-			var ghost = cssVar( container, '--iftp-chart-ghost', '#a9b2c3' );
 			var grid = cssVar( container, '--iftp-chart-grid', 'rgba(18,26,44,0.07)' );
 			var surface = cssVar( container, '--iftp-chart-surface', '#fafbfd' );
 			var step = values.length > 1 ? plotW / ( values.length - 1 ) : 0;
-			var toPoints = function ( list ) {
-				return list.map( function ( v, i ) {
-					return [ pad.l + i * step, base - ( v / max ) * plotH ];
-				} );
-			};
-			var points = toPoints( values );
+			var points = values.map( function ( v, i ) {
+				return [ pad.l + i * step, base - ( v / max ) * plotH ];
+			} );
 			var svg = svgEl( 'svg', { width, height, viewBox: '0 0 ' + width + ' ' + height, class: 'iftp-btn-chart__svg', 'aria-hidden': 'true', focusable: 'false' } );
 			var defs = svgEl( 'defs' );
 			var stroke = svgEl( 'linearGradient', { id: id + '-stroke', x1: pad.l, y1: 0, x2: width - pad.r, y2: 0, gradientUnits: 'userSpaceOnUse' } );
 			var wash = svgEl( 'linearGradient', { id: id + '-wash', x1: 0, y1: pad.t, x2: 0, y2: base, gradientUnits: 'userSpaceOnUse' } );
-			var glow = svgEl( 'filter', { id: id + '-glow', x: '-10%', y: '-40%', width: '120%', height: '180%' } );
 
 			stroke.append( svgEl( 'stop', { offset: '0%', 'stop-color': lineFrom } ), svgEl( 'stop', { offset: '100%', 'stop-color': lineTo } ) );
 			wash.append(
-				svgEl( 'stop', { offset: '0%', 'stop-color': lineTo, 'stop-opacity': compact ? 0.2 : 0.18 } ),
-				svgEl( 'stop', { offset: '65%', 'stop-color': lineFrom, 'stop-opacity': 0.05 } ),
+				svgEl( 'stop', { offset: '0%', 'stop-color': lineTo, 'stop-opacity': compact ? 0.1 : 0.09 } ),
+				svgEl( 'stop', { offset: '65%', 'stop-color': lineFrom, 'stop-opacity': 0.025 } ),
 				svgEl( 'stop', { offset: '100%', 'stop-color': lineFrom, 'stop-opacity': 0 } )
 			);
-			glow.appendChild( svgEl( 'feGaussianBlur', { stdDeviation: compact ? 3 : 5 } ) );
-			defs.append( stroke, wash, glow );
+			defs.append( stroke, wash );
 			svg.appendChild( defs );
 
 			// Recessive, solid hairline grid and the y ticks.
@@ -231,11 +212,6 @@
 				} );
 			}
 
-			// The previous period first, so the current one sits on top of it.
-			if ( hasPrevious ) {
-				svg.appendChild( svgEl( 'path', { d: smoothPath( toPoints( previous ), pad.t, base ), fill: 'none', stroke: ghost, 'stroke-width': 1.75, 'stroke-linecap': 'round', 'stroke-opacity': 0.75, class: 'iftp-btn-chart__ghost' } ) );
-			}
-
 			var lineD = smoothPath( points, pad.t, base );
 			var last = points[ points.length - 1 ];
 			var areaPath = svgEl( 'path', {
@@ -243,16 +219,12 @@
 				fill: 'url(#' + id + '-wash)',
 				class: 'iftp-btn-chart__area',
 			} );
-			var glowPath = svgEl( 'path', { d: lineD, fill: 'none', stroke: 'url(#' + id + '-stroke)', 'stroke-width': compact ? 4 : 6, 'stroke-opacity': 0.28, filter: 'url(#' + id + '-glow)', class: 'iftp-btn-chart__glow' } );
 			var linePath = svgEl( 'path', { d: lineD, fill: 'none', stroke: 'url(#' + id + '-stroke)', 'stroke-width': compact ? 2 : 2.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'iftp-btn-chart__line' } );
 
-			svg.append( areaPath, glowPath, linePath );
+			svg.append( areaPath, linePath );
 
-			// The end-dot: a surface ring so it stays clear of the line, and a slow halo saying "now".
-			svg.append(
-				svgEl( 'circle', { cx: last[ 0 ], cy: last[ 1 ], r: 9, fill: lineTo, 'fill-opacity': 0.18, class: 'iftp-btn-chart__halo' } ),
-				svgEl( 'circle', { cx: last[ 0 ], cy: last[ 1 ], r: 4.5, fill: lineTo, stroke: surface, 'stroke-width': 2.5 } )
-			);
+			// The end-dot, with a surface ring so it stays clear of the line.
+			svg.append( svgEl( 'circle', { cx: last[ 0 ], cy: last[ 1 ], r: 4.5, fill: lineTo, stroke: surface, 'stroke-width': 2.5 } ) );
 
 			// Hover layer: a spotlight column and a crosshair that glide along x, and a haloed dot that glides to
 			// the point. They move by CSS transform, so the browser eases every step between points.
@@ -286,16 +258,12 @@
 			if ( ! animated && ! reduceMotion && linePath.getTotalLength ) {
 				var length = linePath.getTotalLength();
 
-				[ linePath, glowPath ].forEach( function ( path ) {
-					path.style.strokeDasharray = length;
-					path.style.strokeDashoffset = length;
-				} );
+				linePath.style.strokeDasharray = length;
+				linePath.style.strokeDashoffset = length;
 				areaPath.style.opacity = '0';
 				linePath.getBoundingClientRect();
-				[ linePath, glowPath ].forEach( function ( path ) {
-					path.style.transition = 'stroke-dashoffset 1100ms cubic-bezier(0.65, 0, 0.35, 1)';
-					path.style.strokeDashoffset = '0';
-				} );
+				linePath.style.transition = 'stroke-dashoffset 1100ms cubic-bezier(0.65, 0, 0.35, 1)';
+				linePath.style.strokeDashoffset = '0';
 				areaPath.style.transition = 'opacity 900ms ease 300ms';
 				areaPath.style.opacity = '1';
 			}
@@ -341,16 +309,6 @@
 			now.className = 'iftp-btn-chart__tooltip-value';
 			now.textContent = fmt.full( value );
 			tooltip.append( head, now );
-
-			if ( hasPrevious ) {
-				var before = previous[ index ] || 0;
-				var row = document.createElement( 'span' );
-
-				row.className = 'iftp-btn-chart__tooltip-previous';
-				row.textContent = ( data.previousLabel || '' ) + ' · ' + fmt.full( before );
-				tooltip.appendChild( row );
-				spoken += ', ' + row.textContent;
-			}
 
 			// Above the point, kept inside the chart near either edge; it slides there rather than jumping.
 			var tipW = tooltip.offsetWidth;
@@ -408,15 +366,6 @@
 			} );
 		}
 
-		redraws.push( {
-			container,
-			redraw() {
-				lastWidth = 0;
-				animated = true;
-				draw();
-			},
-		} );
-
 		// Hidden panels have no width yet; the observer draws them the moment they show.
 		if ( window.ResizeObserver ) {
 			new window.ResizeObserver( draw ).observe( container );
@@ -427,8 +376,8 @@
 		draw();
 	}
 
-	function init( root ) {
-		( root || document ).querySelectorAll( '[data-iftp-chart]:not(.iftp-btn-chart--ready)' ).forEach( function ( container ) {
+	function init() {
+		document.querySelectorAll( '[data-iftp-chart]' ).forEach( function ( container ) {
 			try {
 				area( container, JSON.parse( container.getAttribute( 'data-iftp-chart' ) ) );
 			} catch ( e ) {
@@ -437,22 +386,9 @@
 		} );
 	}
 
-	// Redraws every chart inside root, e.g. after editor mode changed a chart's height or its comparison line.
-	function refresh( root ) {
-		redraws.forEach( function ( chart ) {
-			if ( ! root || root.contains( chart.container ) ) {
-				chart.redraw();
-			}
-		} );
-	}
-
-	window.iftpBtnCharts = { init, area, refresh };
-
 	if ( 'loading' === document.readyState ) {
-		document.addEventListener( 'DOMContentLoaded', function () {
-			init( document );
-		} );
+		document.addEventListener( 'DOMContentLoaded', init );
 	} else {
-		init( document );
+		init();
 	}
 } )();

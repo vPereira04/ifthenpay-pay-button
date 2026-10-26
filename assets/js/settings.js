@@ -229,21 +229,7 @@
 				syncStars( methods );
 			} else if ( target.matches( '[data-iftp-method-default]' ) ) {
 				syncStars( methods );
-				wink( target.closest( 'td' ).querySelector( '[data-iftp-star]' ) );
 			}
-		} );
-
-		// The display mode previews the moment it's picked; Save keeps it.
-		form.addEventListener( 'change', function ( event ) {
-			if ( ! event.target.matches( '[data-iftp-display-mode]' ) ) {
-				return;
-			}
-
-			document.body.className = document.body.className.replace( /\biftp-btn-mode-\w+/g, '' ).trim() + ' iftp-btn-mode-' + event.target.value;
-
-			form.querySelectorAll( '[data-iftp-focus-only]' ).forEach( function ( tools ) {
-				tools.hidden = 'focus' !== event.target.value;
-			} );
 		} );
 
 		// Sends the summary now, to whatever address is in the field, saved or not.
@@ -348,17 +334,6 @@
 			star.classList.toggle( 'iftp-btn-star--checked', radio.checked );
 			glyph.textContent = radio.checked ? '★' : '☆';
 		} );
-	}
-
-	// Remove, reflow, re-add: that replays the wink even when the same star is picked again.
-	function wink( star ) {
-		if ( ! star ) {
-			return;
-		}
-
-		star.classList.remove( 'iftp-btn-star--wink' );
-		void star.offsetWidth;
-		star.classList.add( 'iftp-btn-star--wink' );
 	}
 
 	// Each method's 24h cooldown is enforced server-side; the disabled "Requested" button only mirrors it.

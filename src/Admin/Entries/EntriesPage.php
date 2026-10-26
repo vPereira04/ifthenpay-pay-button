@@ -95,7 +95,7 @@ class EntriesPage {
 	private PaymentEmailSettings $email_settings;
 
 	/**
-	 * The Performance section, also behind the status cards' change pills.
+	 * The Performance section and the Revenue by method card.
 	 *
 	 * @var InsightsView|null
 	 */
@@ -135,7 +135,7 @@ class EntriesPage {
 	 * The Performance section's view, built once per request.
 	 */
 	private function insights_view(): InsightsView {
-		return $this->insights_view ??= new InsightsView( new Insights( $this->transactions ), $this->presenter, $this->settings, $this->transactions );
+		return $this->insights_view ??= new InsightsView( new Insights( $this->transactions ), $this->presenter );
 	}
 
 	/**
@@ -304,9 +304,6 @@ class EntriesPage {
 				'bulkChunkSize'      => self::BULK_CHUNK_SIZE,
 				'emailChunkSize'     => self::EMAIL_CHUNK_SIZE,
 				'emailSettings'      => $email_settings,
-				'layout'             => Layout::current(),
-				'layoutDefaults'     => Layout::defaults(),
-				'halfBlocks'         => Layout::HALF_BLOCKS,
 				// Same separator as number_format_i18n(), decoded, since some locales store it as "&nbsp;" and JS writes textContent.
 				'numberFormat'       => array(
 					'thousands' => html_entity_decode( $wp_locale instanceof \WP_Locale ? (string) $wp_locale->number_format['thousands_sep'] : ',', ENT_QUOTES, 'UTF-8' ),
@@ -389,40 +386,6 @@ class EntriesPage {
 			'emailMediaButton'      => __( 'Insert image', 'ifthenpay-pay-button' ),
 			'genericError'          => __( 'Something went wrong. Please try again.', 'ifthenpay-pay-button' ),
 			'newEntryCreateLink'    => __( 'Create payment link', 'ifthenpay-pay-button' ),
-			'editorMoveUp'          => __( 'Move up', 'ifthenpay-pay-button' ),
-			'editorMoveDown'        => __( 'Move down', 'ifthenpay-pay-button' ),
-			'editorHide'            => __( 'Hide', 'ifthenpay-pay-button' ),
-			'editorShow'            => __( 'Show', 'ifthenpay-pay-button' ),
-			'editorHidden'          => __( 'Hidden', 'ifthenpay-pay-button' ),
-			'editorOptions'         => __( 'Options', 'ifthenpay-pay-button' ),
-			'editorLocked'          => __( 'Always shown', 'ifthenpay-pay-button' ),
-			'editorSaving'          => __( 'Saving…', 'ifthenpay-pay-button' ),
-			'editorSaved'           => __( 'Saved. Changes save as you go.', 'ifthenpay-pay-button' ),
-			'editorSaveError'       => __( 'Could not save the layout. Try again.', 'ifthenpay-pay-button' ),
-			'editorDone'            => __( 'Layout saved.', 'ifthenpay-pay-button' ),
-			'editorResetDone'       => __( 'Layout back to the default.', 'ifthenpay-pay-button' ),
-			/* translators: 1: block name, 2: position, 3: number of blocks */
-			'editorMoved'           => __( '%1$s moved to position %2$s of %3$s.', 'ifthenpay-pay-button' ),
-			'editorChartHeight'     => __( 'Chart height', 'ifthenpay-pay-button' ),
-			'editorCompact'         => __( 'Compact', 'ifthenpay-pay-button' ),
-			'editorRegular'         => __( 'Regular', 'ifthenpay-pay-button' ),
-			'editorTall'            => __( 'Tall', 'ifthenpay-pay-button' ),
-			'editorHeadline'        => __( 'Headline numbers', 'ifthenpay-pay-button' ),
-			'editorCompare'         => __( 'Previous period line', 'ifthenpay-pay-button' ),
-			'editorPeriod'          => __( 'Opens on', 'ifthenpay-pay-button' ),
-			'editorDeltas'          => __( 'Change % on each card', 'ifthenpay-pay-button' ),
-			'period7d'              => __( '7 days', 'ifthenpay-pay-button' ),
-			'period30d'             => __( '30 days', 'ifthenpay-pay-button' ),
-			'period12m'             => __( '12 months', 'ifthenpay-pay-button' ),
-			'remindTitle'           => __( 'Send a reminder?', 'ifthenpay-pay-button' ),
-			/* translators: %s: customer email address */
-			'remindMessage'         => __( '%s gets the payment email again, with the button to pay.', 'ifthenpay-pay-button' ),
-			'remindAllTitle'        => __( 'Remind everyone waiting?', 'ifthenpay-pay-button' ),
-			/* translators: %s: number of customers */
-			'remindAllMessage'      => __( '%s customers with a pending payment get the payment email again.', 'ifthenpay-pay-button' ),
-			'remindButton'          => __( 'Send reminder', 'ifthenpay-pay-button' ),
-			'remindAllButton'       => __( 'Send reminders', 'ifthenpay-pay-button' ),
-			'reminded'              => __( 'Reminded', 'ifthenpay-pay-button' ),
 			'newEntryRecord'        => __( 'Record payment', 'ifthenpay-pay-button' ),
 			'newEntryAmountError'   => __( 'Enter an amount greater than zero.', 'ifthenpay-pay-button' ),
 			'newEntryEmailError'    => __( 'Enter a valid email, or leave it blank.', 'ifthenpay-pay-button' ),
@@ -504,7 +467,6 @@ class EntriesPage {
 					<span class="iftp-btn-masthead__divider" aria-hidden="true"></span>
 					<div class="iftp-btn-masthead__text">
 						<h1 id="iftp-btn-entries-title" class="iftp-btn-masthead__title"><?php esc_html_e( 'Payments', 'ifthenpay-pay-button' ); ?></h1>
-						<p class="iftp-btn-masthead__subtitle"><?php esc_html_e( 'Every ifthenpay payment on this site: paid, waiting, failed or expired.', 'ifthenpay-pay-button' ); ?></p>
 					</div>
 				</div>
 				<div class="iftp-btn-masthead__actions">
@@ -513,31 +475,14 @@ class EntriesPage {
 						<?php esc_html_e( 'New payment', 'ifthenpay-pay-button' ); ?>
 					</button>
 					<?php $this->email_settings->render_trigger(); ?>
-					<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-btn--icon" data-iftp-editor-toggle aria-pressed="false" aria-label="<?php esc_attr_e( 'Edit layout', 'ifthenpay-pay-button' ); ?>" title="<?php esc_attr_e( 'Edit layout', 'ifthenpay-pay-button' ); ?>">
-						<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-					</button>
 				</div>
 			</header>
 
-			<?php // Editor mode's bar, shown while editing: changes save as they happen; Finish goes back to normal. ?>
-			<div class="iftp-btn-editor-bar" data-iftp-editor-bar role="region" aria-label="<?php esc_attr_e( 'Layout editor', 'ifthenpay-pay-button' ); ?>" hidden>
-				<span class="iftp-btn-editor-bar__icon" aria-hidden="true">
-					<svg width="16" height="16" viewBox="0 0 24 24" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-				</span>
-				<span class="iftp-btn-editor-bar__text">
-					<strong><?php esc_html_e( 'Editing your layout', 'ifthenpay-pay-button' ); ?></strong>
-					<span data-iftp-editor-status><?php esc_html_e( 'Move, hide or tune each block. Changes save as you go.', 'ifthenpay-pay-button' ); ?></span>
-				</span>
-				<button type="button" class="iftp-btn-btn iftp-btn-btn--link iftp-btn-editor-bar__reset" data-iftp-editor-reset><?php esc_html_e( 'Reset layout', 'ifthenpay-pay-button' ); ?></button>
-				<button type="button" class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-editor-finish><?php esc_html_e( 'Finish editing', 'ifthenpay-pay-button' ); ?></button>
-			</div>
 			<hr class="wp-header-end" />
 
-			<div class="iftp-btn-blocks" data-iftp-blocks>
-			<?php $this->render_blocks( $shared, $view_args ); ?>
+			<div class="iftp-btn-blocks">
+			<?php $this->render_overview( $shared, $view_args ); ?>
 
-			<?php // The table is always there and always last; editor mode can't hide or move it. ?>
-			<div class="iftp-btn-block iftp-btn-block--table" data-iftp-block="table" data-iftp-block-label="<?php esc_attr_e( 'Entries table', 'ifthenpay-pay-button' ); ?>" data-iftp-block-locked>
 			<div class="iftp-btn-card">
 				<div class="iftp-btn-card__header">
 					<div class="iftp-btn-toolbar">
@@ -674,7 +619,6 @@ class EntriesPage {
 				</div>
 			</div>
 			</div>
-			</div>
 
 			<?php $this->render_new_entry_dialog(); ?>
 			<?php $this->email_settings->render_dialog(); ?>
@@ -688,97 +632,24 @@ class EntriesPage {
 	}
 
 	/**
-	 * The blocks above the table, in the admin's own order and with their own settings (editor mode).
-	 * Hidden blocks still render, marked, so editor mode can show them again without a reload.
-	 * Which blocks exist at all follows the display mode: Goal and Money waiting only in Focus, no method
-	 * breakdown in Minimal.
+	 * What sits above the table: Performance, Revenue by method and the status cards.
 	 *
 	 * @param array<string, mixed> $shared    The view's store filters, for the status cards.
 	 * @param array<string, mixed> $view_args url_args() of the view.
 	 */
-	private function render_blocks( array $shared, array $view_args ): void {
-		$mode      = $this->settings->get_display_mode();
-		$layout    = Layout::current();
-		$available = array_values(
-			array_filter(
-				$layout['order'],
-				static fn( string $block ): bool => ( 'focus' === $mode || ! in_array( $block, array( 'goal', 'waiting' ), true ) ) && ( 'minimal' !== $mode || 'methods' !== $block )
-			)
-		);
-		$paired    = Layout::paired( $available, $layout['hidden'] );
-		$labels    = self::block_labels();
-		$view      = $this->insights_view();
+	private function render_overview( array $shared, array $view_args ): void {
+		$view = $this->insights_view();
 
-		$view->set_period( $layout['perf']['period'] );
-
-		foreach ( $available as $position => $block ) {
-			$classes = array( 'iftp-btn-block', 'iftp-btn-block--' . $block );
-
-			if ( in_array( $block, $paired, true ) ) {
-				$classes[] = 'iftp-btn-block--paired';
-			}
-
-			if ( 'performance' === $block ) {
-				$classes[] = 'iftp-btn-perf--' . $layout['perf']['height'];
-				$classes[] = $layout['perf']['headline'] ? '' : 'iftp-btn-perf--no-headline';
-				$classes[] = $layout['perf']['compare'] ? '' : 'iftp-btn-perf--no-compare';
-			}
-
-			if ( 'status' === $block && ! $layout['status']['deltas'] ) {
-				$classes[] = 'iftp-btn-status--no-deltas';
-			}
-
-			printf(
-				'<div class="%1$s" data-iftp-block="%2$s" data-iftp-block-label="%3$s" style="order: %4$d"%5$s>',
-				esc_attr( implode( ' ', array_filter( $classes ) ) ),
-				esc_attr( $block ),
-				esc_attr( $labels[ $block ] ),
-				(int) $position,
-				in_array( $block, $layout['hidden'], true ) ? ' data-iftp-block-hidden' : ''
-			);
-
-			switch ( $block ) {
-				case 'performance':
-					$view->render();
-					break;
-				case 'goal':
-					$view->render_goal_card();
-					break;
-				case 'waiting':
-					$view->render_waiting_card();
-					break;
-				case 'methods':
-					$view->render_methods_card();
-					break;
-				case 'status':
-					?>
-					<section class="iftp-btn-summary" aria-labelledby="iftp-btn-summary-title">
-						<h2 id="iftp-btn-summary-title" class="screen-reader-text"><?php esc_html_e( 'Totals by status', 'ifthenpay-pay-button' ); ?></h2>
-						<div class="iftp-btn-summary__body" data-iftp-summary>
-							<?php $this->print_summary( $this->transactions->status_summary( $shared ), $view_args ); ?>
-						</div>
-					</section>
-					<?php
-					break;
-			}
-
-			echo '</div>';
-		}
-	}
-
-	/**
-	 * Each block's name, for editor mode's toolbars.
-	 *
-	 * @return array<string, string>
-	 */
-	public static function block_labels(): array {
-		return array(
-			'performance' => __( 'Performance', 'ifthenpay-pay-button' ),
-			'goal'        => __( 'Monthly goal', 'ifthenpay-pay-button' ),
-			'waiting'     => __( 'Money waiting', 'ifthenpay-pay-button' ),
-			'methods'     => __( 'Revenue by method', 'ifthenpay-pay-button' ),
-			'status'      => __( 'Status cards', 'ifthenpay-pay-button' ),
-		);
+		$view->render();
+		$view->render_methods_card();
+		?>
+		<section class="iftp-btn-summary" aria-labelledby="iftp-btn-summary-title">
+			<h2 id="iftp-btn-summary-title" class="screen-reader-text"><?php esc_html_e( 'Totals by status', 'ifthenpay-pay-button' ); ?></h2>
+			<div class="iftp-btn-summary__body" data-iftp-summary>
+				<?php $this->print_summary( $this->transactions->status_summary( $shared ), $view_args ); ?>
+			</div>
+		</section>
+		<?php
 	}
 
 	/**
@@ -1363,17 +1234,10 @@ class EntriesPage {
 	 * @param array<string, mixed>                            $base    url_args() of the view.
 	 */
 	private function print_summary( array $summary, array $base ): void {
-		// One path per icon, drawn on a 16px grid like the page's other icons.
-		$icons   = array(
-			TransactionStore::STATUS_PAID    => 'm3.5 8.5 3 3 6-7',
-			TransactionStore::STATUS_PENDING => 'M14 8A6 6 0 1 1 2 8a6 6 0 0 1 12 0ZM8 4.75V8l2.25 1.5',
-			TransactionStore::STATUS_FAILED  => 'M4.5 4.5l7 7M11.5 4.5l-7 7',
-			TransactionStore::STATUS_EXPIRED => 'M4 2.25h8M4 13.75h8M5 2.25v1.5c0 2 3 2.75 3 4.25s-3 2.25-3 4.25v1.5M11 2.25v1.5c0 2-3 2.75-3 4.25s3 2.25 3 4.25v1.5',
-		);
-		$periods = $this->insights_view()->periods();
+		$statuses = array( TransactionStore::STATUS_PAID, TransactionStore::STATUS_PENDING, TransactionStore::STATUS_FAILED, TransactionStore::STATUS_EXPIRED );
 		?>
 		<ul class="iftp-btn-summary__list">
-			<?php foreach ( $icons as $slug => $icon_path ) : ?>
+			<?php foreach ( $statuses as $slug ) : ?>
 				<?php
 				$count      = (int) ( $summary[ $slug ]['count'] ?? 0 );
 				$amount     = (float) ( $summary[ $slug ]['amount'] ?? 0 );
@@ -1397,13 +1261,9 @@ class EntriesPage {
 							echo esc_html( sprintf( _n( '%s entry', '%s entries', $count, 'ifthenpay-pay-button' ), number_format_i18n( $count ) ) );
 							?>
 						</span>
-						<?php $this->insights_view()->print_status_deltas( $periods, $slug ); ?>
 						<?php if ( $is_current ) : ?>
 							<span class="screen-reader-text"><?php esc_html_e( 'Selected. Activate to show all entries.', 'ifthenpay-pay-button' ); ?></span>
 						<?php endif; ?>
-						<span class="iftp-btn-summary__icon" aria-hidden="true">
-							<svg width="20" height="20" viewBox="0 0 16 16" focusable="false"><path d="<?php echo esc_attr( $icon_path ); ?>" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
-						</span>
 					</a>
 				</li>
 			<?php endforeach; ?>

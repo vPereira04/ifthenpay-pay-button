@@ -33,15 +33,8 @@ class SettingsRepository {
 	private const OPTION_DESCRIPTION    = 'iftp_btn_description';
 	private const OPTION_EXPIRY_DAYS    = 'iftp_btn_expiry_days';
 
-	private const OPTION_DISPLAY_MODE = 'iftp_btn_display_mode';
-	private const OPTION_MONTHLY_GOAL = 'iftp_btn_monthly_goal';
-	private const OPTION_REMIND_DAYS  = 'iftp_btn_remind_days';
-	private const OPTION_SUMMARY_ON   = 'iftp_btn_summary_enabled';
-	private const OPTION_SUMMARY_TO   = 'iftp_btn_summary_email';
-
-	public const REMIND_DAY_CHOICES = array( 0, 1, 2, 3, 5, 7 );
-
-	public const DISPLAY_MODES = array( 'standard', 'minimal', 'focus' );
+	private const OPTION_SUMMARY_ON = 'iftp_btn_summary_enabled';
+	private const OPTION_SUMMARY_TO = 'iftp_btn_summary_email';
 
 	private const OPTION_PAYMENT_EMAIL_SUBJECT = 'iftp_btn_payment_email_subject';
 	private const OPTION_PAYMENT_EMAIL_BODY    = 'iftp_btn_payment_email_body';
@@ -282,58 +275,6 @@ class SettingsRepository {
 	}
 
 	/**
-	 * How the screens look: 'standard', 'minimal' (flat and calm) or 'focus' (money first).
-	 */
-	public function get_display_mode(): string {
-		$mode = (string) get_option( self::OPTION_DISPLAY_MODE, 'standard' );
-
-		return in_array( $mode, self::DISPLAY_MODES, true ) ? $mode : 'standard';
-	}
-
-	/**
-	 * Stores the display mode. A look, not a connection setting, so a disconnect keeps it.
-	 *
-	 * @param string $mode One of DISPLAY_MODES.
-	 */
-	public function set_display_mode( string $mode ): void {
-		update_option( self::OPTION_DISPLAY_MODE, in_array( $mode, self::DISPLAY_MODES, true ) ? $mode : 'standard' );
-	}
-
-	/**
-	 * The monthly revenue goal in euros, or 0 for none.
-	 */
-	public function get_monthly_goal(): float {
-		return max( 0.0, (float) get_option( self::OPTION_MONTHLY_GOAL, 0 ) );
-	}
-
-	/**
-	 * Stores the monthly revenue goal.
-	 *
-	 * @param float $goal Euros; 0 turns it off.
-	 */
-	public function set_monthly_goal( float $goal ): void {
-		update_option( self::OPTION_MONTHLY_GOAL, round( max( 0.0, $goal ), 2 ), false );
-	}
-
-	/**
-	 * After how many days an unpaid payment gets one automatic reminder email, or 0 for never.
-	 */
-	public function get_remind_days(): int {
-		$days = (int) get_option( self::OPTION_REMIND_DAYS, 0 );
-
-		return in_array( $days, self::REMIND_DAY_CHOICES, true ) ? $days : 0;
-	}
-
-	/**
-	 * Stores the reminder delay.
-	 *
-	 * @param int $days One of REMIND_DAY_CHOICES.
-	 */
-	public function set_remind_days( int $days ): void {
-		update_option( self::OPTION_REMIND_DAYS, in_array( $days, self::REMIND_DAY_CHOICES, true ) ? $days : 0, false );
-	}
-
-	/**
 	 * Whether the Monday summary email goes out.
 	 */
 	public function get_summary_enabled(): bool {
@@ -368,12 +309,9 @@ class SettingsRepository {
 	}
 
 	/**
-	 * Deletes the display mode and the other preferences, on uninstall. A disconnect keeps them.
+	 * Deletes the weekly summary settings, on uninstall. A disconnect keeps them.
 	 */
-	public function delete_display_mode(): void {
-		delete_option( self::OPTION_DISPLAY_MODE );
-		delete_option( self::OPTION_MONTHLY_GOAL );
-		delete_option( self::OPTION_REMIND_DAYS );
+	public function delete_summary_settings(): void {
 		delete_option( self::OPTION_SUMMARY_ON );
 		delete_option( self::OPTION_SUMMARY_TO );
 	}

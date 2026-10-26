@@ -14,6 +14,7 @@ use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
 use Ifthenpay\PayButton\Frontend\ButtonRenderer;
 use Ifthenpay\PayButton\Frontend\PayPage;
+use Ifthenpay\PayButton\Frontend\StepBar;
 use Ifthenpay\PayButton\Repository\CheckoutSettings;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
 
@@ -22,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Checkout › Design and a button's Checkout design tab draw the same cards and preview; only where the fields
+ * Default Checkout › Design and a button's Checkout design tab draw the same cards and preview; only where the fields
  * post to differs (`look[…]` or `config[look][…]`). buttons.js reads them by their data-iftp-look keys.
  *
  * @phpstan-import-type Look from CheckoutLook
@@ -268,6 +269,16 @@ class LookControls {
 					</div>
 				</section>
 
+				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-steps">
+					<div class="iftp-btn-ecard__intro">
+						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-steps"><?php esc_html_e( 'Page progress', 'ifthenpay-pay-button' ); ?></h2>
+						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'When a form has pages: how payers see how many there are, and how much of this one they\'ve answered.', 'ifthenpay-pay-button' ); ?></p>
+					</div>
+					<div class="iftp-btn-ecard__body">
+						<?php $this->print_step_styles( $look['steps'] ); ?>
+					</div>
+				</section>
+
 				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-page" data-iftp-look-section="page">
 					<div class="iftp-btn-ecard__intro">
 						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-page"><?php esc_html_e( 'Pay page', 'ifthenpay-pay-button' ); ?></h2>
@@ -331,6 +342,27 @@ class LookControls {
 								<input type="url" class="iftp-btn-field__control" id="iftp-btn-look-pay_video_url" name="<?php echo esc_attr( $this->name( 'pay_video_url' ) ); ?>" value="<?php echo esc_attr( $look['pay_video_url'] ); ?>" placeholder="https://www.youtube.com/watch?v=…" data-iftp-look="pay_video_url" />
 								<p class="iftp-btn-field__help"><?php esc_html_e( 'Plays muted, with no controls. It loads from YouTube or Vimeo, under their terms, and they see the payer\'s visit.', 'ifthenpay-pay-button' ); ?></p>
 							</div>
+							<?php
+							$this->print_choice(
+								'pay_video_loop',
+								__( 'Loop', 'ifthenpay-pay-button' ),
+								$look['pay_video_loop'],
+								array(
+									'all'  => __( 'The whole video', 'ifthenpay-pay-button' ),
+									'part' => __( 'Part of it', 'ifthenpay-pay-button' ),
+								),
+								true
+							);
+							?>
+							<div class="iftp-btn-field" data-iftp-when-loop="part">
+								<label class="iftp-btn-field__label" for="iftp-btn-look-pay_video_start"><?php esc_html_e( 'From', 'ifthenpay-pay-button' ); ?></label>
+								<input type="text" class="iftp-btn-field__control" id="iftp-btn-look-pay_video_start" name="<?php echo esc_attr( $this->name( 'pay_video_start' ) ); ?>" value="<?php echo esc_attr( CheckoutLook::clock( $look['pay_video_start'] ) ); ?>" placeholder="0:00" pattern="\s*(\d+:)?(\d+:)?\d+\s*" spellcheck="false" data-iftp-look="pay_video_start" />
+							</div>
+							<div class="iftp-btn-field" data-iftp-when-loop="part">
+								<label class="iftp-btn-field__label" for="iftp-btn-look-pay_video_end"><?php esc_html_e( 'To', 'ifthenpay-pay-button' ); ?></label>
+								<input type="text" class="iftp-btn-field__control" id="iftp-btn-look-pay_video_end" name="<?php echo esc_attr( $this->name( 'pay_video_end' ) ); ?>" value="<?php echo esc_attr( $look['pay_video_end'] > 0 ? CheckoutLook::clock( $look['pay_video_end'] ) : '' ); ?>" placeholder="<?php esc_attr_e( 'The end', 'ifthenpay-pay-button' ); ?>" pattern="\s*(\d+:)?(\d+:)?\d+\s*" spellcheck="false" data-iftp-look="pay_video_end" />
+							</div>
+							<p class="iftp-btn-field__help iftp-btn-design__wide" data-iftp-when-loop="part"><?php esc_html_e( 'Minutes and seconds, like 0:12 to 0:45. Leave To empty to play on to the end, then start again at From.', 'ifthenpay-pay-button' ); ?></p>
 							<div class="iftp-btn-design__wide">
 								<?php $this->print_range( 'pay_video_blur', __( 'Blur the video', 'ifthenpay-pay-button' ), $look['pay_video_blur'], 30 ); ?>
 							</div>
@@ -526,7 +558,7 @@ class LookControls {
 	 * @phpstan-param Confirmation $confirmation
 	 */
 	public function render_preview( array $look, array $confirmation ): void {
-		$views   = array(
+		$views = array(
 			'checkout'  => __( 'Checkout', 'ifthenpay-pay-button' ),
 			'page'      => __( 'Pay page', 'ifthenpay-pay-button' ),
 			'paid'      => __( 'Paid', 'ifthenpay-pay-button' ),
@@ -534,20 +566,13 @@ class LookControls {
 			'failed'    => __( 'Failed', 'ifthenpay-pay-button' ),
 			'cancelled' => __( 'Cancelled', 'ifthenpay-pay-button' ),
 		);
-		$icons   = array(
+		$icons = array(
 			'paid'      => '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
 			'pending'   => '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
 			'failed'    => '<path d="M7 7l10 10M17 7 7 17"/>',
 			'cancelled' => '<path d="M7 7l10 10M17 7 7 17"/>',
 		);
-		$style   = '';
-		$step_of = CheckoutTexts::get(
-			'step_of',
-			array(
-				'step'  => 1,
-				'steps' => 2,
-			)
-		);
+		$style = '';
 
 		foreach ( CheckoutLook::variables( $look ) as $name => $value ) {
 			$style .= $name . ':' . $value . ';';
@@ -577,16 +602,16 @@ class LookControls {
 								<span class="iftp-btn-form__site" data-iftp-text="header"><?php echo esc_html( CheckoutTexts::get( 'header' ) ); ?></span>
 								<span class="iftp-btn-form__close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
 							</header>
-							<div class="iftp-btn-steps">
-								<div class="iftp-btn-steps__head">
-									<span class="iftp-btn-steps__title" data-iftp-text="first_step"><?php echo esc_html( CheckoutTexts::get( 'first_step' ) ); ?></span>
-									<span class="iftp-btn-steps__count" data-iftp-text="step_of"><?php echo esc_html( $step_of ); ?></span>
-								</div>
-								<ol class="iftp-btn-steps__track">
-									<li class="iftp-btn-steps__bar is-current"><span class="iftp-btn-steps__fill"></span></li>
-									<li class="iftp-btn-steps__bar"><span class="iftp-btn-steps__fill"></span></li>
-								</ol>
-							</div>
+							<?php
+							StepBar::render(
+								array( CheckoutTexts::get( 'first_step' ), __( 'Your details', 'ifthenpay-pay-button' ), __( 'Confirm', 'ifthenpay-pay-button' ) ),
+								$look['steps'],
+								array(
+									'texts' => true,
+									'fill'  => 0.66,
+								)
+							);
+							?>
 							<div class="iftp-btn-form__body">
 								<div class="iftp-btn-form__step">
 									<div class="iftp-btn-form__summary">
@@ -737,6 +762,52 @@ class LookControls {
 					</label>
 				<?php endforeach; ?>
 			</span>
+		</fieldset>
+		<?php
+	}
+
+	/**
+	 * The step bar styles as cards, each drawn by the real step bar on page 2 of 3, half answered.
+	 *
+	 * @param string $value The current style.
+	 */
+	private function print_step_styles( string $value ): void {
+		$styles = array(
+			'bars'    => array( __( 'Bars', 'ifthenpay-pay-button' ), __( 'A bar per page', 'ifthenpay-pay-button' ) ),
+			'labels'  => array( __( 'Named bars', 'ifthenpay-pay-button' ), __( 'Each page\'s title under it', 'ifthenpay-pay-button' ) ),
+			'line'    => array( __( 'One line', 'ifthenpay-pay-button' ), __( 'The whole form, with a %', 'ifthenpay-pay-button' ) ),
+			'numbers' => array( __( 'Numbers', 'ifthenpay-pay-button' ), __( 'Numbered circles that tick off', 'ifthenpay-pay-button' ) ),
+			'dots'    => array( __( 'Dots', 'ifthenpay-pay-button' ), __( 'This page stretches and fills', 'ifthenpay-pay-button' ) ),
+			'ring'    => array( __( 'Ring', 'ifthenpay-pay-button' ), __( 'A round meter, a slice a page', 'ifthenpay-pay-button' ) ),
+			'text'    => array( __( 'Just words', 'ifthenpay-pay-button' ), __( 'The title and the step, no bar', 'ifthenpay-pay-button' ) ),
+		);
+		$titles = array(
+			__( 'Plan', 'ifthenpay-pay-button' ),
+			__( 'Details', 'ifthenpay-pay-button' ),
+			__( 'Confirm', 'ifthenpay-pay-button' ),
+		);
+		?>
+		<fieldset class="iftp-btn-stepstyles">
+			<legend class="screen-reader-text"><?php esc_html_e( 'Page progress', 'ifthenpay-pay-button' ); ?></legend>
+			<?php foreach ( $styles as $style => $text ) : ?>
+				<label class="iftp-btn-stepstyles__item">
+					<input type="radio" class="iftp-btn-stepstyles__input" name="<?php echo esc_attr( $this->name( 'steps' ) ); ?>" value="<?php echo esc_attr( $style ); ?>" <?php checked( $value, $style ); ?> data-iftp-look="steps" />
+					<span class="iftp-btn-stepstyles__sample iftp-btn-look iftp-btn-form" aria-hidden="true" data-iftp-look-sample>
+						<?php
+						StepBar::render(
+							$titles,
+							$style,
+							array(
+								'current' => 1,
+								'fill'    => 0.5,
+							)
+						);
+						?>
+					</span>
+					<span class="iftp-btn-stepstyles__name"><?php echo esc_html( $text[0] ); ?></span>
+					<span class="iftp-btn-stepstyles__hint"><?php echo esc_html( $text[1] ); ?></span>
+				</label>
+			<?php endforeach; ?>
 		</fieldset>
 		<?php
 	}

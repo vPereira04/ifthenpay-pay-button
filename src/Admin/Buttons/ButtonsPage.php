@@ -9,10 +9,12 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Admin\Buttons;
 
+use Ifthenpay\PayButton\Admin\AiPanel;
 use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
 use Ifthenpay\PayButton\Admin\CheckoutSettingsPage;
 use Ifthenpay\PayButton\Admin\GatewaySettingsPage;
 use Ifthenpay\PayButton\Admin\LookControls;
+use Ifthenpay\PayButton\Ai\Studio;
 use Ifthenpay\PayButton\Bridge\PayLinks;
 use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
@@ -21,6 +23,7 @@ use Ifthenpay\PayButton\Buttons\Spots;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutService;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
+use Ifthenpay\PayButton\Dates;
 use Ifthenpay\PayButton\Frontend\ButtonRenderer;
 use Ifthenpay\PayButton\Frontend\Shortcode;
 use Ifthenpay\PayButton\Plugin;
@@ -47,6 +50,9 @@ class ButtonsPage {
 	public const DUPLICATE_ACTION = 'iftp_btn_duplicate_button';
 	public const DELETE_ACTION    = 'iftp_btn_delete_button';
 	public const AJAX_NONCE       = 'iftp_btn_buttons';
+
+	// From this share of spots taken, a card reads "Almost full".
+	private const ALMOST_FULL = 0.8;
 
 	/**
 	 * Buttons storage.
@@ -148,7 +154,16 @@ class ButtonsPage {
 		wp_add_inline_style( 'iftp-btn-buttons', self::theme_button_css() . LookControls::swatch_css() );
 		// A button's own pay page background image and video come from the Media Library.
 		wp_enqueue_media();
-		wp_enqueue_script( 'iftp-btn-buttons', IFTP_BTN_URL . $js, array( Plugin::UI_SCRIPT_HANDLE, Plugin::METHOD_LOGOS_HANDLE ), Plugin::asset_version( $js ), true );
+		wp_enqueue_script( 'iftp-btn-buttons', IFTP_BTN_URL . $js, array( Plugin::UI_SCRIPT_HANDLE, Plugin::METHOD_LOGOS_HANDLE, Plugin::VIDEO_LOOP_HANDLE ), Plugin::asset_version( $js ), true );
+
+		$studio = $this->requested_studio();
+
+		if ( false !== $studio ) {
+			( new AiStudioPage() )->enqueue( $studio );
+		} else {
+			// The list's and the editor's AI cards wear the studio's look.
+			wp_enqueue_style( AiPanel::STYLE_HANDLE, IFTP_BTN_URL . 'assets/css/ai.css', array( Plugin::ADMIN_STYLE_HANDLE ), Plugin::asset_version( 'assets/css/ai.css' ) );
+		}
 
 		wp_localize_script(
 			'iftp-btn-buttons',
@@ -300,6 +315,14 @@ class ButtonsPage {
 			return;
 		}
 
+		$studio = $this->requested_studio();
+
+		if ( false !== $studio ) {
+			( new AiStudioPage() )->render( $studio );
+
+			return;
+		}
+
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only picks which view to show.
 		$requested = isset( $_GET[ self::EDIT_VAR ] ) ? sanitize_key( wp_unslash( $_GET[ self::EDIT_VAR ] ) ) : '';
 
@@ -317,17 +340,40 @@ class ButtonsPage {
 			return;
 		}
 
-		( new ButtonEditor( $this->settings, new PayLinks() ) )->render( $button );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only picks which version to show; saving checks its own nonce.
+		$draft = isset( $_GET[ AiStudioPage::DRAFT_VAR ] ) && $this->settings->is_connected() ? ( new Studio() )->draft( $button ) : null;
+
+		( new ButtonEditor( $this->settings, new PayLinks() ) )->render( $button, $draft );
+	}
+
+	/**
+	 * The button the AI studio was asked for: a saved one, null for a new one, or false when it's not the studio.
+	 *
+	 * @return Button|null|false
+	 */
+	private function requested_studio() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only picks which view to show.
+		$target = isset( $_GET[ AiStudioPage::VAR ] ) ? sanitize_key( wp_unslash( $_GET[ AiStudioPage::VAR ] ) ) : '';
+
+		// Buttons need the ifthenpay connection, so the studio does too.
+		if ( '' === $target || ! $this->settings->is_connected() ) {
+			return false;
+		}
+
+		if ( Studio::NEW_TARGET === $target ) {
+			return null;
+		}
+
+		return $this->buttons->find( absint( $target ) ) ?? false;
 	}
 
 	/**
 	 * The header every view shares.
 	 *
-	 * @param string $title    The heading.
-	 * @param string $subtitle The line under it.
-	 * @param string $actions  Markup for the right-hand actions, already escaped.
+	 * @param string $title   The heading.
+	 * @param string $actions Markup for the right-hand actions, already escaped.
 	 */
-	public static function print_header( string $title, string $subtitle, string $actions = '' ): void {
+	public static function print_header( string $title, string $actions = '' ): void {
 		?>
 		<header class="iftp-btn-masthead">
 			<div class="iftp-btn-masthead__brand">
@@ -335,7 +381,6 @@ class ButtonsPage {
 				<span class="iftp-btn-masthead__divider" aria-hidden="true"></span>
 				<div>
 					<h1 class="iftp-btn-masthead__title"><?php echo esc_html( $title ); ?></h1>
-					<p class="iftp-btn-masthead__subtitle"><?php echo esc_html( $subtitle ); ?></p>
 				</div>
 			</div>
 			<?php if ( '' !== $actions ) : ?>
@@ -383,10 +428,15 @@ class ButtonsPage {
 		$paid      = $this->transactions->paid_since( array_map( static fn( array $count ): int => $count['since'], $opens ) );
 		$connected = $this->settings->is_connected();
 		$links     = new PayLinks();
-		$new       = $connected ? '<a class="iftp-btn-btn iftp-btn-btn--primary" href="' . esc_url( self::edit_url( 0 ) ) . '">' . self::icon( 'plus' ) . esc_html__( 'New button', 'ifthenpay-pay-button' ) . '</a>' : '';
+		$order     = array_flip( $ids );
+
+		// Most collected first, which is what the sort starts on; the date order stays on each card for Newest.
+		usort( $buttons, static fn( Button $a, Button $b ): int => ( $stats[ $b->id ]['paid_amount'] ?? 0.0 ) <=> ( $stats[ $a->id ]['paid_amount'] ?? 0.0 ) );
+
+		$new = $connected ? '<a class="iftp-btn-btn iftp-btn-btn--ai" href="' . esc_url( AiStudioPage::url( null ) ) . '">' . AiPanel::sparkle() . esc_html__( 'Build with AI', 'ifthenpay-pay-button' ) . '</a><a class="iftp-btn-btn iftp-btn-btn--primary" href="' . esc_url( self::edit_url( 0 ) ) . '">' . self::icon( 'plus' ) . esc_html__( 'New button', 'ifthenpay-pay-button' ) . '</a>' : '';
 		?>
 		<div class="wrap iftp-btn-buttons" data-iftp-buttons>
-			<?php self::print_header( __( 'Pay buttons', 'ifthenpay-pay-button' ), __( 'Take ifthenpay payments on any page, in any plugin, or with a link.', 'ifthenpay-pay-button' ), $new ); ?>
+			<?php self::print_header( __( 'Pay buttons', 'ifthenpay-pay-button' ), $new ); ?>
 			<?php self::print_notice(); ?>
 
 			<?php if ( ! $connected ) : ?>
@@ -411,20 +461,40 @@ class ButtonsPage {
 						<li><?php echo self::icon( 'link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><span><strong><?php esc_html_e( 'A pay link', 'ifthenpay-pay-button' ); ?></strong> <?php esc_html_e( 'for email, social posts or a QR code.', 'ifthenpay-pay-button' ); ?></span></li>
 						<li><?php echo self::icon( 'plug' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><span><strong><?php esc_html_e( 'A link for other plugins', 'ifthenpay-pay-button' ); ?></strong> <?php esc_html_e( 'so a form ifthenpay has no integration with can send its payer here.', 'ifthenpay-pay-button' ); ?></span></li>
 					</ul>
-					<a class="iftp-btn-btn iftp-btn-btn--primary" href="<?php echo esc_url( self::edit_url( 0 ) ); ?>"><?php esc_html_e( 'Create a button', 'ifthenpay-pay-button' ); ?></a>
+					<div class="iftp-btn-empty__actions">
+						<a class="iftp-btn-btn iftp-btn-btn--primary" href="<?php echo esc_url( self::edit_url( 0 ) ); ?>"><?php esc_html_e( 'Create a button', 'ifthenpay-pay-button' ); ?></a>
+						<a class="iftp-btn-btn iftp-btn-btn--ai" href="<?php echo esc_url( AiStudioPage::url( null ) ); ?>"><?php echo AiPanel::sparkle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><?php esc_html_e( 'Or describe it to the AI', 'ifthenpay-pay-button' ); ?></a>
+					</div>
 				</section>
 			<?php else : ?>
-				<?php $this->render_summary( $buttons, $stats, $taken, $opens, $paid ); ?>
-				<?php $this->render_toolbar( $buttons ); ?>
+				<?php $this->render_summary( $stats, $opens, $paid ); ?>
+				<?php $this->render_toolbar( $buttons, $taken ); ?>
 				<ul class="iftp-btn-bcards" data-iftp-bcards>
+					<li class="iftp-btn-bcards__head" aria-hidden="true">
+						<span class="iftp-btn-bcards__col iftp-btn-bcards__col--button"><?php esc_html_e( 'Button', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-bcards__col iftp-btn-bcards__col--stats">
+							<span><?php esc_html_e( 'Collected', 'ifthenpay-pay-button' ); ?></span>
+							<span><?php esc_html_e( 'Paid', 'ifthenpay-pay-button' ); ?></span>
+							<span><?php esc_html_e( 'Didn\'t pay', 'ifthenpay-pay-button' ); ?></span>
+						</span>
+						<span class="iftp-btn-bcards__col iftp-btn-bcards__col--spots"><?php esc_html_e( 'Spots', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-bcards__col iftp-btn-bcards__col--on"><?php esc_html_e( 'On', 'ifthenpay-pay-button' ); ?></span>
+					</li>
 					<?php foreach ( $buttons as $button ) : ?>
-						<?php $this->render_card( $button, $stats[ $button->id ] ?? null, $taken[ $button->id ]['total'] ?? 0, $opens[ $button->id ]['opens'] ?? 0, $paid[ $button->id ] ?? 0, $links ); ?>
+						<?php $this->render_card( $button, $stats[ $button->id ] ?? null, $taken[ $button->id ]['total'] ?? 0, $opens[ $button->id ]['opens'] ?? 0, $opens[ $button->id ]['since'] ?? 0, $paid[ $button->id ] ?? 0, $links, $order[ $button->id ] ); ?>
 					<?php endforeach; ?>
 					<li class="iftp-btn-bcard iftp-btn-bcard--new" data-iftp-bcard-new>
 						<a class="iftp-btn-bcard__new" href="<?php echo esc_url( self::edit_url( 0 ) ); ?>">
 							<span class="iftp-btn-bcard__new-icon" aria-hidden="true"><?php echo self::icon( 'plus' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
 							<span class="iftp-btn-bcard__new-title"><?php esc_html_e( 'New button', 'ifthenpay-pay-button' ); ?></span>
 							<span class="iftp-btn-bcard__new-text"><?php esc_html_e( 'Set an amount, pick a look, place it anywhere.', 'ifthenpay-pay-button' ); ?></span>
+						</a>
+					</li>
+					<li class="iftp-btn-bcard iftp-btn-bcard--new iftp-btn-bcard--ai" data-iftp-bcard-new>
+						<a class="iftp-btn-bcard__new" href="<?php echo esc_url( AiStudioPage::url( null ) ); ?>">
+							<span class="iftp-btn-bcard__new-icon" aria-hidden="true"><?php echo AiPanel::sparkle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
+							<span class="iftp-btn-bcard__new-title"><?php esc_html_e( 'Build with AI', 'ifthenpay-pay-button' ); ?></span>
+							<span class="iftp-btn-bcard__new-text"><?php esc_html_e( 'Describe it in a sentence; watch the form and the look appear.', 'ifthenpay-pay-button' ); ?></span>
 						</a>
 					</li>
 				</ul>
@@ -436,34 +506,21 @@ class ButtonsPage {
 	}
 
 	/**
-	 * The totals across every button: what came in (with the last 30 days drawn under it), how many who opened
-	 * a checkout walked away, how full the spots are, and how many buttons are live.
+	 * The all-time totals across every button: what came in, how many who opened a checkout paid, how many
+	 * walked away, and the average payment. Money tiles carry the last 30 days as a line and their change
+	 * against the 30 before; the checkout tiles have no daily history, so they show their share as a bar.
 	 *
-	 * @param array<int, Button>                                                 $buttons Every button.
-	 * @param array<int, array{paid_count: int, paid_amount: float, count: int}> $stats   Payment counts by button.
-	 * @param array<int, array{total: int, options: array<string, int>}>         $taken   Spots taken by button.
-	 * @param array<int, array{opens: int, since: int}>                          $opens   Checkout opens by button.
-	 * @param array<int, int>                                                    $paid    Paid payments since each began counting opens.
+	 * @param array<int, array{paid_count: int, paid_amount: float, count: int}> $stats Payment counts by button.
+	 * @param array<int, array{opens: int, since: int}>                          $opens Checkout opens by button.
+	 * @param array<int, int>                                                    $paid  Paid payments since each began counting opens.
 	 */
-	private function render_summary( array $buttons, array $stats, array $taken, array $opens, array $paid ): void {
-		$live     = count( array_filter( $buttons, static fn( Button $button ): bool => $button->active ) );
-		$total    = (float) array_sum( array_column( $stats, 'paid_amount' ) );
-		$count    = (int) array_sum( array_column( $stats, 'paid_count' ) );
-		$opened   = (int) array_sum( array_column( $opens, 'opens' ) );
-		$abandon  = CheckoutOpens::abandon_rate( $opened, (int) array_sum( $paid ) );
-		$capacity = 0;
-		$filled   = 0;
-		$selling  = 0;
-
-		foreach ( $buttons as $button ) {
-			$limit = Spots::capacity( $button );
-
-			if ( $limit > 0 ) {
-				$capacity += $limit;
-				$filled   += min( $limit, $taken[ $button->id ]['total'] ?? 0 );
-				++$selling;
-			}
-		}
+	private function render_summary( array $stats, array $opens, array $paid ): void {
+		$total     = (float) array_sum( array_column( $stats, 'paid_amount' ) );
+		$count     = (int) array_sum( array_column( $stats, 'paid_count' ) );
+		$opened    = (int) array_sum( array_column( $opens, 'opens' ) );
+		$converted = min( $opened, (int) array_sum( $paid ) );
+		$recent    = ( new Insights( $this->transactions ) )->period( '30d' );
+		$average   = $count > 0 ? $total / $count : 0.0;
 
 		$tiles = array(
 			array(
@@ -472,52 +529,76 @@ class ButtonsPage {
 				'value' => CheckoutService::format_money( $total ),
 				/* translators: %s: how many payments were paid */
 				'sub'   => sprintf( _n( 'from %s paid payment', 'from %s paid payments', $count, 'ifthenpay-pay-button' ), number_format_i18n( $count ) ),
-				'spark' => true,
+				'delta' => $recent['kpis']['revenue']['delta'],
+				'spark' => $recent['series']['values'],
+				'share' => null,
+				'tone'  => '',
+			),
+			array(
+				'icon'  => 'check',
+				'label' => __( 'Conversion (paid ÷ opened)', 'ifthenpay-pay-button' ),
+				'value' => $opened > 0 ? self::percent( $converted / $opened ) : '—',
+				'sub'   => $opened > 0
+					/* translators: 1: paid payments, 2: how many times a checkout was opened */
+					? sprintf( _n( '%1$s of %2$s checkout opened', '%1$s of %2$s checkouts opened', $opened, 'ifthenpay-pay-button' ), number_format_i18n( $converted ), number_format_i18n( $opened ) )
+					: __( 'counts from the next checkout opened', 'ifthenpay-pay-button' ),
+				'delta' => null,
+				'spark' => null,
+				'share' => $opened > 0 ? $converted / $opened : null,
+				'tone'  => '',
 			),
 			array(
 				'icon'  => 'exit',
-				'label' => __( 'Opened, didn\'t pay', 'ifthenpay-pay-button' ),
-				'value' => null !== $abandon ? self::percent( $abandon ) : '—',
+				'label' => __( 'Abandoned checkouts', 'ifthenpay-pay-button' ),
+				'value' => number_format_i18n( $opened - $converted ),
 				'sub'   => $opened > 0
-					/* translators: %s: how many times a checkout was opened */
-					? sprintf( _n( 'of %s checkout opened', 'of %s checkouts opened', $opened, 'ifthenpay-pay-button' ), number_format_i18n( $opened ) )
+					/* translators: %s: a percentage, e.g. 20% */
+					? sprintf( __( '%s of checkouts opened', 'ifthenpay-pay-button' ), self::percent( ( $opened - $converted ) / $opened ) )
 					: __( 'counts from the next checkout opened', 'ifthenpay-pay-button' ),
-				'spark' => false,
+				'delta' => null,
+				'spark' => null,
+				'share' => $opened > 0 ? ( $opened - $converted ) / $opened : null,
+				'tone'  => 'bad',
 			),
 			array(
-				'icon'  => 'seat',
-				'label' => __( 'Spots taken', 'ifthenpay-pay-button' ),
-				'value' => $capacity > 0 ? self::percent( $filled / $capacity ) : '—',
-				'sub'   => $capacity > 0
-					/* translators: 1: spots taken, paid or waiting for payment, 2: how many there are, 3: how many buttons sell spots */
-					? sprintf( _n( '%1$s of %2$s, on %3$s button', '%1$s of %2$s, on %3$s buttons', $selling, 'ifthenpay-pay-button' ), number_format_i18n( $filled ), number_format_i18n( $capacity ), number_format_i18n( $selling ) )
-					: __( 'no button sells a set number', 'ifthenpay-pay-button' ),
-				'spark' => false,
-			),
-			array(
-				'icon'  => 'bolt',
-				'label' => __( 'Live buttons', 'ifthenpay-pay-button' ),
-				'value' => number_format_i18n( $live ),
-				/* translators: %s: how many buttons exist */
-				'sub'   => sprintf( __( 'of %s', 'ifthenpay-pay-button' ), number_format_i18n( count( $buttons ) ) ),
-				'spark' => false,
+				'icon'  => 'receipt',
+				'label' => __( 'Average payment', 'ifthenpay-pay-button' ),
+				'value' => $count > 0 ? CheckoutService::format_money( $average ) : '—',
+				/* translators: %s: how many payments were paid */
+				'sub'   => sprintf( _n( 'across %s paid payment', 'across %s paid payments', $count, 'ifthenpay-pay-button' ), number_format_i18n( $count ) ),
+				'delta' => $recent['kpis']['average']['delta'],
+				'spark' => $recent['series']['averages'],
+				'share' => null,
+				'tone'  => '',
 			),
 		);
 		?>
 		<dl class="iftp-btn-bsummary">
 			<?php foreach ( $tiles as $tile ) : ?>
-				<div class="iftp-btn-bsummary__tile">
+				<div class="iftp-btn-bsummary__tile<?php echo '' !== $tile['tone'] ? ' iftp-btn-bsummary__tile--' . esc_attr( $tile['tone'] ) : ''; ?>">
 					<span class="iftp-btn-bsummary__icon" aria-hidden="true"><?php echo self::icon( $tile['icon'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
 					<dt class="iftp-btn-bsummary__label"><?php echo esc_html( $tile['label'] ); ?></dt>
-					<dd class="iftp-btn-bsummary__value">
-						<span data-iftp-summary="<?php echo esc_attr( $tile['icon'] ); ?>"><?php echo esc_html( $tile['value'] ); ?></span>
-						<?php if ( '' !== $tile['sub'] ) : ?>
+					<dd class="iftp-btn-bsummary__value"><?php echo esc_html( $tile['value'] ); ?></dd>
+					<dd class="iftp-btn-bsummary__trend">
+						<?php if ( null !== $tile['delta'] ) : ?>
+							<span class="iftp-btn-bsummary__delta iftp-btn-bsummary__delta--<?php echo $tile['delta'] < 0 ? 'down' : 'up'; ?>" data-iftp-tip="<?php esc_attr_e( 'Last 30 days against the 30 before', 'ifthenpay-pay-button' ); ?>">
+								<?php
+								/* translators: 1: ▲ or ▼, 2: a percentage change, e.g. 12% */
+								echo esc_html( sprintf( __( '%1$s %2$s', 'ifthenpay-pay-button' ), $tile['delta'] < 0 ? '▼' : '▲', self::percent( abs( $tile['delta'] ) / 100 ) ) );
+								?>
+							</span>
+							<span class="iftp-btn-bsummary__sub"><?php esc_html_e( 'last 30 days', 'ifthenpay-pay-button' ); ?></span>
+						<?php else : ?>
 							<span class="iftp-btn-bsummary__sub"><?php echo esc_html( $tile['sub'] ); ?></span>
 						<?php endif; ?>
 					</dd>
-					<?php if ( $tile['spark'] ) : ?>
-						<dd class="iftp-btn-bsummary__spark"><?php $this->print_sparkline(); ?></dd>
-					<?php endif; ?>
+					<dd class="iftp-btn-bsummary__spark">
+						<?php if ( null !== $tile['spark'] ) : ?>
+							<?php self::print_sparkline( $tile['spark'] ); ?>
+						<?php else : ?>
+							<span class="iftp-btn-bsummary__meter" aria-hidden="true"><svg class="iftp-btn-bsummary__fill" width="<?php echo esc_attr( (string) (int) round( ( $tile['share'] ?? 0.0 ) * 100 ) ); ?>%" focusable="false"></svg></span>
+						<?php endif; ?>
+					</dd>
 				</div>
 			<?php endforeach; ?>
 		</dl>
@@ -525,14 +606,15 @@ class ButtonsPage {
 	}
 
 	/**
-	 * The last 30 days of paid revenue as a small area line, with what it adds up to for screen readers.
+	 * A small area line of the last 30 days. Decorative: the tile's value and change say it in words.
+	 *
+	 * @param array<int, float> $values One value per day.
 	 */
-	private function print_sparkline(): void {
-		$values = ( new Insights( $this->transactions ) )->period( '30d' )['series']['values'];
+	private static function print_sparkline( array $values ): void {
 		$count  = count( $values );
 		$high   = max( 0.01, array() !== $values ? (float) max( $values ) : 0.0 );
 		$width  = 300;
-		$height = 40;
+		$height = 34;
 		$points = array();
 
 		foreach ( $values as $index => $value ) {
@@ -542,14 +624,11 @@ class ButtonsPage {
 		}
 
 		$line = 'M' . implode( ' L', $points );
-		/* translators: %s: money collected over the last 30 days */
-		$label = sprintf( __( 'Last 30 days: %s', 'ifthenpay-pay-button' ), CheckoutService::format_money( (float) array_sum( $values ) ) );
 		?>
-		<svg class="iftp-btn-spark" viewBox="0 0 <?php echo esc_attr( $width . ' ' . $height ); ?>" preserveAspectRatio="none" role="img" aria-label="<?php echo esc_attr( $label ); ?>" focusable="false">
+		<svg class="iftp-btn-spark" viewBox="0 0 <?php echo esc_attr( $width . ' ' . $height ); ?>" preserveAspectRatio="none" aria-hidden="true" focusable="false">
 			<path class="iftp-btn-spark__area" d="<?php echo esc_attr( $line . ' L' . $width . ',' . $height . ' L0,' . $height . ' Z' ); ?>"/>
 			<path class="iftp-btn-spark__line" d="<?php echo esc_attr( $line ); ?>"/>
 		</svg>
-		<span class="iftp-btn-bsummary__spark-label" aria-hidden="true"><?php echo esc_html( $label ); ?></span>
 		<?php
 	}
 
@@ -564,16 +643,31 @@ class ButtonsPage {
 	}
 
 	/**
-	 * Search by title, and All / On / Off. Both run in the browser; the list is never long enough to page.
+	 * Search by title, the amount type, the sort, All / On / Off / Sold out, and grid or list. All of it runs
+	 * in the browser; the list is never long enough to page.
 	 *
-	 * @param array<int, Button> $buttons Every button.
+	 * @param array<int, Button>                                         $buttons Every button.
+	 * @param array<int, array{total: int, options: array<string, int>}> $taken   Spots taken by button.
 	 */
-	private function render_toolbar( array $buttons ): void {
+	private function render_toolbar( array $buttons, array $taken ): void {
 		$live    = count( array_filter( $buttons, static fn( Button $button ): bool => $button->active ) );
+		$sold    = count( array_filter( $buttons, static fn( Button $button ): bool => self::sold_out( $button, $taken[ $button->id ]['total'] ?? 0 ) ) );
 		$filters = array(
-			'all' => array( __( 'All', 'ifthenpay-pay-button' ), count( $buttons ) ),
-			'on'  => array( __( 'On', 'ifthenpay-pay-button' ), $live ),
-			'off' => array( __( 'Off', 'ifthenpay-pay-button' ), count( $buttons ) - $live ),
+			'all'  => array( __( 'All', 'ifthenpay-pay-button' ), count( $buttons ) ),
+			'on'   => array( __( 'On', 'ifthenpay-pay-button' ), $live ),
+			'off'  => array( __( 'Off', 'ifthenpay-pay-button' ), count( $buttons ) - $live ),
+			'sold' => array( __( 'Sold out', 'ifthenpay-pay-button' ), $sold ),
+		);
+		$sorts   = array(
+			'collected' => __( 'Most collected', 'ifthenpay-pay-button' ),
+			'paid'      => __( 'Most paid', 'ifthenpay-pay-button' ),
+			'newest'    => __( 'Newest', 'ifthenpay-pay-button' ),
+			'oldest'    => __( 'Oldest', 'ifthenpay-pay-button' ),
+			'title'     => __( 'Name (A–Z)', 'ifthenpay-pay-button' ),
+		);
+		$views   = array(
+			'grid' => __( 'Grid view', 'ifthenpay-pay-button' ),
+			'list' => __( 'List view', 'ifthenpay-pay-button' ),
 		);
 		?>
 		<div class="iftp-btn-btoolbar" data-iftp-btoolbar hidden>
@@ -581,6 +675,23 @@ class ButtonsPage {
 				<span class="screen-reader-text"><?php esc_html_e( 'Search buttons', 'ifthenpay-pay-button' ); ?></span>
 				<?php echo self::icon( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?>
 				<input type="search" class="iftp-btn-bsearch__input" placeholder="<?php esc_attr_e( 'Search buttons', 'ifthenpay-pay-button' ); ?>" data-iftp-bsearch />
+			</label>
+			<label class="iftp-btn-btoolbar__select">
+				<span class="screen-reader-text"><?php esc_html_e( 'Amount type', 'ifthenpay-pay-button' ); ?></span>
+				<select class="iftp-btn-bselect" data-iftp-btype>
+					<option value=""><?php esc_html_e( 'All types', 'ifthenpay-pay-button' ); ?></option>
+					<option value="<?php echo esc_attr( Button::MODE_FIXED ); ?>"><?php esc_html_e( 'Fixed', 'ifthenpay-pay-button' ); ?></option>
+					<option value="<?php echo esc_attr( Button::MODE_PAYER ); ?>"><?php esc_html_e( 'Payer chooses', 'ifthenpay-pay-button' ); ?></option>
+					<option value="<?php echo esc_attr( Button::MODE_LINK ); ?>"><?php esc_html_e( 'From the link', 'ifthenpay-pay-button' ); ?></option>
+				</select>
+			</label>
+			<label class="iftp-btn-btoolbar__select">
+				<span class="screen-reader-text"><?php esc_html_e( 'Sort by', 'ifthenpay-pay-button' ); ?></span>
+				<select class="iftp-btn-bselect" data-iftp-bsort>
+					<?php foreach ( $sorts as $key => $label ) : ?>
+						<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
+					<?php endforeach; ?>
+				</select>
 			</label>
 			<div class="iftp-btn-bfilter" role="group" aria-label="<?php esc_attr_e( 'Show', 'ifthenpay-pay-button' ); ?>">
 				<?php foreach ( $filters as $key => $filter ) : ?>
@@ -590,8 +701,25 @@ class ButtonsPage {
 					</button>
 				<?php endforeach; ?>
 			</div>
+			<div class="iftp-btn-bfilter iftp-btn-bview" role="group" aria-label="<?php esc_attr_e( 'Layout', 'ifthenpay-pay-button' ); ?>">
+				<?php foreach ( $views as $key => $label ) : ?>
+					<button type="button" class="iftp-btn-bfilter__option" data-iftp-bview="<?php echo esc_attr( $key ); ?>" aria-pressed="<?php echo 'grid' === $key ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr( $label ); ?>" data-iftp-tip="<?php echo esc_attr( $label ); ?>"><?php echo self::icon( $key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
+				<?php endforeach; ?>
+			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Whether a button that sells a set number of spots has none left.
+	 *
+	 * @param Button $button The button.
+	 * @param int    $taken  Spots taken, paid or held.
+	 */
+	private static function sold_out( Button $button, int $taken ): bool {
+		$limit = Spots::capacity( $button );
+
+		return $limit > 0 && $taken >= $limit;
 	}
 
 	/**
@@ -601,16 +729,20 @@ class ButtonsPage {
 	 * @param array{paid_count: int, paid_amount: float, count: int}|null $stats  Its payment counts, if it has any.
 	 * @param int                                                         $taken  Spots taken, paid or held.
 	 * @param int                                                         $opens  Times its checkout was opened.
+	 * @param int                                                         $since  When it started counting opens, 0 before the first.
 	 * @param int                                                         $paid   Paid payments since opens began counting.
 	 * @param PayLinks                                                    $links  Builds its pay link.
+	 * @param int                                                         $order  Its place newest first, for the Newest sort.
 	 */
-	private function render_card( Button $button, ?array $stats, int $taken, int $opens, int $paid, PayLinks $links ): void {
+	private function render_card( Button $button, ?array $stats, int $taken, int $opens, int $since, int $paid, PayLinks $links, int $order ): void {
 		$shortcode  = sprintf( '[%1$s id="%2$d"]', Shortcode::TAG, $button->id );
 		$pay_link   = $links->url( $button );
 		$edit       = self::edit_url( $button->id );
 		$paid_count = null !== $stats ? $stats['paid_count'] : 0;
 		$limit      = Spots::capacity( $button );
 		$abandon    = CheckoutOpens::abandon_rate( $opens, $paid );
+		$share      = $limit > 0 ? min( 1.0, $taken / $limit ) : 0.0;
+		$sold_out   = self::sold_out( $button, $taken );
 		$payments   = add_query_arg(
 			array(
 				'page'   => EntriesPage::PAGE_SLUG,
@@ -619,22 +751,32 @@ class ButtonsPage {
 			admin_url( 'admin.php' )
 		);
 		?>
-		<li class="iftp-btn-bcard<?php echo $button->active ? '' : ' iftp-btn-bcard--off'; ?>" data-iftp-bcard data-title="<?php echo esc_attr( strtolower( remove_accents( $button->title ) ) ); ?>" data-active="<?php echo $button->active ? '1' : '0'; ?>">
+		<li class="iftp-btn-bcard<?php echo $button->active ? '' : ' iftp-btn-bcard--off'; ?>" data-iftp-bcard data-title="<?php echo esc_attr( strtolower( remove_accents( $button->title ) ) ); ?>" data-active="<?php echo $button->active ? '1' : '0'; ?>" data-mode="<?php echo esc_attr( $button->mode() ); ?>" data-sold="<?php echo $sold_out ? '1' : '0'; ?>" data-collected="<?php echo esc_attr( (string) ( null !== $stats ? $stats['paid_amount'] : 0 ) ); ?>" data-paid="<?php echo esc_attr( (string) $paid_count ); ?>" data-order="<?php echo esc_attr( (string) $order ); ?>">
 			<a class="iftp-btn-bcard__stage" href="<?php echo esc_url( $edit ); ?>" tabindex="-1" aria-hidden="true">
 				<?php
 				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes.
 				echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( $button->config['design'], $button->display_label() ) . '</span>';
 				?>
 				<span class="iftp-btn-bcard__look"><?php echo ButtonDesign::SOURCE_CUSTOM === $button->config['design']['source'] ? esc_html__( 'Custom look', 'ifthenpay-pay-button' ) : esc_html__( 'Theme look', 'ifthenpay-pay-button' ); ?></span>
+				<?php if ( $sold_out ) : ?>
+					<span class="iftp-btn-bcard__badge iftp-btn-bcard__badge--sold"><?php esc_html_e( 'Sold out', 'ifthenpay-pay-button' ); ?></span>
+				<?php elseif ( $limit > 0 && $share >= self::ALMOST_FULL ) : ?>
+					<span class="iftp-btn-bcard__badge iftp-btn-bcard__badge--almost"><?php esc_html_e( 'Almost full', 'ifthenpay-pay-button' ); ?></span>
+				<?php endif; ?>
 			</a>
 
 			<div class="iftp-btn-bcard__body">
 				<div class="iftp-btn-bcard__top">
 					<div class="iftp-btn-bcard__heading">
-						<h2 class="iftp-btn-bcard__title"><a href="<?php echo esc_url( $edit ); ?>"><?php echo esc_html( $button->title ); ?></a></h2>
+						<h2 class="iftp-btn-bcard__title"><a href="<?php echo esc_url( $edit ); ?>" title="<?php echo esc_attr( $button->title ); ?>"><?php echo esc_html( $button->title ); ?></a></h2>
 						<p class="iftp-btn-bcard__amount">
 							<span class="iftp-btn-bcard__mode iftp-btn-bcard__mode--<?php echo esc_attr( $button->mode() ); ?>"><?php echo esc_html( self::mode_label( $button ) ); ?></span>
 							<span><?php echo esc_html( self::amount_detail( $button ) ); ?></span>
+							<?php if ( $sold_out ) : ?>
+								<span class="iftp-btn-bcard__state iftp-btn-bcard__badge--sold"><?php esc_html_e( 'Sold out', 'ifthenpay-pay-button' ); ?></span>
+							<?php elseif ( $limit > 0 && $share >= self::ALMOST_FULL ) : ?>
+								<span class="iftp-btn-bcard__state iftp-btn-bcard__badge--almost"><?php esc_html_e( 'Almost full', 'ifthenpay-pay-button' ); ?></span>
+							<?php endif; ?>
 						</p>
 					</div>
 					<label class="iftp-btn-bcard__toggle">
@@ -660,17 +802,31 @@ class ButtonsPage {
 					<div>
 						<dt><?php esc_html_e( 'Didn\'t pay', 'ifthenpay-pay-button' ); ?></dt>
 						<?php
+						// Paid is all-time but this only counts from the first open, so the card says from when.
+						$since_day   = $since > 0 ? Dates::local( Dates::local( 'Y' ) === Dates::local( 'Y', $since ) ? 'j M' : 'j M Y', $since ) : '';
 						$abandon_tip = $opens > 0
-							/* translators: 1: checkouts opened, 2: of those, how many were paid */
-							? sprintf( _n( '%1$s checkout opened, %2$s paid', '%1$s checkouts opened, %2$s paid', $opens, 'ifthenpay-pay-button' ), number_format_i18n( $opens ), number_format_i18n( min( $opens, $paid ) ) )
+							/* translators: 1: a date, e.g. 23 Oct, 2: checkouts opened, 3: of those, how many were paid */
+							? sprintf( _n( 'Since %1$s: %2$s checkout opened, %3$s paid.', 'Since %1$s: %2$s checkouts opened, %3$s paid.', $opens, 'ifthenpay-pay-button' ), $since_day, number_format_i18n( $opens ), number_format_i18n( min( $opens, $paid ) ) )
 							: __( 'Nobody has opened its checkout since this started counting.', 'ifthenpay-pay-button' );
+
+						if ( null === $abandon && $opens > 0 ) {
+							/* translators: %s: how many opens it takes, e.g. 10 */
+							$abandon_tip .= ' ' . sprintf( __( 'The rate shows from %s opens.', 'ifthenpay-pay-button' ), number_format_i18n( CheckoutOpens::MIN_OPENS ) );
+						}
 						?>
 						<dd data-iftp-tip="<?php echo esc_attr( $abandon_tip ); ?>"><?php echo esc_html( null !== $abandon ? self::percent( $abandon ) : '—' ); ?><span class="screen-reader-text"> (<?php echo esc_html( $abandon_tip ); ?>)</span></dd>
+						<?php if ( '' !== $since_day ) : ?>
+							<dd class="iftp-btn-bcard__since">
+								<?php
+								/* translators: %s: a date, e.g. 23 Oct */
+								echo esc_html( sprintf( __( 'since %s', 'ifthenpay-pay-button' ), $since_day ) );
+								?>
+							</dd>
+						<?php endif; ?>
 					</div>
 				</dl>
 				<?php if ( $limit > 0 ) : ?>
-					<?php $share = min( 1.0, $taken / $limit ); ?>
-					<div class="iftp-btn-bcard__spots">
+					<div class="iftp-btn-bcard__spots<?php echo $sold_out ? ' iftp-btn-bcard__spots--sold' : ( $share >= self::ALMOST_FULL ? ' iftp-btn-bcard__spots--almost' : '' ); ?>">
 						<span class="iftp-btn-bcard__spots-head">
 							<span>
 								<?php
@@ -760,6 +916,9 @@ class ButtonsPage {
 			'check'    => '<circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.2 2.4 2.3 4.6-4.8"/>',
 			'exit'     => '<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M9 16l-4-4 4-4M5 12h10"/>',
 			'seat'     => '<path d="M7 11V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v5"/><path d="M5 11h14v4H5zM7 15v5M17 15v5"/>',
+			'receipt'  => '<path d="M6 3.5h12v17l-3-1.8-3 1.8-3-1.8-3 1.8z"/><path d="M9 8h6M9 11.5h6M9 15h3.5"/>',
+			'grid'     => '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
+			'list'     => '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.75" cy="6" r=".9"/><circle cx="4.75" cy="12" r=".9"/><circle cx="4.75" cy="18" r=".9"/>',
 		);
 
 		return isset( $paths[ $name ] ) ? '<svg class="iftp-btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $paths[ $name ] . '</svg>' : '';
@@ -830,24 +989,5 @@ class ButtonsPage {
 
 		/* translators: 1: smallest amount, 2: largest amount */
 		return sprintf( __( '%1$s – %2$s', 'ifthenpay-pay-button' ), CheckoutService::format_money( $button->config['min'] ), CheckoutService::format_money( $button->config['max'] ) );
-	}
-
-	/**
-	 * How the button sets its amount, in one line.
-	 *
-	 * @param Button $button The button.
-	 */
-	public static function amount_summary( Button $button ): string {
-		if ( Button::MODE_PAYER === $button->mode() ) {
-			/* translators: 1: smallest amount, 2: largest amount */
-			return sprintf( __( 'Payer chooses · %1$s to %2$s', 'ifthenpay-pay-button' ), CheckoutService::format_money( $button->config['min'] ), CheckoutService::format_money( $button->config['max'] ) );
-		}
-
-		if ( Button::MODE_LINK === $button->mode() ) {
-			/* translators: 1: smallest amount, 2: largest amount */
-			return sprintf( __( 'Amount from the link · %1$s to %2$s', 'ifthenpay-pay-button' ), CheckoutService::format_money( $button->config['min'] ), CheckoutService::format_money( $button->config['max'] ) );
-		}
-
-		return CheckoutService::format_money( $button->config['amount'] );
 	}
 }

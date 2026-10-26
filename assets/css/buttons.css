@@ -145,8 +145,8 @@ body.iftp-btn-screen .iftp-btn-empty__title {
 	grid-template-columns: auto minmax(0, 1fr);
 	align-content: start;
 	align-items: center;
-	column-gap: 14px;
-	padding: 16px 18px;
+	column-gap: 12px;
+	padding: 16px 18px 14px;
 	border: 1px solid var(--iftp-line);
 	border-radius: var(--iftp-r-lg);
 	background: var(--iftp-surface);
@@ -164,48 +164,84 @@ body.iftp-btn-screen .iftp-btn-empty__title {
 	color: var(--iftp-brand);
 }
 
+.iftp-btn-bsummary__tile--bad .iftp-btn-bsummary__icon {
+	background: var(--iftp-failed-bg);
+	color: var(--iftp-failed);
+}
+
 .iftp-btn-bsummary__label {
+	overflow: hidden;
 	color: var(--iftp-muted);
 	font-size: 12px;
 	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .iftp-btn-bsummary__value {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: baseline;
-	gap: 0 6px;
 	margin: 0;
 	color: var(--iftp-ink);
-	font-size: 20px;
+	font-size: 22px;
 	font-weight: 750;
-	line-height: 1.25;
-	letter-spacing: -0.015em;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.2;
+	letter-spacing: -0.02em;
+}
+
+.iftp-btn-bsummary__trend {
+	display: flex;
+	align-items: baseline;
+	grid-column: 1 / -1;
+	gap: 8px;
+	min-height: 18px;
+	margin: 10px 0 0;
+}
+
+.iftp-btn-bsummary__delta {
+	position: relative;
+	flex: none;
+	font-size: 12px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.iftp-btn-bsummary__delta--up {
+	color: var(--iftp-paid);
+}
+
+.iftp-btn-bsummary__delta--down {
+	color: var(--iftp-failed);
 }
 
 .iftp-btn-bsummary__sub {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	color: var(--iftp-muted);
-	font-size: 12.5px;
+	font-size: 12px;
 	font-weight: 500;
-	letter-spacing: 0;
 }
 
-/* The last 30 days under Collected. */
+/* The last 30 days, or a share bar where there's no daily history. Same slot, so the tiles line up. */
 .iftp-btn-bsummary__spark {
+	display: flex;
+	align-items: flex-end;
 	grid-column: 1 / -1;
-	margin: 10px 0 0;
+	height: 34px;
+	margin: 8px 0 0;
 }
 
 .iftp-btn-spark {
 	display: block;
 	width: 100%;
-	height: 40px;
+	height: 34px;
 	overflow: visible;
 }
 
 .iftp-btn-spark__area {
 	fill: var(--iftp-chart-from);
-	opacity: 0.12;
+	opacity: 0.1;
 }
 
 .iftp-btn-spark__line {
@@ -216,32 +252,49 @@ body.iftp-btn-screen .iftp-btn-empty__title {
 	vector-effect: non-scaling-stroke;
 }
 
-.iftp-btn-bsummary__spark-label {
+.iftp-btn-bsummary__meter {
 	display: block;
-	margin-top: 4px;
-	color: var(--iftp-muted);
-	font-size: 11.5px;
+	width: 100%;
+	height: 6px;
+	margin-bottom: 6px;
+	overflow: hidden;
+	border-radius: var(--iftp-r-pill);
+	background: var(--iftp-inset);
 }
 
+.iftp-btn-bsummary__fill {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: linear-gradient(90deg, var(--iftp-chart-from), var(--iftp-chart-to));
+}
+
+.iftp-btn-bsummary__tile--bad .iftp-btn-bsummary__fill {
+	background: linear-gradient(90deg, #ad1919, #8c0808);
+}
+
+/* One compact row: search takes what's left, the rest keep their size. */
 .iftp-btn-btoolbar {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
+	gap: 8px;
 	margin: 22px 0 0;
 }
 
 .iftp-btn-bsearch {
 	position: relative;
 	display: block;
-	width: min(320px, 100%);
+	flex: 1 1 220px;
+	min-width: 0;
 }
 
 .iftp-btn-bsearch .iftp-btn-icon {
 	position: absolute;
 	top: 50%;
-	left: 12px;
+	left: 10px;
+	width: 16px;
+	height: 16px;
 	color: var(--iftp-faint);
 	transform: translateY(-50%);
 	pointer-events: none;
@@ -249,15 +302,16 @@ body.iftp-btn-screen .iftp-btn-empty__title {
 
 body.iftp-btn-screen .iftp-btn-bsearch__input {
 	width: 100%;
-	min-height: 40px;
+	min-height: 34px;
 	margin: 0;
-	padding: 0 12px 0 38px;
+	padding: 0 10px 0 32px;
 	border: 1px solid var(--iftp-line-strong);
 	border-radius: var(--iftp-r-sm);
 	background: var(--iftp-raised);
 	box-shadow: var(--iftp-shadow-1);
 	color: var(--iftp-ink);
-	font-size: 13.5px;
+	font-size: 13px;
+	line-height: 1.4;
 }
 
 body.iftp-btn-screen .iftp-btn-bsearch__input:focus {
@@ -266,27 +320,64 @@ body.iftp-btn-screen .iftp-btn-bsearch__input:focus {
 	outline: none;
 }
 
+.iftp-btn-btoolbar__select {
+	display: block;
+	flex: none;
+}
+
+body.iftp-btn-screen .iftp-btn-bselect {
+	min-width: 132px;
+	min-height: 34px;
+	margin: 0;
+	padding: 0 30px 0 10px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-sm);
+	background-color: var(--iftp-raised);
+	box-shadow: var(--iftp-shadow-1);
+	color: var(--iftp-ink);
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.4;
+}
+
+body.iftp-btn-screen .iftp-btn-dropdown__button.iftp-btn-bselect {
+	padding-right: 8px;
+}
+
+body.iftp-btn-screen .iftp-btn-bselect:hover {
+	border-color: rgb(18 26 44 / 26%);
+}
+
+body.iftp-btn-screen .iftp-btn-bselect:focus-visible {
+	border-color: var(--iftp-brand);
+	box-shadow: var(--iftp-ring);
+	outline: none;
+}
+
 .iftp-btn-bfilter {
 	display: inline-flex;
+	flex: none;
 	gap: 2px;
-	padding: 3px;
+	padding: 2px;
 	border-radius: var(--iftp-r-sm);
 	background: rgb(18 26 44 / 6%);
 }
 
 body.iftp-btn-screen .iftp-btn-bfilter__option {
+	position: relative;
 	display: inline-flex;
 	align-items: center;
-	gap: 7px;
-	min-height: 32px;
+	gap: 6px;
+	min-height: 30px;
 	margin: 0;
-	padding: 0 12px;
+	padding: 0 10px;
 	border: 0;
-	border-radius: 8px;
+	border-radius: 7px;
 	background: transparent;
 	color: var(--iftp-muted);
 	font-family: inherit;
-	font-size: 13px;
+	font-size: 12.5px;
 	font-weight: 600;
 	cursor: pointer;
 	transition: background-color var(--iftp-fast) var(--iftp-ease), color var(--iftp-fast) var(--iftp-ease);
@@ -303,11 +394,11 @@ body.iftp-btn-screen .iftp-btn-bfilter__option[aria-pressed="true"] {
 }
 
 .iftp-btn-bfilter__count {
-	min-width: 20px;
-	padding: 1px 6px;
+	min-width: 18px;
+	padding: 0 5px;
 	border-radius: var(--iftp-r-pill);
 	background: rgb(18 26 44 / 7%);
-	font-size: 11.5px;
+	font-size: 11px;
 	font-variant-numeric: tabular-nums;
 	text-align: center;
 }
@@ -315,6 +406,17 @@ body.iftp-btn-screen .iftp-btn-bfilter__option[aria-pressed="true"] {
 .iftp-btn-bfilter__option[aria-pressed="true"] .iftp-btn-bfilter__count {
 	background: var(--iftp-brand-tint);
 	color: var(--iftp-brand);
+}
+
+body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
+	width: 30px;
+	padding: 0;
+	justify-content: center;
+}
+
+.iftp-btn-bview .iftp-btn-icon {
+	width: 16px;
+	height: 16px;
 }
 
 .iftp-btn-bnone {
@@ -357,9 +459,11 @@ body.iftp-btn-screen .iftp-btn-bfilter__option[aria-pressed="true"] {
 .iftp-btn-bcard__stage {
 	position: relative;
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	place-items: center;
-	min-height: 128px;
-	padding: 34px 22px 26px;
+	height: 128px;
+	padding: 30px 18px 18px;
+	overflow: hidden;
 	border-bottom: 1px solid var(--iftp-line);
 	border-radius: var(--iftp-r-xl) var(--iftp-r-xl) 0 0;
 	background:
@@ -368,14 +472,34 @@ body.iftp-btn-screen .iftp-btn-bfilter__option[aria-pressed="true"] {
 	text-decoration: none;
 }
 
+/* The stage keeps its size; the button sits in it smaller than on the page, and never full width. */
 .iftp-btn-bcard__stage .iftp-btn-pay {
 	width: 100%;
+	min-width: 0;
+	zoom: 0.66;
 	text-align: center;
 	pointer-events: none;
 	transition: opacity var(--iftp-mid) var(--iftp-ease), filter var(--iftp-mid) var(--iftp-ease);
 }
 
-.iftp-btn-bcard__look {
+.iftp-btn-bcard__stage .iftp-btn-pay .iftp-btn-pay__button--full {
+	display: inline-flex;
+	width: auto;
+}
+
+.iftp-btn-bcard__stage .iftp-btn-pay .iftp-btn-pay__button {
+	max-width: 100%;
+	white-space: nowrap;
+}
+
+.iftp-btn-bcard__stage .iftp-btn-pay__label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.iftp-btn-bcard__look,
+.iftp-btn-bcard__badge {
 	position: absolute;
 	top: 10px;
 	left: 12px;
@@ -387,6 +511,21 @@ body.iftp-btn-screen .iftp-btn-bfilter__option[aria-pressed="true"] {
 	font-weight: 700;
 	letter-spacing: 0.05em;
 	text-transform: uppercase;
+}
+
+.iftp-btn-bcard__badge {
+	right: 12px;
+	left: auto;
+}
+
+.iftp-btn-bcard__badge--almost {
+	background: var(--iftp-pending-bg);
+	color: var(--iftp-pending);
+}
+
+.iftp-btn-bcard__badge--sold {
+	background: var(--iftp-failed-bg);
+	color: var(--iftp-failed);
 }
 
 .iftp-btn-bcard--off .iftp-btn-bcard__stage .iftp-btn-pay {
@@ -402,6 +541,7 @@ body.iftp-btn-screen .iftp-btn-bfilter__option[aria-pressed="true"] {
 .iftp-btn-bcard__body {
 	display: grid;
 	flex: 1;
+	grid-template-columns: minmax(0, 1fr);
 	align-content: start;
 	gap: 14px;
 	padding: 18px 20px 16px;
@@ -507,6 +647,14 @@ body.iftp-btn-screen .iftp-btn-bcard__title a:hover {
 	letter-spacing: -0.015em;
 }
 
+.iftp-btn-bcard__stats .iftp-btn-bcard__since {
+	margin-top: 0;
+	color: var(--iftp-muted);
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0;
+}
+
 body.iftp-btn-screen .iftp-btn-bcard__stats dd a {
 	color: inherit;
 	text-decoration: none;
@@ -549,6 +697,14 @@ body.iftp-btn-screen .iftp-btn-bcard__stats dd a:hover {
 	height: 100%;
 	border-radius: inherit;
 	background: linear-gradient(90deg, var(--iftp-chart-from), var(--iftp-chart-to));
+}
+
+.iftp-btn-bcard__spots--almost .iftp-btn-bcard__fill {
+	background: var(--iftp-pending);
+}
+
+.iftp-btn-bcard__spots--sold .iftp-btn-bcard__fill {
+	background: var(--iftp-failed);
 }
 
 .iftp-btn-bcard__foot {
@@ -696,6 +852,237 @@ body.iftp-btn-screen .iftp-btn-bcard__new {
 	font-size: 12.5px;
 }
 
+/* The column header and the status chip by the title belong to the list; in the grid the stage says it. */
+.iftp-btn-bcards__head {
+	display: none;
+}
+
+.iftp-btn-bcard__state {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   List view: one card, a header, and a slim row per button
+   -------------------------------------------------------------------------- */
+@media (width > 1100px) {
+
+	.iftp-btn-bcards--list {
+		--iftp-list-cols: 148px minmax(180px, 1fr) minmax(280px, 330px) 150px 46px 218px;
+
+		display: block;
+		padding: 0 6px 6px;
+		border: 1px solid var(--iftp-line);
+		border-radius: var(--iftp-r-xl);
+		background: var(--iftp-surface);
+		box-shadow: var(--iftp-shadow-2);
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcards__head,
+	.iftp-btn-bcards--list .iftp-btn-bcard {
+		display: grid;
+		grid-template-columns: var(--iftp-list-cols);
+		align-items: center;
+		column-gap: 20px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcards__head {
+		margin: 0 -6px;
+		padding: 12px 18px 10px 14px;
+		border-bottom: 1px solid var(--iftp-line);
+		color: var(--iftp-muted);
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+
+	.iftp-btn-bcards__col--button {
+		grid-column: 1 / 3;
+	}
+
+	.iftp-btn-bcards__col--stats {
+		display: grid;
+		grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 1fr);
+		grid-column: 3;
+	}
+
+	.iftp-btn-bcards__col--spots {
+		grid-column: 4;
+	}
+
+	.iftp-btn-bcards__col--on {
+		grid-column: 5;
+		text-align: center;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard {
+		margin: 0;
+		padding: 8px 12px 8px 8px;
+		border: 0;
+		border-top: 1px solid var(--iftp-line);
+		border-radius: 12px;
+		background: transparent;
+		box-shadow: none;
+		transition: background-color var(--iftp-fast) var(--iftp-ease);
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcards__head + .iftp-btn-bcard,
+	.iftp-btn-bcards--list .iftp-btn-bcard[hidden] + .iftp-btn-bcard {
+		border-top-color: transparent;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard:hover,
+	.iftp-btn-bcards--list .iftp-btn-bcard:focus-within {
+		border-top-color: transparent;
+		background: var(--iftp-inset);
+		box-shadow: none;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard:hover + .iftp-btn-bcard,
+	.iftp-btn-bcards--list .iftp-btn-bcard:focus-within + .iftp-btn-bcard {
+		border-top-color: transparent;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard[hidden],
+	.iftp-btn-bcards--list .iftp-btn-bcard--new {
+		display: none;
+	}
+
+	/* The body and its top row step aside, so the title, numbers, spots and switch each take a column. */
+	.iftp-btn-bcards--list .iftp-btn-bcard__body,
+	.iftp-btn-bcards--list .iftp-btn-bcard__top {
+		display: contents;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stage {
+		grid-column: 1;
+		grid-row: 1;
+		height: 56px;
+		padding: 0 8px;
+		border: 0;
+		border-radius: 10px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stage .iftp-btn-pay {
+		zoom: 0.5;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__look,
+	.iftp-btn-bcards--list .iftp-btn-bcard__badge {
+		display: none;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__heading {
+		grid-column: 2;
+		grid-row: 1;
+	}
+
+	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-bcard__title {
+		font-size: 14px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__amount {
+		margin-top: 4px;
+		font-size: 12px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__mode,
+	.iftp-btn-bcards--list .iftp-btn-bcard__state {
+		font-size: 11px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__state {
+		position: static;
+		width: auto;
+		height: auto;
+		padding: 2px 8px;
+		overflow: visible;
+		clip-path: none;
+		border-radius: var(--iftp-r-pill);
+		font-weight: 650;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats {
+		grid-column: 3;
+		grid-row: 1;
+		grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 1fr);
+		grid-auto-flow: row;
+		padding: 0;
+		border: 0;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats > div + div {
+		padding-left: 0;
+		border-left: 0;
+	}
+
+	/* The header names the numbers once. */
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats dt,
+	.iftp-btn-bcards--list .iftp-btn-bcard__spots-head > span:first-child {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats dd {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__spots {
+		grid-column: 4;
+		grid-row: 1;
+		gap: 5px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__spots-count {
+		color: var(--iftp-ink-2);
+		font-size: 12px;
+		font-weight: 600;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__meter {
+		height: 5px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__toggle {
+		grid-column: 5;
+		grid-row: 1;
+		justify-content: center;
+		padding: 0;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__foot {
+		grid-column: 6;
+		grid-row: 1;
+		justify-content: flex-end;
+		gap: 6px;
+		padding: 0;
+		border: 0;
+	}
+
+	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-bcard__edit {
+		min-height: 30px;
+		padding: 0 12px;
+		font-size: 12.5px;
+	}
+
+	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-tool {
+		width: 30px;
+		height: 30px;
+	}
+}
+
 /* --------------------------------------------------------------------------
    Copy fields
    -------------------------------------------------------------------------- */
@@ -779,11 +1166,23 @@ body.iftp-btn-screen .iftp-btn-copy__button {
 	min-width: 0;
 }
 
+/* The aside runs the full height of the form, so the preview has room to stay in view while it scrolls. */
+.iftp-btn-editor__aside {
+	align-self: stretch;
+}
+
+/* Taller than the screen, it scrolls on its own, so Save and the bottom of the preview stay reachable. */
 .iftp-btn-editor__sticky {
 	position: sticky;
 	top: 46px;
 	display: grid;
 	gap: 16px;
+	max-height: calc(100vh - 62px);
+	margin: -4px;
+	padding: 4px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: thin;
 }
 
 .iftp-btn-editor__pair {
@@ -1149,6 +1548,19 @@ body.iftp-btn-screen .iftp-btn-builder__tag {
 	margin-top: 6px;
 }
 
+/* The redirect link under "From the link" in the Amount card. */
+.iftp-btn-amount-link {
+	display: grid;
+	gap: 6px;
+	padding: 14px;
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-inset);
+}
+
+.iftp-btn-amount-link .iftp-btn-field__help {
+	margin: 0;
+}
+
 .iftp-btn-details {
 	padding: 12px 14px;
 	border: 1px solid var(--iftp-line);
@@ -1338,10 +1750,6 @@ body.iftp-btn-screen .iftp-btn-tabs__tab[aria-selected="true"] {
 	min-width: 0;
 }
 
-.iftp-btn-tabpanel:not([hidden]) {
-	animation: iftp-btn-fade var(--iftp-mid) var(--iftp-ease);
-}
-
 .iftp-btn-editor__save {
 	display: grid;
 	gap: 10px;
@@ -1498,6 +1906,91 @@ body.iftp-btn-screen .iftp-btn-looks__item:hover {
 	border-top: 1px solid var(--iftp-line);
 	font-size: 12.5px;
 	font-weight: 650;
+}
+
+/* Effect pickers: a radio tile per choice, each with a live sample in the current colours. */
+.iftp-btn-fxpick {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+	gap: 8px;
+}
+
+.iftp-btn-fxpick__item {
+	position: relative;
+	display: grid;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+	color: var(--iftp-ink);
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), box-shadow var(--iftp-mid) var(--iftp-ease);
+}
+
+.iftp-btn-fxpick__item input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.iftp-btn-fxpick__item:hover {
+	border-color: rgb(0 96 156 / 45%);
+}
+
+.iftp-btn-fxpick__item:has(input:checked) {
+	border-color: var(--iftp-brand);
+	box-shadow: 0 0 0 1px var(--iftp-brand);
+}
+
+.iftp-btn-fxpick__item:has(input:focus-visible) {
+	box-shadow: 0 0 0 1px var(--iftp-brand), var(--iftp-ring);
+}
+
+/* Room round the sample for rings and hops; the tile doesn't clip, so a ripple can spill a little. */
+.iftp-btn-fxpick__stage {
+	display: grid;
+	place-items: center;
+	min-height: 78px;
+	padding: 20px 10px;
+	border-radius: calc(var(--iftp-r-md) - 1px) calc(var(--iftp-r-md) - 1px) 0 0;
+	background:
+		radial-gradient(circle at 1px 1px, rgb(18 26 44 / 8%) 1px, transparent 0) 0 0 / 12px 12px,
+		var(--iftp-surface);
+	pointer-events: none;
+}
+
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--custom {
+	--iftp-pb-size: 13px;
+	--iftp-pb-pad: 0.55em 1.1em;
+}
+
+.iftp-btn-fxpick__name {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 10px;
+	border-top: 1px solid var(--iftp-line);
+	font-size: 12.5px;
+	font-weight: 650;
+}
+
+.iftp-btn-fxpick__item:has(input:checked) .iftp-btn-fxpick__name::after {
+	content: "";
+	width: 6px;
+	height: 6px;
+	margin-left: auto;
+	border-radius: 50%;
+	background: var(--iftp-brand);
+}
+
+/* In the list and the presets, attention effects rest until the card is pointed at, so a screen of buttons
+   isn't all moving at once. */
+.iftp-btn-bcard:not(:hover) .iftp-btn-bcard__stage .iftp-btn-pay__button,
+.iftp-btn-bcard:not(:hover) .iftp-btn-bcard__stage .iftp-btn-pay__button::before,
+.iftp-btn-bcard:not(:hover) .iftp-btn-bcard__stage .iftp-btn-pay__button::after,
+.iftp-btn-looks__item:not(:hover) .iftp-btn-looks__stage .iftp-btn-pay__button,
+.iftp-btn-looks__item:not(:hover) .iftp-btn-looks__stage .iftp-btn-pay__button::before,
+.iftp-btn-looks__item:not(:hover) .iftp-btn-looks__stage .iftp-btn-pay__button::after {
+	animation: none;
 }
 
 /* A compact segmented control. */
@@ -2411,6 +2904,102 @@ body.iftp-btn-screen .iftp-btn-looksets__item:hover {
 	font-weight: 650;
 }
 
+/* Page progress styles: each card draws the real step bar, in the look's colours. */
+.iftp-btn-stepstyles {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+	gap: 10px;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.iftp-btn-stepstyles__item {
+	position: relative;
+	display: grid;
+	grid-template-rows: auto auto 1fr;
+	gap: 2px;
+	padding: 8px 8px 10px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), box-shadow var(--iftp-mid) var(--iftp-ease), transform var(--iftp-mid) var(--iftp-ease);
+}
+
+.iftp-btn-stepstyles__item:hover {
+	border-color: rgb(0 96 156 / 45%);
+	box-shadow: var(--iftp-shadow-2);
+	transform: translateY(-1px);
+}
+
+.iftp-btn-stepstyles__item:has(:checked) {
+	border-color: var(--iftp-brand);
+	box-shadow: 0 0 0 1px var(--iftp-brand), var(--iftp-shadow-1);
+}
+
+.iftp-btn-stepstyles__item:has(:focus-visible) {
+	box-shadow: 0 0 0 1px var(--iftp-brand), var(--iftp-ring);
+}
+
+.iftp-btn-stepstyles__input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* A tick in the corner of the chosen one. */
+.iftp-btn-stepstyles__item::after {
+	content: "";
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: var(--iftp-brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12.5 4 4L18 8.5'/%3E%3C/svg%3E") center / 12px no-repeat;
+	opacity: 0;
+	transform: scale(0.6);
+	transition: opacity var(--iftp-fast) var(--iftp-ease), transform var(--iftp-mid) var(--iftp-ease);
+}
+
+.iftp-btn-stepstyles__item:has(:checked)::after {
+	opacity: 1;
+	transform: none;
+}
+
+.iftp-btn-stepstyles__sample {
+	display: grid;
+	align-content: center;
+	min-height: 92px;
+	margin-bottom: 8px;
+	overflow: hidden;
+	border-radius: calc(var(--iftp-r-md) - 3px);
+	background: var(--iftp-card-bg);
+	box-shadow: inset 0 0 0 1px rgb(18 26 44 / 8%);
+	font-size: 13px;
+	pointer-events: none;
+}
+
+.iftp-btn-stepstyles__sample .iftp-btn-steps {
+	padding: 12px 14px;
+}
+
+.iftp-btn-stepstyles__name {
+	padding: 0 2px;
+	color: var(--iftp-ink);
+	font-size: 13px;
+	font-weight: 650;
+}
+
+.iftp-btn-stepstyles__hint {
+	padding: 0 2px;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	line-height: 1.35;
+}
+
 body.iftp-btn-screen .iftp-btn-code-input {
 	font-family: var(--iftp-mono);
 	font-size: 12.5px;
@@ -2507,11 +3096,6 @@ body.iftp-btn-screen .iftp-btn-seg__button[aria-pressed="true"] {
 	place-items: center;
 	gap: 14px;
 	width: 100%;
-}
-
-/* The sample's first step, two thirds answered */
-.iftp-btn-look-preview__frame .iftp-btn-steps__bar.is-current {
-	--iftp-fill: 0.66;
 }
 
 /* The pay page view: the page's own background instead of a dimmed site, with its logo and back link. */
@@ -2783,6 +3367,8 @@ body.iftp-btn-screen .iftp-btn-msg__raw {
 
 	.iftp-btn-editor__sticky {
 		position: static;
+		max-height: none;
+		overflow: visible;
 	}
 
 	.iftp-btn-editor__aside {
@@ -2848,13 +3434,12 @@ body.iftp-btn-screen .iftp-btn-msg__raw {
 		overflow-x: auto;
 	}
 
-	.iftp-btn-btoolbar {
-		align-items: stretch;
-		flex-direction: column;
+	.iftp-btn-bsearch {
+		flex-basis: 100%;
 	}
 
-	.iftp-btn-bsearch {
-		width: 100%;
+	.iftp-btn-bfilter:not(.iftp-btn-bview) {
+		overflow-x: auto;
 	}
 
 	.iftp-btn-bcards {
@@ -2896,10 +3481,6 @@ body.iftp-btn-screen .iftp-btn-msg__raw {
 	.iftp-btn-seg__option > span,
 	[data-iftp-tip]::after {
 		transition: none;
-	}
-
-	.iftp-btn-tabpanel:not([hidden]) {
-		animation: none;
 	}
 
 	body.iftp-btn-screen .iftp-btn-looks__item:hover {

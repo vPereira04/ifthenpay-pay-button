@@ -34,6 +34,7 @@
 	--iftp-card-ring: 0 0 #0000;
 	--iftp-font: -apple-system, blinkmacsystemfont, "Segoe UI", "Inter", roboto, "Helvetica Neue", arial, sans-serif;
 	--iftp-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+	--iftp-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E");
 
 	/* The shades in between, for browsers that can't mix them from the base below. */
 	--iftp-brand-hover: #004f80;
@@ -154,10 +155,19 @@
 /* --------------------------------------------------------------------------
    Custom look: drawn from the CSS variables ButtonDesign sets inline.
    Two classes deep, so it beats a theme's bare `button` and `.wp-element-button` rules. Size only sets
-   variables, which the base rule reads with fallbacks.
+   variables, which the base rule reads with fallbacks. Hover rules also match .is-hover, so the editor's
+   effect samples can show a hover without the pointer on them.
+   The shadow has two layers: the style's own (--iftp-pb-sh) and a drop (--iftp-pb-drop) that the shadow
+   toggle and the hover effects set, so a 3D edge survives a lift. Attention keyframes add a third.
+   Movement uses translate/scale/rotate, not transform, so a style's press and an effect can stack.
    -------------------------------------------------------------------------- */
 .iftp-btn-pay .iftp-btn-pay__button--custom {
+	--iftp-pb-sh: 0 0 #0000;
+	--iftp-pb-drop: 0 0 #0000;
+	--iftp-pb-inner-radius: max(0px, calc(var(--iftp-pb-radius) - var(--iftp-pb-bw, 2px)));
 	box-sizing: border-box;
+	position: relative;
+	isolation: isolate;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -167,9 +177,9 @@
 	padding: var(--iftp-pb-pad, 0.8em 1.45em);
 	color: var(--iftp-pb-text);
 	background: var(--iftp-pb-color);
-	border: 2px solid var(--iftp-pb-color);
+	border: var(--iftp-pb-bw, 2px) var(--iftp-pb-bs, solid) var(--iftp-pb-color);
 	border-radius: var(--iftp-pb-radius);
-	box-shadow: none;
+	box-shadow: var(--iftp-pb-sh), var(--iftp-pb-drop);
 	font-family: inherit;
 	font-size: var(--iftp-pb-size, 16px);
 	font-weight: 650;
@@ -180,7 +190,7 @@
 	text-shadow: none;
 	text-transform: none;
 	cursor: pointer;
-	transition: background-color 160ms var(--iftp-ease), border-color 160ms var(--iftp-ease), box-shadow 200ms var(--iftp-ease), filter 160ms var(--iftp-ease), transform 160ms var(--iftp-ease);
+	transition: background-color 160ms var(--iftp-ease), border-color 160ms var(--iftp-ease), box-shadow 200ms var(--iftp-ease), color 160ms var(--iftp-ease), filter 160ms var(--iftp-ease), translate 160ms var(--iftp-ease), scale 200ms var(--iftp-ease);
 }
 
 .iftp-btn-pay__button--sm {
@@ -193,7 +203,7 @@
 	--iftp-pb-size: 18px;
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--custom:hover:not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--custom:is(:hover, .is-hover):not(:disabled),
 .iftp-btn-pay .iftp-btn-pay__button--custom:focus:not(:disabled) {
 	color: var(--iftp-pb-text);
 	background: var(--iftp-pb-color);
@@ -201,7 +211,7 @@
 	text-decoration: none;
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--filled:hover:not(:disabled) {
+.iftp-btn-pay .iftp-btn-pay__button--filled:is(:hover, .is-hover):not(:disabled) {
 	filter: brightness(0.92) saturate(1.05);
 }
 
@@ -210,7 +220,7 @@
 	background: transparent;
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--outline:hover:not(:disabled) {
+.iftp-btn-pay .iftp-btn-pay__button--outline:is(:hover, .is-hover):not(:disabled) {
 	background: var(--iftp-pb-tint);
 }
 
@@ -220,30 +230,30 @@
 	border-color: transparent;
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--soft:hover:not(:disabled) {
+.iftp-btn-pay .iftp-btn-pay__button--soft:is(:hover, .is-hover):not(:disabled) {
 	background: var(--iftp-pb-tint-strong);
 	border-color: transparent;
 }
 
 .iftp-btn-pay .iftp-btn-pay__button--shadow {
-	box-shadow: 0 1px 2px rgb(16 30 54 / 10%), 0 10px 24px -10px var(--iftp-pb-glow);
+	--iftp-pb-drop: 0 1px 2px rgb(16 30 54 / 10%), 0 10px 24px -10px var(--iftp-pb-glow);
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--shadow:hover:not(:disabled) {
-	box-shadow: 0 2px 4px rgb(16 30 54 / 10%), 0 14px 30px -10px var(--iftp-pb-glow);
-	transform: translateY(-1px);
+.iftp-btn-pay .iftp-btn-pay__button--shadow:is(:hover, .is-hover):not(:disabled) {
+	--iftp-pb-drop: 0 2px 4px rgb(16 30 54 / 10%), 0 14px 30px -10px var(--iftp-pb-glow);
+	translate: 0 -1px;
 }
 
 /* Gradient: the two colours, sliding along on hover. */
 .iftp-btn-pay .iftp-btn-pay__button--gradient,
-.iftp-btn-pay .iftp-btn-pay__button--gradient:hover:not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--gradient:is(:hover, .is-hover):not(:disabled),
 .iftp-btn-pay .iftp-btn-pay__button--gradient:focus:not(:disabled) {
 	background: linear-gradient(120deg, var(--iftp-pb-color), var(--iftp-pb-color2, var(--iftp-pb-color)), var(--iftp-pb-color)) 0 0 / 200% 100%;
 	border-color: transparent;
-	transition: background-position 420ms var(--iftp-ease), box-shadow 200ms var(--iftp-ease), filter 160ms var(--iftp-ease), transform 160ms var(--iftp-ease);
+	transition: background-position 420ms var(--iftp-ease), box-shadow 200ms var(--iftp-ease), color 160ms var(--iftp-ease), filter 160ms var(--iftp-ease), translate 160ms var(--iftp-ease), scale 200ms var(--iftp-ease);
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--gradient:hover:not(:disabled) {
+.iftp-btn-pay .iftp-btn-pay__button--gradient:is(:hover, .is-hover):not(:disabled) {
 	background-position: 100% 0;
 }
 
@@ -251,19 +261,70 @@
    and shines over a photo or a colourful section. */
 .iftp-btn-pay .iftp-btn-pay__button--glass,
 .iftp-btn-pay .iftp-btn-pay__button--glass:focus:not(:disabled) {
+	--iftp-pb-sh: inset 0 1px 0 rgb(255 255 255 / 50%), 0 8px 24px -14px var(--iftp-pb-glow);
 	background:
 		linear-gradient(rgb(255 255 255 / 26%), rgb(255 255 255 / 2%)),
 		var(--iftp-pb-glass, var(--iftp-pb-color));
-	border: 1px solid rgb(255 255 255 / 40%);
-	box-shadow: inset 0 1px 0 rgb(255 255 255 / 50%), 0 8px 24px -14px var(--iftp-pb-glow);
+	border-color: rgb(255 255 255 / 40%);
 	backdrop-filter: blur(10px) saturate(1.6);
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--glass:hover:not(:disabled) {
+.iftp-btn-pay .iftp-btn-pay__button--glass:is(:hover, .is-hover):not(:disabled) {
 	background:
 		linear-gradient(rgb(255 255 255 / 34%), rgb(255 255 255 / 6%)),
 		var(--iftp-pb-glass, var(--iftp-pb-color));
 	border-color: rgb(255 255 255 / 55%);
+}
+
+/* 3D: a darker edge under it, that rises a touch on hover and sinks in when pressed. */
+.iftp-btn-pay .iftp-btn-pay__button--3d {
+	--iftp-pb-depth: 4px;
+	--iftp-pb-edge: color-mix(in srgb, var(--iftp-pb-color) 68%, #000);
+	--iftp-pb-sh: inset 0 1px 0 rgb(255 255 255 / 22%), 0 var(--iftp-pb-depth) 0 var(--iftp-pb-edge);
+}
+
+/* Neon: a lit outline, glowing in and out, with glowing text. Strongest on a dark section. */
+.iftp-btn-pay .iftp-btn-pay__button--neon,
+.iftp-btn-pay .iftp-btn-pay__button--neon:focus:not(:disabled) {
+	--iftp-pb-sh: 0 0 12px var(--iftp-pb-glow), inset 0 0 10px var(--iftp-pb-glow);
+	background: color-mix(in srgb, var(--iftp-pb-color) 8%, transparent);
+	text-shadow: 0 0 10px var(--iftp-pb-glow);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--neon:is(:hover, .is-hover):not(:disabled) {
+	--iftp-pb-sh: 0 0 22px var(--iftp-pb-glow), inset 0 0 16px var(--iftp-pb-glow);
+	background: color-mix(in srgb, var(--iftp-pb-color) 16%, transparent);
+	text-shadow: 0 0 14px var(--iftp-pb-glow);
+}
+
+/* Brutal: a hard ink border with a solid offset shadow; it lifts off on hover and slams down when pressed.
+   An own border colour paints the shadow too. */
+.iftp-btn-pay .iftp-btn-pay__button--brutal,
+.iftp-btn-pay .iftp-btn-pay__button--brutal:is(:hover, .is-hover):not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--brutal:focus:not(:disabled) {
+	--iftp-pb-ink: var(--iftp-pb-bc, #121a2c);
+	--iftp-pb-sh: 4px 4px 0 var(--iftp-pb-ink);
+	--iftp-pb-orbit: var(--iftp-pb-color);
+	border-color: var(--iftp-pb-ink);
+}
+
+/* Ghost: just the text, a tint coming in under it on hover. */
+.iftp-btn-pay .iftp-btn-pay__button--ghost,
+.iftp-btn-pay .iftp-btn-pay__button--ghost:focus:not(:disabled) {
+	background: transparent;
+	border-color: transparent;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--ghost:is(:hover, .is-hover):not(:disabled) {
+	background: var(--iftp-pb-tint);
+	border-color: transparent;
+}
+
+/* An own border colour wins over every style's, hovered or not. */
+.iftp-btn-pay .iftp-btn-pay__button--custom.iftp-btn-pay__button--own-border,
+.iftp-btn-pay .iftp-btn-pay__button--custom.iftp-btn-pay__button--own-border:is(:hover, .is-hover):not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--custom.iftp-btn-pay__button--own-border:focus:not(:disabled) {
+	border-color: var(--iftp-pb-bc);
 }
 
 .iftp-btn-pay .iftp-btn-pay__button--upper {
@@ -271,34 +332,43 @@
 	text-transform: uppercase;
 }
 
+/* ---------------------------------------------------------------- Hover effects */
+
 /* Lift: it rises on hover, its glow growing under it. */
-.iftp-btn-pay .iftp-btn-pay__button--fx-lift:hover:not(:disabled) {
-	box-shadow: 0 3px 6px rgb(16 30 54 / 12%), 0 16px 30px -12px var(--iftp-pb-glow);
-	transform: translateY(-2px);
+.iftp-btn-pay .iftp-btn-pay__button--fx-lift:is(:hover, .is-hover):not(:disabled) {
+	--iftp-pb-drop: 0 3px 6px rgb(16 30 54 / 12%), 0 16px 30px -12px var(--iftp-pb-glow);
+	translate: 0 -2px;
 }
 
-/* Shine: a band of light sweeps across on hover. */
-.iftp-btn-pay .iftp-btn-pay__button--fx-shine {
-	position: relative;
-	overflow: hidden;
-	isolation: isolate;
+/* Grow: it swells a little towards the pointer. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-grow:is(:hover, .is-hover):not(:disabled) {
+	scale: 1.06;
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--fx-shine::after {
+/* Glow: a halo in its colour opens round it. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-glow:is(:hover, .is-hover):not(:disabled) {
+	--iftp-pb-drop: 0 0 0 4px var(--iftp-pb-tint), 0 0 28px 4px var(--iftp-pb-glow);
+}
+
+/* Shine on hover and Shimmer on a loop: a band of light sweeps across. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-shine::after,
+.iftp-btn-pay .iftp-btn-pay__button--cta-shimmer::after {
 	content: "";
 	position: absolute;
 	z-index: -1;
 	inset: 0;
+	border-radius: var(--iftp-pb-inner-radius);
 	background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 45%) 50%, transparent 65%) -150% 0 / 250% 100% no-repeat;
 	pointer-events: none;
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--fx-shine:hover:not(:disabled)::after {
+.iftp-btn-pay .iftp-btn-pay__button--fx-shine:is(:hover, .is-hover):not(:disabled)::after {
 	animation: iftp-btn-shine 900ms var(--iftp-ease);
 }
 
-/* The filled look's hover darkening would dull the light. */
-.iftp-btn-pay .iftp-btn-pay__button--fx-shine:hover:not(:disabled) {
+/* The filled look's hover darkening would dull the light, and Fill's own darker shade. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-shine:is(:hover, .is-hover):not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--fx-fill:is(:hover, .is-hover):not(:disabled) {
 	filter: none;
 }
 
@@ -309,41 +379,306 @@
 	}
 }
 
-/* Pulse: a soft ring that keeps breathing out from the button, until it's hovered. */
-.iftp-btn-pay .iftp-btn-pay__button--fx-pulse:not(:disabled) {
-	animation: iftp-btn-pulse 2.2s var(--iftp-ease) infinite;
+/* Fill: its colour sweeps in from the left. A solid style fills with a deeper shade; a light one fills with
+   its colour and the text turns to read on it. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-fill::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	border-radius: var(--iftp-pb-inner-radius);
+	background: var(--iftp-pb-fill, color-mix(in srgb, var(--iftp-pb-color) 80%, #000));
+	transform: scaleX(0);
+	transform-origin: left center;
+	transition: transform 360ms var(--iftp-ease);
+	pointer-events: none;
 }
 
-.iftp-btn-pay .iftp-btn-pay__button--fx-pulse:hover:not(:disabled) {
+.iftp-btn-pay .iftp-btn-pay__button--fx-fill:is(.iftp-btn-pay__button--outline, .iftp-btn-pay__button--soft, .iftp-btn-pay__button--neon, .iftp-btn-pay__button--ghost) {
+	--iftp-pb-fill: var(--iftp-pb-color);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--fx-fill:is(.iftp-btn-pay__button--outline, .iftp-btn-pay__button--soft, .iftp-btn-pay__button--neon, .iftp-btn-pay__button--ghost):is(:hover, .is-hover):not(:disabled) {
+	color: var(--iftp-pb-on);
+	text-shadow: none;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--fx-fill:is(:hover, .is-hover):not(:disabled)::before {
+	inset: 0;
+	padding: 0;
+	border-radius: var(--iftp-pb-inner-radius);
+	background: var(--iftp-pb-fill, color-mix(in srgb, var(--iftp-pb-color) 80%, #000));
+	filter: none;
+	transform: scaleX(1);
 	animation: none;
+	mask: none;
+	z-index: -1;
+}
+
+/* Nudge: the arrow slides on, an icon before the text gives a little wiggle. */
+.iftp-btn-pay .iftp-btn-pay__button--fx-nudge .iftp-btn-pay__icon {
+	transition: translate 220ms var(--iftp-ease);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--fx-nudge:is(:hover, .is-hover):not(:disabled) .iftp-btn-pay__label + .iftp-btn-pay__icon {
+	translate: 4px 0;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--fx-nudge:is(:hover, .is-hover):not(:disabled) .iftp-btn-pay__icon:first-child {
+	animation: iftp-btn-icon-wiggle 560ms var(--iftp-ease);
+}
+
+@keyframes iftp-btn-icon-wiggle {
+
+	25% {
+		rotate: -14deg;
+	}
+
+	50% {
+		rotate: 10deg;
+	}
+
+	75% {
+		rotate: -5deg;
+	}
+}
+
+/* ---------------------------------------------------------------- Attention effects
+   They loop to draw the eye and rest while the button is hovered, so the hover effect takes over. */
+
+/* Pulse: a soft ring that keeps breathing out from the button. fx-pulse is its old name, for cached pages. */
+.iftp-btn-pay .iftp-btn-pay__button--cta-pulse:not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--fx-pulse:not(:disabled) {
+	animation: iftp-btn-pulse 2.2s var(--iftp-ease) infinite;
 }
 
 @keyframes iftp-btn-pulse {
 
 	0% {
-		box-shadow: 0 0 0 0 var(--iftp-pb-glow);
+		box-shadow: var(--iftp-pb-sh), var(--iftp-pb-drop), 0 0 0 0 var(--iftp-pb-glow);
 	}
 
 	70%,
 	100% {
-		box-shadow: 0 0 0 14px rgb(0 0 0 / 0%);
+		box-shadow: var(--iftp-pb-sh), var(--iftp-pb-drop), 0 0 0 14px rgb(0 0 0 / 0%);
 	}
+}
+
+/* Ripple: two rings, one after the other, like a radar. */
+.iftp-btn-pay .iftp-btn-pay__button--cta-ripple:not(:disabled) {
+	animation: iftp-btn-ripple 2.6s var(--iftp-ease) infinite;
+}
+
+@keyframes iftp-btn-ripple {
+
+	0% {
+		box-shadow: var(--iftp-pb-sh), var(--iftp-pb-drop), 0 0 0 0 var(--iftp-pb-glow), 0 0 0 0 var(--iftp-pb-glow);
+	}
+
+	30% {
+		box-shadow: var(--iftp-pb-sh), var(--iftp-pb-drop), 0 0 0 8px var(--iftp-pb-tint-strong), 0 0 0 0 var(--iftp-pb-glow);
+	}
+
+	60% {
+		box-shadow: var(--iftp-pb-sh), var(--iftp-pb-drop), 0 0 0 20px rgb(0 0 0 / 0%), 0 0 0 8px var(--iftp-pb-tint-strong);
+	}
+
+	90%,
+	100% {
+		box-shadow: var(--iftp-pb-sh), var(--iftp-pb-drop), 0 0 0 20px rgb(0 0 0 / 0%), 0 0 0 20px rgb(0 0 0 / 0%);
+	}
+}
+
+/* Heartbeat: two quick beats, then a rest. */
+.iftp-btn-pay .iftp-btn-pay__button--cta-heartbeat:not(:disabled) {
+	animation: iftp-btn-heartbeat 1.6s ease-in-out infinite;
+}
+
+@keyframes iftp-btn-heartbeat {
+
+	0%,
+	28%,
+	70%,
+	100% {
+		scale: 1;
+	}
+
+	14%,
+	42% {
+		scale: 1.07;
+	}
+}
+
+/* Wiggle: a short shake every few seconds. */
+.iftp-btn-pay .iftp-btn-pay__button--cta-wiggle:not(:disabled) {
+	animation: iftp-btn-wiggle 4s ease-in-out infinite;
+}
+
+@keyframes iftp-btn-wiggle {
+
+	0%,
+	20%,
+	100% {
+		rotate: 0deg;
+	}
+
+	4% {
+		rotate: -4deg;
+	}
+
+	8% {
+		rotate: 4deg;
+	}
+
+	12% {
+		rotate: -3deg;
+	}
+
+	16% {
+		rotate: 2deg;
+	}
+}
+
+/* Bounce: a hop and a small one after it, every few seconds. */
+.iftp-btn-pay .iftp-btn-pay__button--cta-bounce:not(:disabled) {
+	animation: iftp-btn-bounce 3s var(--iftp-ease) infinite;
+}
+
+@keyframes iftp-btn-bounce {
+
+	0%,
+	12%,
+	20%,
+	100% {
+		translate: 0 0;
+	}
+
+	6% {
+		translate: 0 -8px;
+	}
+
+	16% {
+		translate: 0 -3px;
+	}
+}
+
+/* Shimmer: Shine's light, passing by on its own every few seconds. */
+.iftp-btn-pay .iftp-btn-pay__button--cta-shimmer:not(:disabled)::after {
+	animation: iftp-btn-shimmer 3.6s var(--iftp-ease) infinite;
+}
+
+@keyframes iftp-btn-shimmer {
+
+	0% {
+		background-position: -150% 0;
+	}
+
+	35%,
+	100% {
+		background-position: 250% 0;
+	}
+}
+
+/* Breathe: a glow in its colour that slowly swells and fades. */
+.iftp-btn-pay .iftp-btn-pay__button--cta-breathe:not(:disabled) {
+	animation: iftp-btn-breathe 2.8s ease-in-out infinite;
+}
+
+@keyframes iftp-btn-breathe {
+
+	0%,
+	100% {
+		box-shadow: var(--iftp-pb-sh), var(--iftp-pb-drop), 0 0 0 0 rgb(0 0 0 / 0%);
+	}
+
+	50% {
+		box-shadow: var(--iftp-pb-sh), var(--iftp-pb-drop), 0 0 26px 4px var(--iftp-pb-glow);
+	}
+}
+
+/* Orbit: a spark of light running round the edge, with a white head and a pale tail in its colour.
+   Soft and Ghost have no border to show on, so theirs is the colour itself. */
+@property --iftp-pb-angle {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--cta-orbit:not(:disabled)::before {
+	content: "";
+	position: absolute;
+	z-index: 1;
+	inset: calc(-1 * var(--iftp-pb-bw, 2px));
+	padding: max(2px, var(--iftp-pb-bw, 2px));
+	border-radius: var(--iftp-pb-radius);
+	background: conic-gradient(from var(--iftp-pb-angle), transparent 0 50%, var(--iftp-pb-orbit, color-mix(in srgb, var(--iftp-pb-color) 25%, #fff)) 86%, #fff 95%, transparent 96%);
+	filter: drop-shadow(0 0 4px var(--iftp-pb-glow)) drop-shadow(0 0 2px rgb(255 255 255 / 70%));
+	transform: none;
+	mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+	animation: iftp-btn-orbit 2.4s linear infinite;
+	pointer-events: none;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--cta-orbit:is(.iftp-btn-pay__button--soft, .iftp-btn-pay__button--ghost) {
+	--iftp-pb-orbit: var(--iftp-pb-color);
+}
+
+@keyframes iftp-btn-orbit {
+
+	to {
+		--iftp-pb-angle: 360deg;
+	}
+}
+
+/* Resting while hovered, so the hover effect has the stage. Orbit keeps running; Shine still plays over
+   Shimmer, its rule being stronger. */
+.iftp-btn-pay [class*="iftp-btn-pay__button--cta-"]:is(:hover, .is-hover),
+.iftp-btn-pay .iftp-btn-pay__button--fx-pulse:is(:hover, .is-hover),
+.iftp-btn-pay .iftp-btn-pay__button--cta-shimmer:is(:hover, .is-hover)::after {
+	animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
 
+	.iftp-btn-pay [class*="iftp-btn-pay__button--cta-"],
+	.iftp-btn-pay [class*="iftp-btn-pay__button--cta-"]::before,
+	.iftp-btn-pay [class*="iftp-btn-pay__button--cta-"]::after,
 	.iftp-btn-pay .iftp-btn-pay__button--fx-pulse:not(:disabled),
-	.iftp-btn-pay .iftp-btn-pay__button--fx-shine:hover:not(:disabled)::after {
+	.iftp-btn-pay .iftp-btn-pay__button--fx-shine:is(:hover, .is-hover):not(:disabled)::after,
+	.iftp-btn-pay .iftp-btn-pay__button--fx-nudge .iftp-btn-pay__icon {
 		animation: none;
 	}
 
-	.iftp-btn-pay .iftp-btn-pay__button--fx-lift:hover:not(:disabled) {
-		transform: none;
+	.iftp-btn-pay .iftp-btn-pay__button--fx-lift:is(:hover, .is-hover):not(:disabled),
+	.iftp-btn-pay .iftp-btn-pay__button--fx-grow:is(:hover, .is-hover):not(:disabled),
+	.iftp-btn-pay .iftp-btn-pay__button--fx-nudge .iftp-btn-pay__icon {
+		translate: none;
+		scale: none;
 	}
 }
 
 .iftp-btn-pay .iftp-btn-pay__button--custom:active:not(:disabled) {
-	transform: translateY(1px);
+	translate: 0 1px;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--3d:is(:hover, .is-hover):not(:disabled) {
+	--iftp-pb-depth: 5px;
+	translate: 0 -1px;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--3d:active:not(:disabled) {
+	--iftp-pb-depth: 1px;
+	translate: 0 3px;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--brutal:is(:hover, .is-hover):not(:disabled) {
+	--iftp-pb-sh: 6px 6px 0 var(--iftp-pb-ink);
+	translate: -2px -2px;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--brutal:active:not(:disabled) {
+	--iftp-pb-sh: 0 0 0 var(--iftp-pb-ink);
+	translate: 4px 4px;
 }
 
 .iftp-btn-pay .iftp-btn-pay__button--custom:focus-visible {
@@ -598,6 +933,20 @@
 	grid-column: auto;
 }
 
+/* Side-by-side fields share the label and input rows, so a label that wraps keeps both inputs level. */
+@supports (grid-template-rows: subgrid) {
+
+	.iftp-btn-form__step > .iftp-btn-form__field--half {
+		grid-row: span 2;
+		grid-template-rows: subgrid;
+		row-gap: 6px;
+	}
+
+	.iftp-btn-form__step > .iftp-btn-form__field--half:has(> .iftp-btn-form__help) {
+		grid-row: span 3;
+	}
+}
+
 .iftp-btn-form__step.is-forward {
 	animation: iftp-btn-step-forward 260ms var(--iftp-ease);
 }
@@ -658,8 +1007,17 @@
 }
 
 /* --------------------------------------------------------------------------
-   Step bar: one segment per step. Done ones are full; the current one fills as its fields are answered.
+   Step bar: a marker per page, and how much of the current page is answered. One markup (StepBar), seven
+   looks (the look's "steps"): bars, labels, line, numbers, dots, ring, text.
    -------------------------------------------------------------------------- */
+
+/* Registered, so the fill eases from one value to the next, conic rings included. */
+@property --iftp-f {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 0;
+}
+
 .iftp-btn-steps {
 	display: grid;
 	flex: none;
@@ -693,7 +1051,16 @@
 	font-variant-numeric: tabular-nums;
 }
 
-.iftp-btn-form .iftp-btn-steps__track {
+.iftp-btn-steps__pct {
+	display: none;
+	flex: none;
+	color: var(--iftp-brand);
+	font-size: 13px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.iftp-btn-steps .iftp-btn-steps__track {
 	display: grid;
 	grid-template-columns: repeat(var(--iftp-steps, 2), minmax(0, 1fr));
 	gap: 6px;
@@ -702,10 +1069,29 @@
 	list-style: none;
 }
 
-.iftp-btn-form .iftp-btn-steps__bar {
+/* --iftp-f: how much of this page is done. Done pages are whole; the current one has a sliver to start. */
+.iftp-btn-steps .iftp-btn-steps__bar {
+	--iftp-f: 0;
 	position: relative;
-	height: 5px;
+	min-width: 0;
 	margin: 0;
+	padding: 0;
+	list-style: none;
+	transition: --iftp-f 420ms var(--iftp-ease);
+}
+
+.iftp-btn-steps .iftp-btn-steps__bar.is-current {
+	--iftp-f: max(0.08, var(--iftp-fill, 0));
+}
+
+.iftp-btn-steps .iftp-btn-steps__bar.is-done {
+	--iftp-f: 1;
+}
+
+.iftp-btn-steps__seg {
+	position: relative;
+	display: block;
+	height: 5px;
 	overflow: hidden;
 	border-radius: 999px;
 	background: var(--iftp-line);
@@ -716,26 +1102,301 @@
 	inset: 0;
 	border-radius: inherit;
 	background: var(--iftp-brand);
-	transform: scaleX(var(--iftp-fill, 0));
+	transform: scaleX(var(--iftp-f, 0));
 	transform-origin: left center;
-	transition: transform 420ms var(--iftp-ease);
 }
 
-.iftp-btn-steps__bar.is-current .iftp-btn-steps__fill {
-	transform: scaleX(max(0.08, var(--iftp-fill, 0)));
+.iftp-btn-steps__num {
+	display: none;
 }
 
-.iftp-btn-steps__bar.is-done .iftp-btn-steps__fill {
-	transform: scaleX(1);
-}
-
-.iftp-btn-steps__sr {
+.iftp-btn-steps__label,
+.iftp-btn-steps--labels .iftp-btn-steps__head,
+.iftp-btn-steps--line .iftp-btn-steps__count,
+.iftp-btn-steps--dots .iftp-btn-steps__count {
 	position: absolute;
 	width: 1px;
 	height: 1px;
 	overflow: hidden;
 	clip-path: inset(50%);
 	white-space: nowrap;
+}
+
+/* Named bars: each page's title under its bar; done ones ticked. The current page takes more room, so its
+   title still reads when there are many. */
+.iftp-btn-steps--labels .iftp-btn-steps__track {
+	display: flex;
+	gap: 8px;
+}
+
+.iftp-btn-steps--labels .iftp-btn-steps__bar {
+	display: grid;
+	flex: 1 1 0;
+	gap: 7px;
+	transition: --iftp-f 420ms var(--iftp-ease), flex-grow 420ms var(--iftp-ease);
+}
+
+.iftp-btn-steps--labels .iftp-btn-steps__bar.is-current {
+	flex-grow: 2.4;
+}
+
+.iftp-btn-steps--labels .iftp-btn-steps__seg {
+	height: 4px;
+}
+
+.iftp-btn-steps--labels .iftp-btn-steps__label {
+	position: static;
+	width: auto;
+	height: auto;
+	clip-path: none;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.3;
+	text-overflow: ellipsis;
+	transition: color 240ms var(--iftp-ease);
+}
+
+.iftp-btn-steps--labels .is-current .iftp-btn-steps__label {
+	color: var(--iftp-ink);
+	font-weight: 700;
+}
+
+.iftp-btn-steps--labels .is-done .iftp-btn-steps__label {
+	color: var(--iftp-ink-2);
+}
+
+.iftp-btn-steps--labels .is-done .iftp-btn-steps__label::before {
+	content: "";
+	display: inline-block;
+	width: 11px;
+	height: 11px;
+	margin-right: 4px;
+	vertical-align: -1px;
+	background: var(--iftp-brand);
+	mask: var(--iftp-tick) center / contain no-repeat;
+}
+
+/* One line: the whole form as one bar, notched at each page, with how far along it is in %. */
+.iftp-btn-steps--line .iftp-btn-steps__pct {
+	display: block;
+}
+
+.iftp-btn-steps--line .iftp-btn-steps__track {
+	gap: 0;
+	overflow: hidden;
+	border-radius: 999px;
+	background: var(--iftp-line);
+}
+
+.iftp-btn-steps--line .iftp-btn-steps__seg {
+	height: 8px;
+	border-radius: 0;
+	background: none;
+}
+
+.iftp-btn-steps--line .iftp-btn-steps__bar + .iftp-btn-steps__bar::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 2px;
+	background: var(--iftp-card-bg);
+	opacity: 0.85;
+}
+
+/* Ring: a round meter beside the title, a slice per page, the page number in the middle. */
+.iftp-btn-steps--ring {
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: 12px;
+}
+
+.iftp-btn-steps--ring .iftp-btn-steps__head {
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 1px;
+	max-width: 100%;
+}
+
+.iftp-btn-steps--ring .iftp-btn-steps__title {
+	max-width: 100%;
+	font-size: 15px;
+}
+
+.iftp-btn-steps--ring .iftp-btn-steps__track {
+	position: relative;
+	display: block;
+	order: -1;
+	width: 42px;
+	height: 42px;
+}
+
+.iftp-btn-steps--ring .iftp-btn-steps__bar {
+	position: absolute;
+	inset: 0;
+}
+
+.iftp-btn-steps--ring .iftp-btn-steps__seg,
+.iftp-btn-steps--ring .iftp-btn-steps__fill {
+	--iftp-slice: calc(1turn / var(--iftp-steps, 2) - 12deg);
+
+	position: absolute;
+	inset: 0;
+	height: auto;
+	border-radius: 50%;
+	transform: none;
+	mask: radial-gradient(farthest-side, #0000 calc(100% - 4.5px), #000 calc(100% - 4px));
+}
+
+.iftp-btn-steps--ring .iftp-btn-steps__seg {
+	background: conic-gradient(from calc(var(--iftp-i, 0) * 1turn / var(--iftp-steps, 2) + 6deg), var(--iftp-line-strong) 0 var(--iftp-slice), #0000 0);
+}
+
+.iftp-btn-steps--ring .iftp-btn-steps__fill {
+	background: conic-gradient(from calc(var(--iftp-i, 0) * 1turn / var(--iftp-steps, 2) + 6deg), var(--iftp-brand) 0 calc(var(--iftp-slice) * var(--iftp-f)), #0000 0);
+}
+
+.iftp-btn-steps--ring .is-current .iftp-btn-steps__num {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	color: var(--iftp-ink);
+	font-size: 14px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Dots: beside the title. The current page stretches into a pill that fills. */
+.iftp-btn-steps--dots {
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 14px;
+}
+
+.iftp-btn-steps--dots .iftp-btn-steps__track {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.iftp-btn-steps--dots .iftp-btn-steps__bar {
+	flex: none;
+	width: 8px;
+	transition: --iftp-f 420ms var(--iftp-ease), width 420ms var(--iftp-ease);
+}
+
+.iftp-btn-steps--dots .iftp-btn-steps__bar.is-current {
+	width: 34px;
+}
+
+.iftp-btn-steps--dots .iftp-btn-steps__seg {
+	height: 8px;
+}
+
+/* Numbers: circles on a line. The current one's rim fills as it's answered; done ones turn solid with a tick. */
+.iftp-btn-steps--numbers {
+	gap: 12px;
+}
+
+.iftp-btn-steps--numbers .iftp-btn-steps__track {
+	gap: 0;
+}
+
+.iftp-btn-steps--numbers .iftp-btn-steps__bar {
+	display: flex;
+	justify-content: center;
+}
+
+.iftp-btn-steps--numbers .iftp-btn-steps__bar .iftp-btn-steps__num {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	transition: background-color 240ms var(--iftp-ease), color 240ms var(--iftp-ease);
+}
+
+.iftp-btn-steps--numbers .iftp-btn-steps__num::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: conic-gradient(var(--iftp-brand) calc(var(--iftp-f) * 1turn), var(--iftp-line-strong) 0);
+	mask: radial-gradient(farthest-side, #0000 calc(100% - 2.5px), #000 calc(100% - 2px));
+}
+
+.iftp-btn-steps--numbers .is-current .iftp-btn-steps__num {
+	background: var(--iftp-brand-tint);
+	color: var(--iftp-brand);
+}
+
+.iftp-btn-steps--numbers .is-done .iftp-btn-steps__num {
+	background: var(--iftp-brand);
+	color: transparent;
+}
+
+.iftp-btn-steps--numbers .is-done .iftp-btn-steps__num::after {
+	content: "";
+	position: absolute;
+	inset: 7px;
+	background: var(--iftp-on-brand);
+	mask: var(--iftp-tick) center / contain no-repeat;
+}
+
+/* The line into each circle, from the one before; it fills once the payer gets there. */
+.iftp-btn-steps--numbers .iftp-btn-steps__seg {
+	position: absolute;
+	top: 13px;
+	right: calc(50% + 18px);
+	left: calc(-50% + 18px);
+	height: 2px;
+}
+
+.iftp-btn-steps--numbers .iftp-btn-steps__bar:first-child .iftp-btn-steps__seg {
+	display: none;
+}
+
+.iftp-btn-steps--numbers .iftp-btn-steps__fill {
+	transform: scaleX(0);
+	transition: transform 420ms var(--iftp-ease);
+}
+
+.iftp-btn-steps--numbers .is-current .iftp-btn-steps__fill,
+.iftp-btn-steps--numbers .is-done .iftp-btn-steps__fill {
+	transform: scaleX(1);
+}
+
+/* Just words: the step above the title, no bar. */
+.iftp-btn-steps--text .iftp-btn-steps__track {
+	display: none;
+}
+
+.iftp-btn-steps--text .iftp-btn-steps__head {
+	flex-direction: column-reverse;
+	align-items: flex-start;
+	gap: 2px;
+}
+
+.iftp-btn-steps--text .iftp-btn-steps__count {
+	color: var(--iftp-brand);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+}
+
+.iftp-btn-steps--text .iftp-btn-steps__title {
+	max-width: 100%;
+	font-size: 16px;
 }
 
 /* --------------------------------------------------------------------------
@@ -1407,7 +2068,6 @@ fieldset .iftp-btn-form__help {
 	overflow: hidden;
 	pointer-events: none;
 	container-type: size;
-	filter: blur(var(--iftp-page-video-blur, 0px));
 }
 
 .iftp-btn-sheet--scene > .iftp-btn-pagevideo {
@@ -1421,6 +2081,7 @@ fieldset .iftp-btn-form__help {
 	height: 100%;
 	border: 0;
 	object-fit: cover;
+	filter: blur(var(--iftp-page-video-blur, 0px));
 }
 
 /* A YouTube or Vimeo player has no object-fit, so it's sized to cover its box at 16:9, and a little more, so
@@ -1453,6 +2114,17 @@ fieldset .iftp-btn-form__help {
 .iftp-btn-pagefx--crystals:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after,
 .iftp-btn-pagefx--waves:not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::after {
 	mix-blend-mode: overlay;
+}
+
+/* The body's background goes to the canvas, outside its isolated group, so the overlay had nothing to light
+   and drew flat: grey facets, bright lines. I paint a copy inside the group for it to blend with. */
+.iftp-btn-page-body:is(.iftp-btn-pagefx--crystals, .iftp-btn-pagefx--waves, .iftp-btn-pagefx--grain):not(.iftp-btn-pagebg--image, .iftp-btn-pagebg--video)::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: -2;
+	background: inherit;
+	pointer-events: none;
 }
 
 /* Grain: fine film noise; size sets how coarse it is. */
@@ -1770,14 +2442,16 @@ fieldset .iftp-btn-form__help {
 		animation: none;
 	}
 
+	.iftp-btn-steps .iftp-btn-steps__bar,
 	.iftp-btn-steps__fill,
 	.iftp-btn-pay .iftp-btn-pay__button--custom {
 		transition: none;
 	}
 
-	.iftp-btn-pay .iftp-btn-pay__button--custom:hover:not(:disabled),
+	.iftp-btn-pay .iftp-btn-pay__button--custom:is(:hover, .is-hover):not(:disabled),
 	.iftp-btn-pay .iftp-btn-pay__button--custom:active:not(:disabled) {
-		transform: none;
+		translate: none;
+		scale: none;
 	}
 
 	.iftp-btn-form__spinner,
@@ -1796,7 +2470,8 @@ fieldset .iftp-btn-form__help {
 		border: 1px solid CanvasText;
 	}
 
-	.iftp-btn-steps__fill {
+	.iftp-btn-steps__fill,
+	.iftp-btn-steps--numbers .is-done .iftp-btn-steps__num {
 		forced-color-adjust: none;
 		background: Highlight;
 	}
@@ -1805,5 +2480,61 @@ fieldset .iftp-btn-form__help {
 		forced-color-adjust: none;
 		color: HighlightText;
 		background: Highlight;
+	}
+}
+
+/* While the video loads (is-waiting, lifted by video-loop.js once it plays), a spinner on the background
+   and the card held back. Last in the file, so it wins over the dialog's own entrance. Without JS, or a video
+   that never comes, the card shows after 5s anyway. Reduced motion has no video, so nothing waits. */
+@media (prefers-reduced-motion: no-preference) {
+
+	.iftp-btn-pagevideo.is-waiting::after {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		box-sizing: border-box;
+		width: 36px;
+		height: 36px;
+		margin: -18px 0 0 -18px;
+		border: 3px solid rgb(255 255 255 / 30%);
+		border-top-color: #fff;
+		border-radius: 999px;
+		animation: iftp-btn-spin 800ms linear infinite, iftp-btn-video-gone 0s 5s forwards;
+	}
+
+	.iftp-btn-pagevideo.is-waiting ~ * {
+		visibility: hidden;
+		opacity: 0;
+		animation: iftp-btn-video-wait 0s 5s forwards;
+	}
+
+	.iftp-btn-pagevideo.is-ready ~ * {
+		transition: opacity 360ms var(--iftp-ease);
+	}
+
+	/* The player stays out of sight until it plays, then fades in 0.15s after the card, which leads. */
+	.iftp-btn-pagevideo.is-waiting .iftp-btn-pagevideo__media {
+		opacity: 0;
+		animation: iftp-btn-video-wait 0s 5.3s forwards;
+	}
+
+	.iftp-btn-pagevideo.is-ready .iftp-btn-pagevideo__media {
+		transition: opacity 500ms var(--iftp-ease) 150ms;
+	}
+}
+
+@keyframes iftp-btn-video-wait {
+
+	to {
+		visibility: visible;
+		opacity: 1;
+	}
+}
+
+@keyframes iftp-btn-video-gone {
+
+	to {
+		visibility: hidden;
 	}
 }

@@ -17,6 +17,7 @@ use Ifthenpay\PayButton\Admin\Entries\EntriesController;
 use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
 use Ifthenpay\PayButton\Admin\GatewaySettingsPage;
 use Ifthenpay\PayButton\Admin\Menu;
+use Ifthenpay\PayButton\Ai\AiController;
 use Ifthenpay\PayButton\Ajax\SettingsController;
 use Ifthenpay\PayButton\Api\ReturnHandler;
 use Ifthenpay\PayButton\Api\Webhook\WebhookController;
@@ -26,7 +27,6 @@ use Ifthenpay\PayButton\Bridge\OutgoingWebhook;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
 use Ifthenpay\PayButton\Checkout\RestController;
 use Ifthenpay\PayButton\Cron\ExpiredPaymentsCron;
-use Ifthenpay\PayButton\Cron\ReminderCron;
 use Ifthenpay\PayButton\Cron\WeeklySummaryCron;
 use Ifthenpay\PayButton\Frontend\Block;
 use Ifthenpay\PayButton\Frontend\ButtonRenderer;
@@ -47,6 +47,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Plugin {
 
 	public const METHOD_LOGOS_HANDLE  = 'iftp-btn-method-logos';
+	public const VIDEO_LOOP_HANDLE    = 'iftp-btn-video-loop';
 	public const ADMIN_STYLE_HANDLE   = 'iftp-btn-admin';
 	public const UI_SCRIPT_HANDLE     = 'iftp-btn-ui';
 	public const CHARTS_SCRIPT_HANDLE = 'iftp-btn-charts';
@@ -82,6 +83,7 @@ class Plugin {
 		// Activation creates the table too; this catches schema upgrades on update.
 		TransactionStore::maybe_create_table();
 
+		add_filter( 'user_has_cap', array( self::class, 'grant_admin_cap' ) );
 		add_action( 'init', array( ButtonRepository::class, 'register_post_type' ) );
 
 		$buttons      = new ButtonRepository();
@@ -109,6 +111,7 @@ class Plugin {
 			( new SettingsController( $settings ) )->register();
 			( new EntriesController( $entries, null, $settings ) )->register();
 			( new ButtonsController( $buttons ) )->register();
+			( new AiController( $buttons ) )->register();
 			( new DashboardWidget( $settings ) )->register();
 
 			add_filter( 'plugin_action_links_' . plugin_basename( IFTP_BTN_FILE ), array( $this, 'action_links' ) );
@@ -117,7 +120,6 @@ class Plugin {
 		if ( is_admin() || wp_doing_cron() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 			( new WebhookRegistrar() )->register();
 			( new ExpiredPaymentsCron() )->register();
-			( new ReminderCron() )->register();
 			( new WeeklySummaryCron() )->register();
 		}
 
@@ -148,10 +150,24 @@ class Plugin {
 	}
 
 	/**
-	 * The capability every screen and endpoint here checks. No host plugin, so it's core's.
+	 * The capability every screen and endpoint here checks. My own, so a site can hand out just these screens.
 	 */
 	public static function admin_cap(): string {
-		return 'manage_options';
+		return 'iftp_btn_manage';
+	}
+
+	/**
+	 * Gives the capability to anyone who manages options, so admins keep access without a role change.
+	 *
+	 * @param array<string, bool> $allcaps The user's capabilities.
+	 * @return array<string, bool>
+	 */
+	public static function grant_admin_cap( array $allcaps ): array {
+		if ( ! empty( $allcaps['manage_options'] ) ) {
+			$allcaps[ self::admin_cap() ] = true;
+		}
+
+		return $allcaps;
 	}
 
 	/**
@@ -167,15 +183,18 @@ class Plugin {
 	}
 
 	/**
-	 * Registers what the screens share: the dark-background logo swap (the checkout uses it too), the stylesheet, the dropdowns and the charts.
+	 * Registers what the screens share: the dark-background logo swap and the video loop (the checkout uses them
+	 * too), the stylesheet, the dropdowns and the charts.
 	 */
 	public function register_shared_assets(): void {
 		$logos_js  = 'assets/js/method-logos.js';
+		$loop_js   = 'assets/js/video-loop.js';
 		$admin_css = 'assets/css/admin.css';
 		$ui_js     = 'assets/js/ui.js';
 		$charts_js = 'assets/js/charts.js';
 
 		wp_register_script( self::METHOD_LOGOS_HANDLE, IFTP_BTN_URL . $logos_js, array(), self::asset_version( $logos_js ), true );
+		wp_register_script( self::VIDEO_LOOP_HANDLE, IFTP_BTN_URL . $loop_js, array(), self::asset_version( $loop_js ), true );
 		wp_register_style( self::ADMIN_STYLE_HANDLE, IFTP_BTN_URL . $admin_css, array(), self::asset_version( $admin_css ) );
 		wp_register_script( self::UI_SCRIPT_HANDLE, IFTP_BTN_URL . $ui_js, array(), self::asset_version( $ui_js ), true );
 		wp_register_script( self::CHARTS_SCRIPT_HANDLE, IFTP_BTN_URL . $charts_js, array(), self::asset_version( $charts_js ), true );

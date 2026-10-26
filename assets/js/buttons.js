@@ -187,33 +187,94 @@
 	/* ---------------------------------------------------------------- List */
 
 	const cards = Array.prototype.slice.call( document.querySelectorAll( '[data-iftp-bcard]' ) );
+	const grid = document.querySelector( '[data-iftp-bcards]' );
 	const toolbar = document.querySelector( '[data-iftp-btoolbar]' );
 	const search = document.querySelector( '[data-iftp-bsearch]' );
+	const typeSelect = document.querySelector( '[data-iftp-btype]' );
+	const sortSelect = document.querySelector( '[data-iftp-bsort]' );
+	const listKey = 'iftpBtnList';
 	let filter = 'all';
+
+	// The sort and the layout are only this browser's preference, so storage failing just means the defaults.
+	function remembered() {
+		try {
+			return JSON.parse( window.localStorage.getItem( listKey ) ) || {};
+		} catch ( e ) {
+			return {};
+		}
+	}
+
+	function remember( key, value ) {
+		try {
+			const saved = remembered();
+			saved[ key ] = value;
+			window.localStorage.setItem( listKey, JSON.stringify( saved ) );
+		} catch ( e ) {}
+	}
 
 	function applyFilter() {
 		const term = search ? search.value.trim().toLowerCase().normalize( 'NFD' ).replace( /[̀-ͯ]/g, '' ) : '';
+		const type = typeSelect ? typeSelect.value : '';
 		let shown = 0;
 
 		cards.forEach( function ( card ) {
 			const on = card.dataset.active === '1';
-			const visible = ( filter === 'all' || ( filter === 'on' ) === on ) && ( ! term || card.dataset.title.indexOf( term ) !== -1 );
+			const status = filter === 'all' || ( filter === 'sold' ? card.dataset.sold === '1' : ( filter === 'on' ) === on );
+			const visible = status && ( ! type || card.dataset.mode === type ) && ( ! term || card.dataset.title.indexOf( term ) !== -1 );
 
 			card.hidden = ! visible;
 			shown += visible ? 1 : 0;
 		} );
 
 		const none = document.querySelector( '[data-iftp-bnone]' );
-		const tile = document.querySelector( '[data-iftp-bcard-new]' );
-
 		if ( none ) {
 			none.hidden = shown > 0;
 		}
 
-		// The "New button" tile only belongs to the unfiltered list.
-		if ( tile ) {
-			tile.hidden = filter !== 'all' || !! term;
+		// The "New button" and "Build with AI" tiles only belong to the unfiltered list.
+		document.querySelectorAll( '[data-iftp-bcard-new]' ).forEach( function ( tile ) {
+			tile.hidden = filter !== 'all' || !! term || !! type;
+		} );
+	}
+
+	function applySort( key ) {
+		const first = grid.querySelector( '[data-iftp-bcard-new]' );
+		const by = {
+			collected: function ( a, b ) {
+				return parseFloat( b.dataset.collected ) - parseFloat( a.dataset.collected );
+			},
+			paid: function ( a, b ) {
+				return parseInt( b.dataset.paid, 10 ) - parseInt( a.dataset.paid, 10 );
+			},
+			newest: function ( a, b ) {
+				return parseInt( a.dataset.order, 10 ) - parseInt( b.dataset.order, 10 );
+			},
+			oldest: function ( a, b ) {
+				return parseInt( b.dataset.order, 10 ) - parseInt( a.dataset.order, 10 );
+			},
+			title: function ( a, b ) {
+				return a.dataset.title.localeCompare( b.dataset.title );
+			},
+		};
+
+		if ( ! by[ key ] ) {
+			return;
 		}
+
+		// Ties keep their date order, newest first.
+		cards.slice().sort( function ( a, b ) {
+			return by[ key ]( a, b ) || parseInt( a.dataset.order, 10 ) - parseInt( b.dataset.order, 10 );
+		} ).forEach( function ( card ) {
+			grid.insertBefore( card, first );
+		} );
+	}
+
+	function applyView( view ) {
+		grid.classList.toggle( 'iftp-btn-bcards--list', view === 'list' );
+
+		toolbar.querySelectorAll( '[data-iftp-bview]' ).forEach( function ( option ) {
+			option.setAttribute( 'aria-pressed', option.dataset.iftpBview === view ? 'true' : 'false' );
+		} );
 	}
 
 	function updateCounts() {
@@ -229,18 +290,20 @@
 				badge.textContent = counts[ key ].toLocaleString();
 			}
 		} );
-
-		const live = document.querySelector( '[data-iftp-summary="bolt"]' );
-
-		if ( live ) {
-			live.textContent = on.toLocaleString();
-		}
 	}
 
 	if ( toolbar && cards.length ) {
+		const saved = remembered();
+
 		toolbar.hidden = false;
 
 		search.addEventListener( 'input', applyFilter );
+		typeSelect.addEventListener( 'change', applyFilter );
+
+		sortSelect.addEventListener( 'change', function () {
+			applySort( sortSelect.value );
+			remember( 'sort', sortSelect.value );
+		} );
 
 		toolbar.querySelectorAll( '[data-iftp-bfilter]' ).forEach( function ( option ) {
 			option.addEventListener( 'click', function () {
@@ -253,6 +316,27 @@
 				applyFilter();
 			} );
 		} );
+
+		toolbar.querySelectorAll( '[data-iftp-bview]' ).forEach( function ( option ) {
+			option.addEventListener( 'click', function () {
+				applyView( option.dataset.iftpBview );
+				remember( 'view', option.dataset.iftpBview );
+			} );
+		} );
+
+		// The page arrives sorted by Most collected in the grid; a remembered choice replaces either.
+		if ( saved.sort && saved.sort !== sortSelect.value && sortSelect.querySelector( 'option[value="' + saved.sort + '"]' ) ) {
+			sortSelect.value = saved.sort;
+			applySort( saved.sort );
+
+			if ( sortSelect.iftpDropdown ) {
+				sortSelect.iftpDropdown.sync();
+			}
+		}
+
+		if ( saved.view === 'list' ) {
+			applyView( 'list' );
+		}
 	}
 
 	document.querySelectorAll( '[data-iftp-toggle-button]' ).forEach( function ( toggle ) {
@@ -376,6 +460,12 @@
 			} );
 		} );
 
+		form.querySelectorAll( '[data-iftp-goto-tab]' ).forEach( function ( link ) {
+			link.addEventListener( 'click', function () {
+				select( link.dataset.iftpGotoTab, true );
+			} );
+		} );
+
 		// A required field on a hidden tab can't show its message, so I open its tab first.
 		form.addEventListener(
 			'invalid',
@@ -428,7 +518,7 @@
 			return onColor( mix( design.color, design.color2 ) );
 		}
 
-		return design.variant !== 'filled' && design.variant !== 'glass' ? design.color : onColor( design.color );
+		return [ 'filled', 'glass', '3d', 'brutal' ].indexOf( design.variant ) === -1 ? design.color : onColor( design.color );
 	}
 
 	function toHex( parts ) {
@@ -594,11 +684,15 @@
 			variant: pick( 'variant' ) || 'filled',
 			color: hex( pick( 'color' ) ) || '#00609c',
 			radius: parseInt( pick( 'radius' ), 10 ) || 0,
+			borderWidth: parseInt( pick( 'border_width' ), 10 ) || 0,
+			borderStyle: pick( 'border_style' ) || 'solid',
+			borderColor: pick( 'border_color_auto' ) ? '' : hex( pick( 'border_color' ) ),
 			size: pick( 'size' ) || 'md',
 			icon: pick( 'icon' ) || 'none',
 			full: pick( 'full' ) === '1',
 			shadow: !! pick( 'shadow' ),
 			effect: pick( 'effect' ) || 'none',
+			attention: pick( 'attention' ) || 'none',
 			upper: !! pick( 'upper' ),
 		};
 
@@ -607,14 +701,15 @@
 
 		design.color2 = pick( 'color2_auto' ) ? turn( design.color, turnBy ) : hex( pick( 'color2' ) ) || turn( design.color, turnBy );
 
-		design.text = pick( 'text_auto' ) ? autoText( design ) : hex( pick( 'text' ) ) || autoText( design );
+		// The samples redraw it for other styles, so the picked one is kept apart from the auto one.
+		design.ownText = pick( 'text_auto' ) ? '' : hex( pick( 'text' ) );
+		design.text = design.ownText || autoText( design );
 
 		return design;
 	}
 
-	function renderButton( form, label ) {
-		const wrap = form.querySelector( '[data-iftp-preview-button]' );
-		const design = readDesign( form );
+	// The same markup as ButtonDesign::preview_markup().
+	function buildButton( form, design, label ) {
 		const custom = design.source === 'custom';
 		const classes = [ 'iftp-btn-pay__button' ];
 		const button = document.createElement( 'span' );
@@ -634,6 +729,15 @@
 				classes.push( 'iftp-btn-pay__button--fx-' + design.effect );
 			}
 
+			if ( design.attention !== 'none' ) {
+				classes.push( 'iftp-btn-pay__button--cta-' + design.attention );
+			}
+
+			if ( design.borderColor ) {
+				classes.push( 'iftp-btn-pay__button--own-border' );
+				button.style.setProperty( '--iftp-pb-bc', design.borderColor );
+			}
+
 			if ( design.upper ) {
 				classes.push( 'iftp-btn-pay__button--upper' );
 			}
@@ -641,7 +745,10 @@
 			button.style.setProperty( '--iftp-pb-color', design.color );
 			button.style.setProperty( '--iftp-pb-color2', design.color2 );
 			button.style.setProperty( '--iftp-pb-text', design.text );
-			button.style.setProperty( '--iftp-pb-radius', design.radius >= ( config.pill || 32 ) ? '999px' : design.radius + 'px' );
+			button.style.setProperty( '--iftp-pb-on', onColor( design.color ) );
+			button.style.setProperty( '--iftp-pb-radius', design.radius >= ( parseInt( config.pill, 10 ) || 32 ) ? '999px' : design.radius + 'px' );
+			button.style.setProperty( '--iftp-pb-bw', design.borderWidth + 'px' );
+			button.style.setProperty( '--iftp-pb-bs', design.borderStyle );
 			button.style.setProperty( '--iftp-pb-tint', 'rgb(' + rgb + ' / 14%)' );
 			button.style.setProperty( '--iftp-pb-tint-strong', 'rgb(' + rgb + ' / 24%)' );
 			button.style.setProperty( '--iftp-pb-glass', 'rgb(' + rgb + ' / 62%)' );
@@ -669,14 +776,76 @@
 			}
 		}
 
+		return button;
+	}
+
+	function renderButton( form, label ) {
+		const wrap = form.querySelector( '[data-iftp-preview-button]' );
+		const design = readDesign( form );
+
 		wrap.textContent = '';
-		wrap.appendChild( button );
+		wrap.appendChild( buildButton( form, design, label ) );
 
 		const note = form.querySelector( '[data-iftp-theme-note]' );
 
 		if ( note ) {
-			note.hidden = custom;
+			note.hidden = design.source === 'custom';
 		}
+
+		renderSamples( form, design );
+	}
+
+	// The picker tiles, in the current colours. Same overrides as ButtonEditor::render_fx_picker().
+	function renderSamples( form, design ) {
+		form.querySelectorAll( '[data-iftp-fx-sample]' ).forEach( function ( stage ) {
+			const sample = Object.assign( {}, design, { source: 'custom', size: 'sm', full: false, effect: 'none', attention: 'none' } );
+			const label = stage.querySelector( '.iftp-btn-pay__label' );
+			const pay = document.createElement( 'span' );
+
+			sample[ stage.dataset.iftpFxSample ] = stage.dataset.iftpFxValue;
+
+			if ( sample.effect === 'nudge' && sample.icon === 'none' ) {
+				sample.icon = 'arrow';
+			}
+
+			sample.text = design.ownText || autoText( sample );
+			pay.className = 'iftp-btn-pay';
+			pay.appendChild( buildButton( form, sample, label ? label.textContent : '' ) );
+
+			// A hover sample being pointed at keeps showing its hover.
+			if ( stage.parentElement.matches( ':hover, :focus-within' ) && stage.dataset.iftpFxSample === 'effect' ) {
+				pay.firstChild.classList.add( 'is-hover' );
+			}
+
+			stage.textContent = '';
+			stage.appendChild( pay );
+		} );
+	}
+
+	// Pointing at (or tabbing to) a hover tile plays its hover on the sample.
+	function bindHoverSamples( form ) {
+		form.querySelectorAll( '.iftp-btn-fxpick--hover .iftp-btn-fxpick__item' ).forEach( function ( item ) {
+			const set = function ( on ) {
+				const button = item.querySelector( '.iftp-btn-pay__button' );
+
+				if ( button ) {
+					button.classList.toggle( 'is-hover', on );
+				}
+			};
+
+			item.addEventListener( 'mouseenter', function () {
+				set( true );
+			} );
+			item.addEventListener( 'mouseleave', function () {
+				set( item.matches( ':focus-within' ) );
+			} );
+			item.addEventListener( 'focusin', function () {
+				set( true );
+			} );
+			item.addEventListener( 'focusout', function () {
+				set( item.matches( ':hover' ) );
+			} );
+		} );
 	}
 
 	function bindDesignControls( form ) {
@@ -685,6 +854,7 @@
 		};
 
 		bindSwatches( form );
+		bindHoverSamples( form );
 
 		const textAuto = form.querySelector( '[data-iftp-design="text_auto"]' );
 		const textBox = form.querySelector( '[data-iftp-text-color]' );
@@ -705,6 +875,23 @@
 
 		const radius = form.querySelector( '[data-iftp-design="radius"]' );
 		const radiusOut = form.querySelector( '[data-iftp-radius-out]' );
+		const borderOut = form.querySelector( '[data-iftp-border-out]' );
+		const borderAuto = form.querySelector( '[data-iftp-design="border_color_auto"]' );
+		const borderBox = form.querySelector( '[data-iftp-border-color]' );
+		const borderField = form.querySelector( '[data-iftp-design="border_color"]' );
+		const borderSwatch = borderBox ? borderBox.querySelector( '[data-iftp-color-for]' ) : null;
+
+		// And for the border colour.
+		[ borderField, borderSwatch ].forEach( function ( input ) {
+			if ( input ) {
+				input.addEventListener( 'input', function () {
+					if ( borderAuto && borderAuto.checked ) {
+						borderAuto.checked = false;
+						fire( borderAuto );
+					}
+				} );
+			}
+		} );
 		const color2Auto = form.querySelector( '[data-iftp-design="color2_auto"]' );
 		const color2Box = form.querySelector( '[data-iftp-color2]' );
 		const color2Field = form.querySelector( '[data-iftp-design="color2"]' );
@@ -743,8 +930,22 @@
 				}
 			}
 
+			if ( borderBox && borderAuto ) {
+				borderBox.classList.toggle( 'is-auto', borderAuto.checked );
+
+				// Brutal's own border is ink; every other style's is its colour.
+				if ( borderAuto.checked ) {
+					borderField.value = design.variant === 'brutal' ? '#121a2c' : design.color;
+					borderSwatch.value = borderField.value;
+				}
+			}
+
 			if ( radius && radiusOut ) {
 				radiusOut.textContent = design.radius >= ( config.pill || 32 ) ? i18n.pill : ( i18n.px || '%d px' ).replace( '%d', design.radius );
+			}
+
+			if ( borderOut ) {
+				borderOut.textContent = ( i18n.px || '%d px' ).replace( '%d', design.borderWidth );
 			}
 		};
 
@@ -775,13 +976,21 @@
 				set( 'variant', preset.variant );
 				set( 'color', preset.color );
 				set( 'radius', preset.radius );
+				set( 'border_width', preset.border_width );
+				set( 'border_style', preset.border_style );
 				set( 'size', preset.size );
 				set( 'icon', preset.icon );
 				set( 'shadow', preset.shadow );
 				set( 'effect', preset.effect );
+				set( 'attention', preset.attention );
 				set( 'upper', preset.upper );
 				set( 'text_auto', ! preset.text );
 				set( 'color2_auto', ! preset.color2 );
+				set( 'border_color_auto', ! preset.border_color );
+
+				if ( preset.border_color ) {
+					set( 'border_color', preset.border_color );
+				}
 
 				if ( preset.color2 ) {
 					set( 'color2', preset.color2 );
@@ -1910,13 +2119,25 @@
 		track.style.setProperty( '--iftp-steps', String( titles.length ) );
 		bar.style.setProperty( '--iftp-steps', String( titles.length ) );
 
+		// The same markup as StepBar::render(), on the first page, a third answered.
 		titles.forEach( function ( title, index ) {
 			const segment = el( 'li', 'iftp-btn-steps__bar' + ( index === 0 ? ' is-current' : '' ) );
+			const seg = el( 'span', 'iftp-btn-steps__seg' );
 
-			segment.style.setProperty( '--iftp-fill', '0.35' );
-			segment.appendChild( el( 'span', 'iftp-btn-steps__fill' ) );
+			segment.style.setProperty( '--iftp-i', String( index ) );
+
+			if ( index === 0 ) {
+				segment.style.setProperty( '--iftp-fill', '0.35' );
+			}
+
+			seg.appendChild( el( 'span', 'iftp-btn-steps__fill' ) );
+			segment.appendChild( seg );
+			segment.appendChild( el( 'span', 'iftp-btn-steps__num', String( index + 1 ) ) );
+			segment.appendChild( el( 'span', 'iftp-btn-steps__label', title ) );
 			track.appendChild( segment );
 		} );
+
+		form.querySelector( '[data-iftp-preview-step-pct]' ).textContent = Math.round( 0.35 / titles.length * 100 ) + '%';
 
 		form.querySelector( '[data-iftp-preview-step-title]' ).textContent = titles[ 0 ];
 		form.querySelector( '[data-iftp-preview-step-count]' ).textContent = ( fb.stepOf || '{step} / {steps}' ).replace( '{step}', '1' ).replace( '{steps}', String( titles.length ) );
@@ -1927,7 +2148,12 @@
 
 	function bindDirty( form ) {
 		const flag = form.querySelector( '[data-iftp-dirty]' );
-		let dirty = false;
+		// A version the AI built is unsaved from the start.
+		let dirty = form.hasAttribute( 'data-iftp-start-dirty' );
+
+		if ( dirty && flag ) {
+			flag.hidden = false;
+		}
 
 		const mark = function ( event ) {
 			// Tabs, the stage background and the link builder don't change what's saved.
@@ -2091,14 +2317,32 @@
 			} );
 
 			const base = builder.dataset.base;
+			const mirror = document.getElementById( 'iftp-btn-amount-link-out' );
 
 			output.value = parts.length ? base + ( base.indexOf( '?' ) === -1 ? '?' : '&' ) + parts.join( '&' ) : base;
 			warning.hidden = ! ( wantsAmount && mode() === 'fixed' );
+
+			// The Amount card shows the same link under "From the link".
+			if ( mirror ) {
+				mirror.value = output.value;
+			}
 		}
 
 		if ( builder ) {
 			builder.addEventListener( 'input', updateBuilder );
 			builder.addEventListener( 'change', updateBuilder );
+
+			// Switching to "From the link" wants the amount in the link, even if Fixed had it unticked.
+			editor.querySelectorAll( 'input[name="config[amount_mode]"]' ).forEach( function ( radio ) {
+				radio.addEventListener( 'change', function () {
+					const amount = builder.querySelector( '[data-iftp-builder-use="amount"]' );
+
+					if ( radio.checked && radio.value === 'link' && amount ) {
+						amount.checked = true;
+						updateBuilder();
+					}
+				} );
+			} );
 		}
 
 		editor.addEventListener( 'input', renderPreview );
@@ -2427,7 +2671,7 @@
 		let match = /^https?:\/\/(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/.exec( url );
 
 		if ( match ) {
-			return 'https://www.youtube-nocookie.com/embed/' + match[ 1 ] + '?autoplay=1&mute=1&loop=1&playlist=' + match[ 1 ] + '&controls=0&playsinline=1&rel=0&disablekb=1&iv_load_policy=3';
+			return 'https://www.youtube-nocookie.com/embed/' + match[ 1 ] + '?autoplay=1&mute=1&loop=1&playlist=' + match[ 1 ] + '&controls=0&playsinline=1&rel=0&disablekb=1&iv_load_policy=3&enablejsapi=1';
 		}
 
 		match = /^https?:\/\/(?:www\.|player\.)?vimeo\.com\/(?:video\/)?(\d+)(?:\/([0-9a-f]+))?/.exec( url );
@@ -2440,6 +2684,21 @@
 		}
 
 		return '';
+	}
+
+	// Same as CheckoutLook::seconds(): 1:30, 1:02:03 or 90, in seconds.
+	function seconds( value ) {
+		const parts = /^\s*(?:(\d+):)?(?:(\d+):)?(\d+)\s*$/.exec( String( value || '' ) );
+
+		if ( ! parts ) {
+			return 0;
+		}
+
+		return Math.min( 86400, parts.slice( 1 ).filter( function ( part ) {
+			return part !== undefined;
+		} ).reduce( function ( total, part ) {
+			return total * 60 + parseInt( part, 10 );
+		}, 0 ) );
 	}
 
 	// Only simple formatting reaches the preview, whatever is typed in Raw.
@@ -2624,10 +2883,10 @@
 
 			// The Texts tab: the merchant's word, or the original while the box is blank.
 			form.querySelectorAll( '[data-iftp-text-input]' ).forEach( function ( input ) {
-				const text = ( input.value || input.placeholder ).replace( '{step}', '1' ).replace( '{steps}', '2' );
+				const text = input.value || input.placeholder;
 
 				frame.querySelectorAll( '[data-iftp-text="' + input.dataset.iftpTextInput + '"]' ).forEach( function ( target ) {
-					target.textContent = text;
+					target.textContent = text.replace( '{step}', target.dataset.step || '1' ).replace( '{steps}', target.dataset.steps || '2' );
 				} );
 			} );
 
@@ -2662,26 +2921,40 @@
 			return patterns[ key ];
 		};
 
-		// Same as CheckoutLook::video(): the file picked, or the YouTube or Vimeo player.
+		// Same as CheckoutLook::video(): the file picked, or the YouTube or Vimeo player, and the part that loops.
 		const pickedVideo = function () {
-			if ( read( 'pay_video_src' ) === 'link' ) {
-				const embed = embedUrl( String( read( 'pay_video_url' ) ).trim() );
+			const part = read( 'pay_video_loop' ) === 'part';
+			const start = part ? seconds( read( 'pay_video_start' ) ) : null;
+			let end = part ? seconds( read( 'pay_video_end' ) ) : null;
 
-				return embed ? { kind: 'embed', src: embed } : null;
+			if ( part && end <= start ) {
+				end = 0;
+			}
+
+			if ( read( 'pay_video_src' ) === 'link' ) {
+				let embed = embedUrl( String( read( 'pay_video_url' ) ).trim() );
+
+				// Same as CheckoutLook::embed_from().
+				if ( embed && part ) {
+					embed += /vimeo\.com/.test( embed ) ? '#t=' + start + 's' : '&start=' + start;
+				}
+
+				return embed ? { kind: 'embed', src: embed, start, end } : null;
 			}
 
 			const fileInput = form.querySelector( '[data-iftp-look="pay_video"]' );
 			const url = siteMode() ? config.siteLook.pay_video_file_url || '' : ( fileInput && fileInput.dataset.url ) || '';
 
-			return url ? { kind: 'file', src: url } : null;
+			return url ? { kind: 'file', src: url, start, end } : null;
 		};
 
 		// The pay page's video, as CheckoutLook::video_markup() prints it; rebuilt only when it changes.
 		const showVideo = function ( layer, video ) {
 			const src = video ? video.src : '';
+			const key = video ? [ src, video.start, video.end ].join( '|' ) : '';
 			let box = layer.querySelector( '[data-iftp-video]' );
 
-			if ( box && box.dataset.for === src ) {
+			if ( box && box.dataset.for === key ) {
 				return;
 			}
 
@@ -2699,8 +2972,13 @@
 			box = document.createElement( 'div' );
 			box.className = 'iftp-btn-pagevideo';
 			box.dataset.iftpVideo = '';
-			box.dataset.for = src;
+			box.dataset.for = key;
 			media.className = 'iftp-btn-pagevideo__media' + ( embed ? ' iftp-btn-pagevideo__media--embed' : '' );
+
+			if ( video.start !== null ) {
+				media.dataset.loopStart = video.start;
+				media.dataset.loopEnd = video.end;
+			}
 
 			if ( embed ) {
 				media.title = '';
@@ -2711,6 +2989,10 @@
 				media.loop = true;
 				media.autoplay = true;
 				media.playsInline = true;
+			}
+
+			if ( window.iftpBtnVideoLoop ) {
+				window.iftpBtnVideoLoop( media );
 			}
 
 			media.src = src;
@@ -2826,9 +3108,21 @@
 			vars[ '--iftp-page-blur-mask' ] = masks[ blurType ] || 'none';
 			vars[ '--iftp-page-frost' ] = blurType === 'frosted' ? 'rgb(255 255 255 / 16%)' : 'transparent';
 
+			// The step style cards wear the look too.
+			const samples = form.querySelectorAll( '[data-iftp-look-sample]' );
+
 			Object.keys( vars ).forEach( function ( name ) {
 				frame.style.setProperty( name, vars[ name ] );
 				stage.style.setProperty( name, vars[ name ] );
+				samples.forEach( function ( sample ) {
+					sample.style.setProperty( name, vars[ name ] );
+				} );
+			} );
+
+			const stepStyle = read( 'steps' ) || 'bars';
+
+			form.querySelectorAll( '[data-iftp-look-frame] .iftp-btn-steps, [data-iftp-preview-steps]' ).forEach( function ( bar ) {
+				bar.className = 'iftp-btn-steps iftp-btn-steps--' + stepStyle;
 			} );
 
 			stage.dataset.scheme = scheme;
@@ -2979,6 +3273,7 @@
 		bindReveal( form, 'input[data-iftp-look="pay_blur_type"]', 'data-iftp-when-blur' );
 		bindReveal( form, 'input[data-iftp-look="scene"]', 'data-iftp-when-scene' );
 		bindReveal( form, 'input[data-iftp-look="pay_video_src"]', 'data-iftp-when-vsrc' );
+		bindReveal( form, 'input[data-iftp-look="pay_video_loop"]', 'data-iftp-when-loop' );
 		bindReveal( form, 'input[data-iftp-look="dark"]', 'data-iftp-when-dark' );
 
 		const pickScheme = function ( next ) {

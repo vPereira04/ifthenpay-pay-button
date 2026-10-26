@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Admin\Buttons;
 
+use Ifthenpay\PayButton\Ai\Studio;
 use Ifthenpay\PayButton\Bridge\InvoiceHook;
 use Ifthenpay\PayButton\Bridge\OutgoingWebhook;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
@@ -71,6 +72,7 @@ class ButtonsController {
 		$active = isset( $_POST['active'] ) && '1' === sanitize_key( wp_unslash( $_POST['active'] ) );
 		$rotate = isset( $_POST['rotate_secret'] );
 		$tab    = isset( $_POST['tab'] ) ? sanitize_key( wp_unslash( $_POST['tab'] ) ) : '';
+		$by_ai  = isset( $_POST[ AiStudioPage::DRAFT_VAR ] );
 		// Button::sanitize_config() cleans every key by its own rules, so here it's only unslashed.
 		$config = isset( $_POST['config'] ) && is_array( $_POST['config'] ) ? map_deep( wp_unslash( $_POST['config'] ), static fn( $value ) => is_string( $value ) ? $value : '' ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
@@ -83,10 +85,16 @@ class ButtonsController {
 			$config['webhook_secret'] = '';
 		}
 
-		$saved = $this->buttons->save( $id, $title, $slug, $active, $config );
+		// The chat that built this version is done with once it's kept; read the button before it changes.
+		$chatted = $by_ai && $id > 0 ? $this->buttons->find( $id ) : null;
+		$saved   = $this->buttons->save( $id, $title, $slug, $active, $config );
 
 		if ( 0 === $saved ) {
 			$this->back( ButtonsPage::list_url( array( 'iftp_notice' => 'error' ) ) );
+		}
+
+		if ( $by_ai ) {
+			( new Studio() )->forget( $chatted );
 		}
 
 		// Back to the tab they saved from.

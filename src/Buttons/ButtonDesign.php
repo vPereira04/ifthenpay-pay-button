@@ -14,11 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * A button either takes the theme's own button look or a custom one: style, colours, corners, size, shadow,
- * hover effect and letter case. Icon, width and the method logos work with both. The custom look is a few CSS
- * variables plus BEM modifiers, so checkout.css does the drawing and the admin preview uses the exact same rules.
+ * A button either takes the theme's own button look or a custom one: style, colours, corners, border, size,
+ * shadow, a hover effect, an attention effect and letter case. Icon, width and the method logos work with both.
+ * The custom look is a few CSS variables plus BEM modifiers, so checkout.css does the drawing and the admin
+ * preview uses the exact same rules.
  *
- * @phpstan-type ButtonDesignConfig array{source: string, variant: string, color: string, color2: string, text: string, radius: int, size: string, full: bool, icon: string, shadow: bool, effect: string, upper: bool, logos: bool}
+ * @phpstan-type ButtonDesignConfig array{source: string, variant: string, color: string, color2: string, text: string, radius: int, border_width: int, border_style: string, border_color: string, size: string, full: bool, icon: string, shadow: bool, effect: string, attention: string, upper: bool, logos: bool}
  */
 class ButtonDesign {
 
@@ -26,10 +27,18 @@ class ButtonDesign {
 	public const SOURCE_CUSTOM = 'custom';
 	public const SOURCES       = array( self::SOURCE_THEME, self::SOURCE_CUSTOM );
 
-	public const VARIANTS = array( 'filled', 'outline', 'soft', 'gradient', 'glass' );
-	public const SIZES    = array( 'sm', 'md', 'lg' );
-	public const ICONS    = array( 'none', 'lock', 'card', 'arrow', 'heart' );
-	public const EFFECTS  = array( 'none', 'lift', 'shine', 'pulse' );
+	public const VARIANTS      = array( 'filled', 'outline', 'soft', 'gradient', 'glass', '3d', 'neon', 'brutal', 'ghost' );
+	public const SIZES         = array( 'sm', 'md', 'lg' );
+	public const ICONS         = array( 'none', 'lock', 'card', 'arrow', 'heart' );
+	public const EFFECTS       = array( 'none', 'lift', 'grow', 'shine', 'glow', 'fill', 'nudge' );
+	public const ATTENTIONS    = array( 'none', 'pulse', 'ripple', 'heartbeat', 'wiggle', 'bounce', 'shimmer', 'breathe', 'orbit' );
+	public const BORDER_STYLES = array( 'solid', 'dashed', 'dotted', 'double' );
+
+	// The border slider tops out here.
+	public const BORDER_MAX = 6;
+
+	// The styles drawn solid in the main colour, so their text goes black or white by contrast.
+	private const SOLID_VARIANTS = array( 'filled', 'glass', '3d', 'brutal' );
 
 	// How far round the colour wheel a gradient's own second colour sits from the first.
 	public const GRADIENT_TURN = 40;
@@ -47,29 +56,41 @@ class ButtonDesign {
 	 */
 	public static function defaults(): array {
 		return array(
-			'source'  => self::SOURCE_THEME,
-			'variant' => 'filled',
-			'color'   => '#00609c',
-			'color2'  => '',
-			'text'    => '',
-			'radius'  => 10,
-			'size'    => 'md',
-			'full'    => false,
-			'icon'    => 'none',
-			'shadow'  => false,
-			'effect'  => 'none',
-			'upper'   => false,
-			'logos'   => false,
+			'source'       => self::SOURCE_THEME,
+			'variant'      => 'filled',
+			'color'        => '#00609c',
+			'color2'       => '',
+			'text'         => '',
+			'radius'       => 10,
+			'border_width' => 2,
+			'border_style' => 'solid',
+			'border_color' => '',
+			'size'         => 'md',
+			'full'         => false,
+			'icon'         => 'none',
+			'shadow'       => false,
+			'effect'       => 'none',
+			'attention'    => 'none',
+			'upper'        => false,
+			'logos'        => false,
 		);
 	}
 
 	/**
-	 * Ready-made custom looks for the editor. Each one only sets the custom fields.
+	 * Ready-made custom looks for the editor. Each one only sets the custom fields; the border and the attention
+	 * effect are the defaults unless it says otherwise.
 	 *
-	 * @return array<string, array{label: string, variant: string, color: string, color2: string, text: string, radius: int, size: string, icon: string, shadow: bool, effect: string, upper: bool}>
+	 * @return array<string, array{label: string, variant: string, color: string, color2: string, text: string, radius: int, border_width: int, border_style: string, border_color: string, size: string, icon: string, shadow: bool, effect: string, attention: string, upper: bool}>
 	 */
 	public static function presets(): array {
-		return array(
+		$base = array(
+			'border_width' => 2,
+			'border_style' => 'solid',
+			'border_color' => '',
+			'attention'    => 'none',
+		);
+
+		$presets = array(
 			'ifthenpay' => array(
 				'label'   => __( 'ifthenpay', 'ifthenpay-pay-button' ),
 				'variant' => 'filled',
@@ -123,17 +144,18 @@ class ButtonDesign {
 				'upper'   => false,
 			),
 			'ruby'      => array(
-				'label'   => __( 'Ruby', 'ifthenpay-pay-button' ),
-				'variant' => 'filled',
-				'color'   => '#c8363b',
-				'color2'  => '',
-				'text'    => '',
-				'radius'  => self::PILL,
-				'size'    => 'lg',
-				'icon'    => 'heart',
-				'shadow'  => true,
-				'effect'  => 'pulse',
-				'upper'   => false,
+				'label'     => __( 'Ruby', 'ifthenpay-pay-button' ),
+				'variant'   => 'filled',
+				'color'     => '#c8363b',
+				'color2'    => '',
+				'text'      => '',
+				'radius'    => self::PILL,
+				'size'      => 'lg',
+				'icon'      => 'heart',
+				'shadow'    => true,
+				'effect'    => 'none',
+				'attention' => 'pulse',
+				'upper'     => false,
 			),
 			'bold'      => array(
 				'label'   => __( 'Bold', 'ifthenpay-pay-button' ),
@@ -174,7 +196,66 @@ class ButtonDesign {
 				'effect'  => 'lift',
 				'upper'   => false,
 			),
+			'candy'     => array(
+				'label'     => __( 'Candy', 'ifthenpay-pay-button' ),
+				'variant'   => '3d',
+				'color'     => '#ff4d8d',
+				'color2'    => '',
+				'text'      => '',
+				'radius'    => self::PILL,
+				'size'      => 'lg',
+				'icon'      => 'heart',
+				'shadow'    => false,
+				'effect'    => 'none',
+				'attention' => 'bounce',
+				'upper'     => false,
+			),
+			'neon'      => array(
+				'label'     => __( 'Neon', 'ifthenpay-pay-button' ),
+				'variant'   => 'neon',
+				'color'     => '#7c3aed',
+				'color2'    => '',
+				'text'      => '',
+				'radius'    => 12,
+				'size'      => 'md',
+				'icon'      => 'arrow',
+				'shadow'    => false,
+				'effect'    => 'glow',
+				'attention' => 'orbit',
+				'upper'     => true,
+			),
+			'brutal'    => array(
+				'label'        => __( 'Brutal', 'ifthenpay-pay-button' ),
+				'variant'      => 'brutal',
+				'color'        => '#ffd23f',
+				'color2'       => '',
+				'text'         => '',
+				'radius'       => 4,
+				'border_width' => 3,
+				'size'         => 'lg',
+				'icon'         => 'arrow',
+				'shadow'       => false,
+				'effect'       => 'nudge',
+				'upper'        => true,
+			),
+			'dashed'    => array(
+				'label'        => __( 'Dashed', 'ifthenpay-pay-button' ),
+				'variant'      => 'ghost',
+				'color'        => '#00609c',
+				'color2'       => '',
+				'text'         => '',
+				'radius'       => 10,
+				'border_style' => 'dashed',
+				'border_color' => '#00609c',
+				'size'         => 'md',
+				'icon'         => 'card',
+				'shadow'       => false,
+				'effect'       => 'fill',
+				'upper'        => false,
+			),
 		);
+
+		return array_map( static fn( array $preset ): array => $preset + $base, $presets );
 	}
 
 	/**
@@ -194,16 +275,27 @@ class ButtonDesign {
 		$design['icon']    = $choice( 'icon', self::ICONS, $design['icon'] );
 		$design['effect']  = $choice( 'effect', self::EFFECTS, $design['effect'] );
 
+		$design['attention']    = $choice( 'attention', self::ATTENTIONS, $design['attention'] );
+		$design['border_style'] = $choice( 'border_style', self::BORDER_STYLES, $design['border_style'] );
+
+		// Pulse used to be a hover effect; it's an attention effect now.
+		if ( 'pulse' === ( $input['effect'] ?? '' ) && ! isset( $input['attention'] ) ) {
+			$design['attention'] = 'pulse';
+		}
+
 		$color = is_string( $input['color'] ?? null ) ? self::hex( $input['color'] ) : '';
 
 		if ( '' !== $color ) {
 			$design['color'] = $color;
 		}
 
-		// "Auto" text and second colours are stored as ''.
+		// "Auto" text, second and border colours are stored as ''.
 		$design['text']   = empty( $input['text_auto'] ) && is_string( $input['text'] ?? null ) ? self::hex( $input['text'] ) : '';
 		$design['color2'] = empty( $input['color2_auto'] ) && is_string( $input['color2'] ?? null ) ? self::hex( $input['color2'] ) : '';
 		$design['radius'] = is_numeric( $input['radius'] ?? null ) ? max( 0, min( self::PILL, (int) $input['radius'] ) ) : $design['radius'];
+
+		$design['border_width'] = is_numeric( $input['border_width'] ?? null ) ? max( 0, min( self::BORDER_MAX, (int) $input['border_width'] ) ) : $design['border_width'];
+		$design['border_color'] = empty( $input['border_color_auto'] ) && is_string( $input['border_color'] ?? null ) ? self::hex( $input['border_color'] ) : '';
 
 		foreach ( array( 'full', 'shadow', 'upper', 'logos' ) as $flag ) {
 			if ( array_key_exists( $flag, $input ) ) {
@@ -243,6 +335,14 @@ class ButtonDesign {
 
 		if ( 'none' !== $design['effect'] ) {
 			$classes[] = 'iftp-btn-pay__button--fx-' . $design['effect'];
+		}
+
+		if ( 'none' !== $design['attention'] ) {
+			$classes[] = 'iftp-btn-pay__button--cta-' . $design['attention'];
+		}
+
+		if ( '' !== $design['border_color'] ) {
+			$classes[] = 'iftp-btn-pay__button--own-border';
 		}
 
 		if ( $design['upper'] ) {
@@ -308,8 +408,8 @@ class ButtonDesign {
 	}
 
 	/**
-	 * The text colour: the one picked, or black/white by contrast on a filled, glass or gradient button (against
-	 * the gradient's middle), or the main colour otherwise.
+	 * The text colour: the one picked, or black/white by contrast on a solid or gradient button (against the
+	 * gradient's middle), or the main colour otherwise.
 	 *
 	 * @param array<string, mixed> $design A sanitized design.
 	 */
@@ -322,7 +422,7 @@ class ButtonDesign {
 			return self::on_color( self::mix( (string) $design['color'], self::second_color( $design ) ) );
 		}
 
-		if ( ! in_array( $design['variant'], array( 'filled', 'glass' ), true ) ) {
+		if ( ! in_array( $design['variant'], self::SOLID_VARIANTS, true ) ) {
 			return (string) $design['color'];
 		}
 
@@ -433,15 +533,19 @@ class ButtonDesign {
 	private static function style( array $design ): string {
 		$rgb    = self::rgb( (string) $design['color'] );
 		$radius = self::PILL <= $design['radius'] ? '999px' : (int) $design['radius'] . 'px';
-
-		return sprintf(
-			'--iftp-pb-color:%1$s;--iftp-pb-color2:%5$s;--iftp-pb-text:%2$s;--iftp-pb-radius:%3$s;--iftp-pb-tint:rgb(%4$s / 14%%);--iftp-pb-tint-strong:rgb(%4$s / 24%%);--iftp-pb-glass:rgb(%4$s / 62%%);--iftp-pb-glow:rgb(%4$s / 45%%)',
+		$style  = sprintf(
+			'--iftp-pb-color:%1$s;--iftp-pb-color2:%5$s;--iftp-pb-text:%2$s;--iftp-pb-on:%6$s;--iftp-pb-radius:%3$s;--iftp-pb-bw:%7$dpx;--iftp-pb-bs:%8$s;--iftp-pb-tint:rgb(%4$s / 14%%);--iftp-pb-tint-strong:rgb(%4$s / 24%%);--iftp-pb-glass:rgb(%4$s / 62%%);--iftp-pb-glow:rgb(%4$s / 45%%)',
 			$design['color'],
 			self::text_color( $design ),
 			$radius,
 			implode( ' ', $rgb ),
-			self::second_color( $design )
+			self::second_color( $design ),
+			self::on_color( (string) $design['color'] ),
+			(int) $design['border_width'],
+			$design['border_style']
 		);
+
+		return '' !== $design['border_color'] ? $style . ';--iftp-pb-bc:' . $design['border_color'] : $style;
 	}
 
 	/**

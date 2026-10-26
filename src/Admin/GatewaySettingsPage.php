@@ -117,6 +117,10 @@ class GatewaySettingsPage {
 		wp_enqueue_script( 'iftp-btn-buttons', IFTP_BTN_URL . $buttons_js, array( Plugin::UI_SCRIPT_HANDLE ), Plugin::asset_version( $buttons_js ), true );
 		wp_enqueue_script( 'iftp-btn-settings', IFTP_BTN_URL . $settings_js, array( Plugin::METHOD_LOGOS_HANDLE, Plugin::UI_SCRIPT_HANDLE ), Plugin::asset_version( $settings_js ), true );
 
+		if ( $this->settings->is_connected() ) {
+			( new AiPanel() )->enqueue();
+		}
+
 		wp_localize_script(
 			'iftp-btn-settings',
 			'iftpBtnSettings',
@@ -162,7 +166,6 @@ class GatewaySettingsPage {
 				<img class="iftp-btn-settings__logo" src="<?php echo esc_url( IFTP_BTN_URL . 'assets/img/logo-color.svg' ); ?>" alt="ifthenpay" width="94" height="24" />
 				<div class="iftp-btn-settings__heading">
 					<h1 class="iftp-btn-settings__title"><?php esc_html_e( 'Gateway Configuration', 'ifthenpay-pay-button' ); ?></h1>
-					<p class="iftp-btn-settings__subtitle"><?php esc_html_e( 'Connect your ifthenpay account, then pick the Gateway Key and the payment methods your hosted payment page offers.', 'ifthenpay-pay-button' ); ?></p>
 				</div>
 			</header>
 			<hr class="wp-header-end" />
@@ -193,6 +196,8 @@ class GatewaySettingsPage {
 			<?php
 			if ( $connected ) {
 				$this->render_configuration();
+				// Outside the settings form: it saves on its own, the moment it connects.
+				( new AiPanel() )->render_panel();
 				$this->render_disconnect_dialog();
 			} else {
 				$this->render_connect_dialog();
@@ -258,81 +263,12 @@ class GatewaySettingsPage {
 			</section>
 
 			<?php $this->render_summary_panel(); ?>
-			<?php $this->render_display_panel(); ?>
 
 			<div class="iftp-btn-settings__actions">
 				<button type="submit" class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-save><?php esc_html_e( 'Save Settings', 'ifthenpay-pay-button' ); ?></button>
 				<span class="iftp-btn-save-status" data-iftp-save-status role="status"></span>
 			</div>
 		</form>
-		<?php
-	}
-
-	/**
-	 * How the screens look. Picking one previews it right away; Save keeps it.
-	 */
-	private function render_display_panel(): void {
-		$current = $this->settings->get_display_mode();
-		$modes   = array(
-			'standard' => array( __( 'Standard', 'ifthenpay-pay-button' ), __( 'The full view: charts, trends and every detail.', 'ifthenpay-pay-button' ) ),
-			'minimal'  => array( __( 'Minimal', 'ifthenpay-pay-button' ), __( 'Flat and calm: fewer shadows, no motion, a tighter layout.', 'ifthenpay-pay-button' ) ),
-			'focus'    => array( __( 'Focus', 'ifthenpay-pay-button' ), __( 'Money first: revenue up front, paid in green, the rest steps back.', 'ifthenpay-pay-button' ) ),
-		);
-		?>
-		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-display-title">
-			<div class="iftp-btn-panel__intro">
-				<h2 id="iftp-btn-display-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Display', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'How these screens and the Dashboard widget look, for everyone on this site.', 'ifthenpay-pay-button' ); ?></p>
-			</div>
-			<div class="iftp-btn-panel__body">
-				<fieldset class="iftp-btn-modes">
-					<legend class="screen-reader-text"><?php esc_html_e( 'Display mode', 'ifthenpay-pay-button' ); ?></legend>
-					<?php foreach ( $modes as $mode => $text ) : ?>
-						<label class="iftp-btn-mode iftp-btn-mode--<?php echo esc_attr( $mode ); ?>">
-							<input type="radio" class="iftp-btn-mode__input" name="display_mode" value="<?php echo esc_attr( $mode ); ?>" <?php checked( $current, $mode ); ?> data-iftp-display-mode />
-							<?php // A tiny drawing of the mode; decorative, the text says it. ?>
-							<span class="iftp-btn-mode__preview" aria-hidden="true">
-								<span class="iftp-btn-mode__bar"></span>
-								<span class="iftp-btn-mode__chart"></span>
-								<span class="iftp-btn-mode__tiles"><span></span><span></span><span></span></span>
-							</span>
-							<span class="iftp-btn-mode__title"><?php echo esc_html( $text[0] ); ?></span>
-							<span class="iftp-btn-mode__text"><?php echo esc_html( $text[1] ); ?></span>
-						</label>
-					<?php endforeach; ?>
-				</fieldset>
-
-				<?php // Focus's own tools; shown while Focus is picked, and only used in Focus. ?>
-				<div class="iftp-btn-focus-tools" data-iftp-focus-only<?php echo 'focus' === $current ? '' : ' hidden'; ?>>
-					<p class="iftp-btn-focus-tools__title"><?php esc_html_e( 'Focus tools', 'ifthenpay-pay-button' ); ?></p>
-					<div class="iftp-btn-focus-tools__fields">
-						<div class="iftp-btn-field">
-							<label class="iftp-btn-field__label" for="iftp-btn-monthly-goal"><?php esc_html_e( 'Monthly revenue goal (€)', 'ifthenpay-pay-button' ); ?></label>
-							<input type="number" class="iftp-btn-field__control" id="iftp-btn-monthly-goal" name="monthly_goal" min="0" step="1" inputmode="decimal" value="<?php echo esc_attr( $this->settings->get_monthly_goal() > 0 ? (string) $this->settings->get_monthly_goal() : '' ); ?>" placeholder="<?php esc_attr_e( 'No goal', 'ifthenpay-pay-button' ); ?>" aria-describedby="iftp-btn-monthly-goal-help" />
-							<p class="iftp-btn-field__help" id="iftp-btn-monthly-goal-help"><?php esc_html_e( 'Entries shows how close this month is, and the pace you need.', 'ifthenpay-pay-button' ); ?></p>
-						</div>
-						<div class="iftp-btn-field">
-							<label class="iftp-btn-field__label" for="iftp-btn-remind-days"><?php esc_html_e( 'Automatic reminders', 'ifthenpay-pay-button' ); ?></label>
-							<select class="iftp-btn-field__control" id="iftp-btn-remind-days" name="remind_days" aria-describedby="iftp-btn-remind-days-help">
-								<?php foreach ( SettingsRepository::REMIND_DAY_CHOICES as $days ) : ?>
-									<option value="<?php echo esc_attr( (string) $days ); ?>" <?php selected( $this->settings->get_remind_days(), $days ); ?>>
-										<?php
-										echo esc_html(
-											0 === $days
-												? __( 'Off', 'ifthenpay-pay-button' )
-												/* translators: %s: number of days */
-												: sprintf( _n( 'After %s day unpaid', 'After %s days unpaid', $days, 'ifthenpay-pay-button' ), number_format_i18n( $days ) )
-										);
-										?>
-									</option>
-								<?php endforeach; ?>
-							</select>
-							<p class="iftp-btn-field__help" id="iftp-btn-remind-days-help"><?php esc_html_e( 'The customer gets the payment email once more. One reminder per payment, never more.', 'ifthenpay-pay-button' ); ?></p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
 		<?php
 	}
 

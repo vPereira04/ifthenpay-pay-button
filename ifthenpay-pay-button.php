@@ -66,7 +66,6 @@ register_activation_hook(
 
 		\Ifthenpay\PayButton\Repository\TransactionStore::maybe_create_table();
 		\Ifthenpay\PayButton\Cron\ExpiredPaymentsCron::schedule();
-		\Ifthenpay\PayButton\Cron\ReminderCron::schedule();
 		\Ifthenpay\PayButton\Cron\WeeklySummaryCron::schedule();
 
 		// So the webhook and the pay links resolve right away instead of 404ing until the next flush.
@@ -79,7 +78,6 @@ register_deactivation_hook(
 	static function (): void {
 		if ( class_exists( \Ifthenpay\PayButton\Plugin::class ) ) {
 			\Ifthenpay\PayButton\Cron\ExpiredPaymentsCron::unschedule();
-			\Ifthenpay\PayButton\Cron\ReminderCron::unschedule();
 			\Ifthenpay\PayButton\Cron\WeeklySummaryCron::unschedule();
 		}
 

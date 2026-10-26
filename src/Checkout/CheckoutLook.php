@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * A handful of base choices (colours, corners, field style, width, backdrop) that become CSS variables over
  * checkout.css's tokens; the shades in between are mixed in CSS from these. Then the merchant's own CSS, last.
  *
- * @phpstan-type Look array{accent: string, accent_text: string, surface: string, ink: string, radius: int, field_radius: int, fields: string, font: string, width: string, backdrop: string, paid: string, pending: string, failed: string, popup_icon: string, popup_align: string, logos: bool, secure: bool, pay_bg: string, pay_color: string, pay_image: int, pay_dim: int, pay_logo: bool, pay_back: bool, pay_grad: string, pay_color2: string, pay_fx: string, pay_fx_size: int, pay_fx_strength: int, pay_blur_type: string, pay_blur: int, pay_video_src: string, pay_video: int, pay_video_url: string, pay_video_blur: int, card_opacity: int, card_blur: int, dark: string, dark_surface: string, dark_ink: string, dark_accent: string, scene: bool, css: string}
+ * @phpstan-type Look array{accent: string, accent_text: string, surface: string, ink: string, radius: int, field_radius: int, fields: string, font: string, width: string, backdrop: string, paid: string, pending: string, failed: string, popup_icon: string, popup_align: string, steps: string, logos: bool, secure: bool, pay_bg: string, pay_color: string, pay_image: int, pay_dim: int, pay_logo: bool, pay_back: bool, pay_grad: string, pay_color2: string, pay_fx: string, pay_fx_size: int, pay_fx_strength: int, pay_blur_type: string, pay_blur: int, pay_video_src: string, pay_video: int, pay_video_url: string, pay_video_blur: int, pay_video_loop: string, pay_video_start: int, pay_video_end: int, card_opacity: int, card_blur: int, dark: string, dark_surface: string, dark_ink: string, dark_accent: string, scene: bool, css: string}
  */
 class CheckoutLook {
 
@@ -35,12 +35,14 @@ class CheckoutLook {
 	public const BACKDROPS    = array( 'blur', 'dim', 'light' );
 	public const POPUP_ICONS  = array( 'soft', 'solid' );
 	public const POPUP_ALIGNS = array( 'center', 'left' );
+	public const STEP_STYLES  = array( 'bars', 'labels', 'line', 'numbers', 'dots', 'ring', 'text' );
 	public const PAY_BGS      = array( 'glow', 'plain', 'gradient', 'image', 'video' );
 	public const PAY_GRADS    = array( 'soft', 'aurora', 'diagonal' );
 	public const PAY_FX       = array( 'none', 'crystals', 'waves', 'bokeh', 'grain' );
 	public const PAY_BLURS    = array( 'none', 'soft', 'frosted', 'tilt', 'vignette' );
 	public const VIDEO_SRCS   = array( 'file', 'link' );
 	public const VIDEO_TYPES  = array( 'video/mp4', 'video/webm' );
+	public const VIDEO_LOOPS  = array( 'all', 'part' );
 	public const DARK_MODES   = array( 'off', 'auto' );
 
 	// The colours that change in dark mode; checkout.css swaps each for its --iftp-dark-* twin.
@@ -81,6 +83,7 @@ class CheckoutLook {
 			'failed'          => '#a3201f',
 			'popup_icon'      => 'soft',
 			'popup_align'     => 'center',
+			'steps'           => 'bars',
 			'logos'           => true,
 			'secure'          => true,
 			'pay_bg'          => 'glow',
@@ -100,6 +103,9 @@ class CheckoutLook {
 			'pay_video'       => 0,
 			'pay_video_url'   => '',
 			'pay_video_blur'  => 0,
+			'pay_video_loop'  => 'all',
+			'pay_video_start' => 0,
+			'pay_video_end'   => 0,
 			'card_opacity'    => 100,
 			'card_blur'       => 16,
 			'dark'            => 'off',
@@ -215,6 +221,7 @@ class CheckoutLook {
 		$look['backdrop']    = $choice( 'backdrop', self::BACKDROPS, $look['backdrop'] );
 		$look['popup_icon']  = $choice( 'popup_icon', self::POPUP_ICONS, $look['popup_icon'] );
 		$look['popup_align'] = $choice( 'popup_align', self::POPUP_ALIGNS, $look['popup_align'] );
+		$look['steps']       = $choice( 'steps', self::STEP_STYLES, $look['steps'] );
 
 		$look['radius']       = is_numeric( $input['radius'] ?? null ) ? max( 0, min( self::MAX_RADIUS, (int) $input['radius'] ) ) : $look['radius'];
 		$look['field_radius'] = is_numeric( $input['field_radius'] ?? null ) ? max( 0, min( self::MAX_FIELD_RADIUS, (int) $input['field_radius'] ) ) : $look['field_radius'];
@@ -236,6 +243,15 @@ class CheckoutLook {
 		$look['pay_video']      = is_numeric( $input['pay_video'] ?? null ) && self::is_video( (int) $input['pay_video'] ) ? (int) $input['pay_video'] : 0;
 		$look['pay_video_url']  = is_string( $input['pay_video_url'] ?? null ) && '' !== self::embed_url( trim( $input['pay_video_url'] ) ) ? esc_url_raw( trim( $input['pay_video_url'] ) ) : '';
 		$look['pay_video_blur'] = is_numeric( $input['pay_video_blur'] ?? null ) ? max( 0, min( 30, (int) $input['pay_video_blur'] ) ) : $look['pay_video_blur'];
+		$look['pay_video_loop'] = $choice( 'pay_video_loop', self::VIDEO_LOOPS, $look['pay_video_loop'] );
+
+		$look['pay_video_start'] = self::seconds( $input['pay_video_start'] ?? 0 );
+		$look['pay_video_end']   = self::seconds( $input['pay_video_end'] ?? 0 );
+
+		// An end at or before the start means "to the end of the video".
+		if ( $look['pay_video_end'] <= $look['pay_video_start'] ) {
+			$look['pay_video_end'] = 0;
+		}
 
 		$look['card_opacity'] = is_numeric( $input['card_opacity'] ?? null ) ? max( 0, min( 100, (int) $input['card_opacity'] ) ) : $look['card_opacity'];
 		$look['card_blur']    = is_numeric( $input['card_blur'] ?? null ) ? max( 0, min( 40, (int) $input['card_blur'] ) ) : $look['card_blur'];
@@ -731,7 +747,7 @@ class CheckoutLook {
 	 */
 	public static function embed_url( string $url ): string {
 		if ( 1 === preg_match( '~^https?://(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com/(?:watch\?(?:[^#]*&)?v=|embed/|shorts/|live/)|youtu\.be/)([A-Za-z0-9_-]{11})~', $url, $match ) ) {
-			return 'https://www.youtube-nocookie.com/embed/' . $match[1] . '?autoplay=1&mute=1&loop=1&playlist=' . $match[1] . '&controls=0&playsinline=1&rel=0&disablekb=1&iv_load_policy=3';
+			return 'https://www.youtube-nocookie.com/embed/' . $match[1] . '?autoplay=1&mute=1&loop=1&playlist=' . $match[1] . '&controls=0&playsinline=1&rel=0&disablekb=1&iv_load_policy=3&enablejsapi=1';
 		}
 
 		if ( 1 === preg_match( '~^https?://(?:www\.|player\.)?vimeo\.com/(?:video/)?(\d+)(?:/([0-9a-f]+))?~', $url, $match ) ) {
@@ -749,28 +765,88 @@ class CheckoutLook {
 	}
 
 	/**
-	 * The look's background video: a file, or a YouTube or Vimeo player. Null when it has none.
+	 * The look's background video: a file, or a YouTube or Vimeo player, and the part of it that loops (start and
+	 * end in seconds, end 0 for the end of the video; both null for the whole video). Null when it has none.
 	 *
 	 * @param array<string, mixed> $look A look, sanitized or on its way.
 	 * @phpstan-param Look $look
-	 * @return array{kind: string, src: string}|null
+	 * @return array{kind: string, src: string, start: int|null, end: int|null}|null
 	 */
 	public static function video( array $look ): ?array {
+		$part  = 'part' === $look['pay_video_loop'];
+		$start = $part ? $look['pay_video_start'] : null;
+		$end   = $part ? $look['pay_video_end'] : null;
+
 		if ( 'link' === $look['pay_video_src'] ) {
 			$embed = self::embed_url( $look['pay_video_url'] );
 
 			return '' !== $embed ? array(
-				'kind' => 'embed',
-				'src'  => $embed,
+				'kind'  => 'embed',
+				'src'   => null !== $start ? self::embed_from( $embed, $start ) : $embed,
+				'start' => $start,
+				'end'   => $end,
 			) : null;
 		}
 
 		$url = $look['pay_video'] > 0 ? wp_get_attachment_url( $look['pay_video'] ) : false;
 
 		return is_string( $url ) && '' !== $url ? array(
-			'kind' => 'file',
-			'src'  => esc_url_raw( $url ),
+			'kind'  => 'file',
+			'src'   => esc_url_raw( $url ),
+			'start' => $start,
+			'end'   => $end,
 		) : null;
+	}
+
+	/**
+	 * A player that starts at a moment, for video-loop.js to steer: YouTube's start, Vimeo's #t.
+	 * buttons.js does the same for the preview.
+	 *
+	 * @param string $embed The player's address from embed_url().
+	 * @param int    $start Where to start, in seconds.
+	 */
+	public static function embed_from( string $embed, int $start ): string {
+		if ( false !== strpos( $embed, 'vimeo.com' ) ) {
+			return $embed . '#t=' . $start . 's';
+		}
+
+		return $embed . '&start=' . $start;
+	}
+
+	/**
+	 * A moment typed as 1:30, 1:02:03 or 90, in seconds. Anything else is 0.
+	 *
+	 * @param mixed $value The raw time.
+	 */
+	public static function seconds( $value ): int {
+		if ( is_int( $value ) ) {
+			return max( 0, $value );
+		}
+
+		if ( ! is_string( $value ) || 1 !== preg_match( '/^\s*(?:(\d+):)?(?:(\d+):)?(\d+)\s*$/', $value, $parts ) ) {
+			return 0;
+		}
+
+		$numbers = array_filter( array( $parts[1], $parts[2], $parts[3] ), static fn( string $part ): bool => '' !== $part );
+		$total   = 0;
+
+		foreach ( $numbers as $number ) {
+			$total = $total * 60 + (int) $number;
+		}
+
+		return min( $total, 86400 );
+	}
+
+	/**
+	 * Seconds as the field shows them: 1:30, or 1:02:03 past the hour.
+	 *
+	 * @param int $seconds The time.
+	 */
+	public static function clock( int $seconds ): string {
+		$hours = intdiv( $seconds, 3600 );
+		$rest  = sprintf( '%02d', $seconds % 60 );
+
+		return $hours > 0 ? sprintf( '%d:%02d:%s', $hours, intdiv( $seconds % 3600, 60 ), $rest ) : intdiv( $seconds, 60 ) . ':' . $rest;
 	}
 
 	/**
@@ -778,7 +854,7 @@ class CheckoutLook {
 	 *
 	 * @param array<string, mixed> $look A sanitized look.
 	 * @phpstan-param Look $look
-	 * @return array{kind: string, src: string}|null
+	 * @return array{kind: string, src: string, start: int|null, end: int|null}|null
 	 */
 	public static function scene_video( array $look ): ?array {
 		return $look['scene'] && 'video' === $look['pay_bg'] ? self::video( $look ) : null;
@@ -801,13 +877,19 @@ class CheckoutLook {
 
 		$src = ( $lazy ? 'data-src' : 'src' ) . '="' . esc_url( $video['src'] ) . '"';
 
+		// Looping part of it: video-loop.js keeps it between these.
+		if ( null !== $video['start'] ) {
+			$src .= sprintf( ' data-loop-start="%d" data-loop-end="%d"', $video['start'], (int) $video['end'] );
+		}
+
 		if ( 'embed' === $video['kind'] ) {
 			$media = '<iframe class="iftp-btn-pagevideo__media iftp-btn-pagevideo__media--embed" ' . $src . ' title="" tabindex="-1" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>';
 		} else {
 			$media = '<video class="iftp-btn-pagevideo__media" ' . $src . ' muted loop playsinline' . ( $lazy ? ' preload="none"' : ' autoplay preload="auto"' ) . '></video>';
 		}
 
-		return '<div class="iftp-btn-pagevideo" aria-hidden="true" data-iftp-video>' . $media . '</div>';
+		// Waiting until video-loop.js sees a frame; checkout.css keeps the card back meanwhile.
+		return '<div class="iftp-btn-pagevideo is-waiting" aria-hidden="true" data-iftp-video>' . $media . '</div>';
 	}
 
 	/**
@@ -834,7 +916,7 @@ class CheckoutLook {
 	 * What checkout.js needs to draw a button's outcome popup in its own look; null when it uses the site's.
 	 *
 	 * @param Button|null $button The button.
-	 * @return array{style: string, icon: string, font: string, scene: string, dark: bool, video: array{kind: string, src: string}|null}|null
+	 * @return array{style: string, icon: string, font: string, scene: string, dark: bool, video: array{kind: string, src: string, start: int|null, end: int|null}|null}|null
 	 */
 	public static function popup_look( ?Button $button ): ?array {
 		$style = self::inline_style( $button );

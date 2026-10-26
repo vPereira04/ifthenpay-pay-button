@@ -119,14 +119,27 @@ class PayPage {
 	}
 
 	/**
+	 * The page for a button that isn't saved yet, for the AI studio's preview. The same page, but it never
+	 * starts a payment; the caller checks who's asking.
+	 *
+	 * @param Button $button The unsaved button.
+	 */
+	public function preview( Button $button ): void {
+		header( 'X-Robots-Tag: noindex, nofollow' );
+
+		$this->render( $button, true );
+	}
+
+	/**
 	 * The page: the button's form, prefilled from the link, on a plain canvas.
 	 *
-	 * @param Button $button The button.
+	 * @param Button $button  The button.
+	 * @param bool   $preview Whether it's the AI studio's preview, which can't take payments.
 	 */
-	private function render( Button $button ): void {
+	private function render( Button $button, bool $preview = false ): void {
 		ButtonRenderer::enqueue();
 
-		$available = ( new CheckoutService() )->availability( $button );
+		$available = $preview ? true : ( new CheckoutService() )->availability( $button );
 		$site      = (string) get_bloginfo( 'name' );
 		$look      = CheckoutLook::for_button( $button, $this->checkout_settings );
 		$own       = CheckoutLook::inline_style( $button );
@@ -161,7 +174,7 @@ class PayPage {
 				</div>
 			</div>
 		<?php else : ?>
-			<?php $this->renderer->print_form( $button, 'iftp-btn-page', PayLinks::read_query(), false ); ?>
+			<?php $this->renderer->print_form( $button, 'iftp-btn-page', $preview ? array() : PayLinks::read_query(), false, $preview ); ?>
 		<?php endif; ?>
 		<?php if ( $look['pay_back'] ) : ?>
 			<p class="iftp-btn-page__back"><a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( $site ); ?></a></p>

@@ -177,9 +177,6 @@ class SettingsController {
 		$this->settings->set_default_method( in_array( $default_method, $enabled_now, true ) ? $default_method : '' );
 		$this->settings->set_description( $this->post_text( 'description' ) );
 		$this->settings->set_expiry_days( absint( $this->post_text( 'expiry_days', '3' ) ) );
-		$this->settings->set_display_mode( $this->post_text( 'display_mode', $this->settings->get_display_mode() ) );
-		$this->settings->set_monthly_goal( (float) str_replace( ',', '.', $this->post_text( 'monthly_goal', '0' ) ) );
-		$this->settings->set_remind_days( absint( $this->post_text( 'remind_days', '0' ) ) );
 		$this->settings->set_summary_enabled( '' !== $this->post_text( 'summary_enabled' ) );
 
 		$summary_email = $this->post_text( 'summary_email' );

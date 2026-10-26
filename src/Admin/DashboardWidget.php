@@ -110,7 +110,7 @@ class DashboardWidget {
 			)
 		)['items'];
 		?>
-		<div class="iftp-btn-widget iftp-btn-widget--<?php echo esc_attr( $this->settings->get_display_mode() ); ?>">
+		<div class="iftp-btn-widget">
 			<div class="iftp-btn-widget__hero">
 				<span class="iftp-btn-widget__label"><?php esc_html_e( 'Revenue · last 30 days', 'ifthenpay-pay-button' ); ?></span>
 				<span class="iftp-btn-widget__value"><?php echo esc_html( $revenue['display'] ); ?></span>

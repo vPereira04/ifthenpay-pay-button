@@ -9,9 +9,11 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Admin\Buttons;
 
+use Ifthenpay\PayButton\Admin\AiPanel;
 use Ifthenpay\PayButton\Admin\CheckoutSettingsPage;
 use Ifthenpay\PayButton\Admin\GatewaySettingsPage;
 use Ifthenpay\PayButton\Admin\LookControls;
+use Ifthenpay\PayButton\Ai\ButtonSchema;
 use Ifthenpay\PayButton\Bridge\InvoiceHook;
 use Ifthenpay\PayButton\Bridge\PayLinks;
 use Ifthenpay\PayButton\Buttons\Button;
@@ -76,13 +78,16 @@ class ButtonEditor {
 	 * Renders the editor for a button, or for a new one.
 	 *
 	 * @param Button|null $button The button, or null for a new one.
+	 * @param Button|null $draft  The AI chat's latest version, shown unsaved in its place.
 	 */
-	public function render( ?Button $button ): void {
+	public function render( ?Button $button, ?Button $draft = null ): void {
 		$is_new  = null === $button;
-		$button  = $button ?? new Button( 0, '', '', true, Button::defaults() );
+		$saved   = $button;
+		$button  = $draft ?? $button ?? new Button( 0, '', '', true, Button::defaults() );
 		$config  = $button->config;
-		$title   = $is_new ? __( 'New pay button', 'ifthenpay-pay-button' ) : $button->title;
-		$actions = $is_new ? '' : '<a class="iftp-btn-btn iftp-btn-btn--secondary" href="' . esc_url( $this->links->url( $button ) ) . '" target="_blank" rel="noopener">' . ButtonsPage::icon( 'external' ) . esc_html__( 'Open pay page', 'ifthenpay-pay-button' ) . '<span class="screen-reader-text"> ' . esc_html__( '(opens in a new tab)', 'ifthenpay-pay-button' ) . '</span></a>';
+		$title   = null === $saved ? __( 'New pay button', 'ifthenpay-pay-button' ) : $saved->title;
+		$actions = '<a class="iftp-btn-btn iftp-btn-btn--ai" href="' . esc_url( AiStudioPage::url( $saved ) ) . '">' . AiPanel::sparkle() . ( $is_new ? esc_html__( 'Build with AI', 'ifthenpay-pay-button' ) : esc_html__( 'Edit with AI', 'ifthenpay-pay-button' ) ) . '</a>';
+		$actions = $is_new ? $actions : $actions . '<a class="iftp-btn-btn iftp-btn-btn--secondary" href="' . esc_url( $this->links->url( $button ) ) . '" target="_blank" rel="noopener">' . ButtonsPage::icon( 'external' ) . esc_html__( 'Open pay page', 'ifthenpay-pay-button' ) . '<span class="screen-reader-text"> ' . esc_html__( '(opens in a new tab)', 'ifthenpay-pay-button' ) . '</span></a>';
 		$tabs    = array(
 			'checkout' => __( 'Checkout', 'ifthenpay-pay-button' ),
 			'look'     => __( 'Checkout design', 'ifthenpay-pay-button' ),
@@ -92,7 +97,7 @@ class ButtonEditor {
 		);
 		?>
 		<div class="wrap iftp-btn-buttons iftp-btn-editor-wrap">
-			<?php ButtonsPage::print_header( $title, $is_new ? __( 'Set what it charges, what it asks and how it looks; it is ready to place as soon as you save.', 'ifthenpay-pay-button' ) : ButtonsPage::amount_summary( $button ), $actions ); ?>
+			<?php ButtonsPage::print_header( $title, $actions ); ?>
 			<?php ButtonsPage::print_notice(); ?>
 
 			<p class="iftp-btn-editor__back">
@@ -102,8 +107,17 @@ class ButtonEditor {
 				</a>
 			</p>
 
-			<form class="iftp-btn-editor" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-iftp-editor>
+			<?php
+			if ( null !== $draft ) {
+				$this->render_draft_note( $saved, $draft );
+			}
+			?>
+
+			<form class="iftp-btn-editor" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-iftp-editor<?php echo null !== $draft ? ' data-iftp-start-dirty' : ''; ?>>
 				<input type="hidden" name="action" value="<?php echo esc_attr( ButtonsPage::SAVE_ACTION ); ?>" />
+				<?php if ( null !== $draft ) : ?>
+					<input type="hidden" name="<?php echo esc_attr( AiStudioPage::DRAFT_VAR ); ?>" value="1" />
+				<?php endif; ?>
 				<input type="hidden" name="<?php echo esc_attr( ButtonsPage::EDIT_VAR ); ?>" value="<?php echo esc_attr( (string) $button->id ); ?>" />
 				<input type="hidden" name="tab" value="checkout" data-iftp-tab-input />
 				<?php wp_nonce_field( ButtonsPage::SAVE_ACTION . '_' . $button->id ); ?>
@@ -118,7 +132,7 @@ class ButtonEditor {
 					<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-checkout" aria-labelledby="iftp-btn-tab-checkout" data-iftp-panel="checkout">
 						<?php
 						$this->render_basics( $button );
-						$this->render_amount( $config );
+						$this->render_amount( $button, $is_new );
 						$this->render_fields( $config );
 						$this->render_form( $button );
 						$this->render_spots( $config );
@@ -167,6 +181,37 @@ class ButtonEditor {
 			</form>
 			<?php ButtonsPage::print_shared_ui(); ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Above an AI-built version: it isn't saved, every price it set wants a look, and the chat is one click back.
+	 *
+	 * @param Button|null $saved The saved button, or null for a new one.
+	 * @param Button      $draft The AI's version.
+	 */
+	private function render_draft_note( ?Button $saved, Button $draft ): void {
+		?>
+		<section class="iftp-btn-ai-note" aria-labelledby="iftp-btn-ai-note-title">
+			<span class="iftp-btn-ai-note__mark" aria-hidden="true"><?php echo AiPanel::sparkle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
+			<div class="iftp-btn-ai-note__body">
+				<h2 id="iftp-btn-ai-note-title" class="iftp-btn-ai-note__title"><?php echo null !== $saved ? esc_html__( 'The AI\'s changes, not saved yet', 'ifthenpay-pay-button' ) : esc_html__( 'Built with AI, not saved yet', 'ifthenpay-pay-button' ); ?></h2>
+				<p class="iftp-btn-ai-note__text">
+					<?php
+					echo null !== $saved
+						? esc_html__( 'Look it over and save to put it live. Leave without saving and your button stays as it was.', 'ifthenpay-pay-button' )
+						: esc_html__( 'Look it over, then create it. It takes payments as soon as it\'s created, so check the prices first.', 'ifthenpay-pay-button' );
+					?>
+				</p>
+				<p class="iftp-btn-ai-note__label"><?php esc_html_e( 'Prices the AI set', 'ifthenpay-pay-button' ); ?></p>
+				<ul class="iftp-btn-ai-note__prices">
+					<?php foreach ( ButtonSchema::prices( $draft->config ) as $price ) : ?>
+						<li><?php echo esc_html( $price ); ?></li>
+					<?php endforeach; ?>
+				</ul>
+			</div>
+			<a class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-ai-note__back" href="<?php echo esc_url( AiStudioPage::url( $saved ) ); ?>"><?php esc_html_e( 'Back to the chat', 'ifthenpay-pay-button' ); ?></a>
+		</section>
 		<?php
 	}
 
@@ -255,11 +300,11 @@ class ButtonEditor {
 		// Until the button has its own, the controls start from the site's look.
 		$look  = $own ? $button->config['look'] : $this->checkout_settings->get_look();
 		$modes = array(
-			Button::LOOK_SITE => array( __( 'The site\'s look', 'ifthenpay-pay-button' ), __( 'Same as every other button, from Checkout › Design.', 'ifthenpay-pay-button' ) ),
+			Button::LOOK_SITE => array( __( 'The site\'s look', 'ifthenpay-pay-button' ), __( 'Same as every other button, from Default Checkout › Design.', 'ifthenpay-pay-button' ) ),
 			Button::LOOK_OWN  => array( __( 'Its own look', 'ifthenpay-pay-button' ), __( 'Colours, shape, pay page and popups just for this button.', 'ifthenpay-pay-button' ) ),
 		);
 
-		self::open_card( 'iftp-btn-ec-look', __( 'Checkout design', 'ifthenpay-pay-button' ), __( 'How this button\'s checkout, its pay page and the popups after paying look. Their words stay in Checkout › Messages.', 'ifthenpay-pay-button' ) );
+		self::open_card( 'iftp-btn-ec-look', __( 'Checkout design', 'ifthenpay-pay-button' ), __( 'How this button\'s checkout, its pay page and the popups after paying look. Their words stay in Default Checkout › Messages.', 'ifthenpay-pay-button' ) );
 		?>
 		<fieldset class="iftp-btn-segment iftp-btn-segment--two">
 			<legend class="screen-reader-text"><?php esc_html_e( 'Whose look it uses', 'ifthenpay-pay-button' ); ?></legend>
@@ -273,7 +318,7 @@ class ButtonEditor {
 		</fieldset>
 		<p class="iftp-btn-field__help" data-iftp-when-lookmode="site">
 			<?php esc_html_e( 'Change the site\'s look for every button at once:', 'ifthenpay-pay-button' ); ?>
-			<a href="<?php echo esc_url( CheckoutSettingsPage::url() ); ?>"><?php esc_html_e( 'Checkout › Design', 'ifthenpay-pay-button' ); ?></a>
+			<a href="<?php echo esc_url( CheckoutSettingsPage::url() ); ?>"><?php esc_html_e( 'Default Checkout › Design', 'ifthenpay-pay-button' ); ?></a>
 		</p>
 		<?php
 		self::close_card();
@@ -290,40 +335,65 @@ class ButtonEditor {
 	 * @param Button $button The button.
 	 */
 	private function render_design( Button $button ): void {
-		$design   = $button->config['design'];
-		$custom   = ButtonDesign::SOURCE_CUSTOM === $design['source'];
-		$auto     = '' === $design['text'];
-		$auto2    = '' === $design['color2'];
-		$sources  = array(
+		$design     = $button->config['design'];
+		$custom     = ButtonDesign::SOURCE_CUSTOM === $design['source'];
+		$auto       = '' === $design['text'];
+		$auto2      = '' === $design['color2'];
+		$auto_bc    = '' === $design['border_color'];
+		$sources    = array(
 			ButtonDesign::SOURCE_THEME  => array( __( 'Match my theme', 'ifthenpay-pay-button' ), __( 'Looks like the other buttons on your site.', 'ifthenpay-pay-button' ) ),
 			ButtonDesign::SOURCE_CUSTOM => array( __( 'Custom', 'ifthenpay-pay-button' ), __( 'Your own colour, shape and size.', 'ifthenpay-pay-button' ) ),
 		);
-		$variants = array(
+		$variants   = array(
 			'filled'   => __( 'Filled', 'ifthenpay-pay-button' ),
 			'outline'  => __( 'Outline', 'ifthenpay-pay-button' ),
 			'soft'     => __( 'Soft', 'ifthenpay-pay-button' ),
 			'gradient' => __( 'Gradient', 'ifthenpay-pay-button' ),
 			'glass'    => __( 'Glass', 'ifthenpay-pay-button' ),
+			'3d'       => __( '3D', 'ifthenpay-pay-button' ),
+			'neon'     => __( 'Neon', 'ifthenpay-pay-button' ),
+			'brutal'   => __( 'Brutal', 'ifthenpay-pay-button' ),
+			'ghost'    => __( 'Ghost', 'ifthenpay-pay-button' ),
 		);
-		$effects  = array(
+		$effects    = array(
 			'none'  => __( 'None', 'ifthenpay-pay-button' ),
 			'lift'  => __( 'Lift', 'ifthenpay-pay-button' ),
+			'grow'  => __( 'Grow', 'ifthenpay-pay-button' ),
 			'shine' => __( 'Shine', 'ifthenpay-pay-button' ),
-			'pulse' => __( 'Pulse', 'ifthenpay-pay-button' ),
+			'glow'  => __( 'Glow', 'ifthenpay-pay-button' ),
+			'fill'  => __( 'Fill', 'ifthenpay-pay-button' ),
+			'nudge' => __( 'Nudge', 'ifthenpay-pay-button' ),
 		);
-		$sizes    = array(
+		$attentions = array(
+			'none'      => __( 'None', 'ifthenpay-pay-button' ),
+			'pulse'     => __( 'Pulse', 'ifthenpay-pay-button' ),
+			'ripple'    => __( 'Ripple', 'ifthenpay-pay-button' ),
+			'heartbeat' => __( 'Heartbeat', 'ifthenpay-pay-button' ),
+			'wiggle'    => __( 'Wiggle', 'ifthenpay-pay-button' ),
+			'bounce'    => __( 'Bounce', 'ifthenpay-pay-button' ),
+			'shimmer'   => __( 'Shimmer', 'ifthenpay-pay-button' ),
+			'breathe'   => __( 'Breathe', 'ifthenpay-pay-button' ),
+			'orbit'     => __( 'Orbit', 'ifthenpay-pay-button' ),
+		);
+		$borders    = array(
+			'solid'  => __( 'Solid', 'ifthenpay-pay-button' ),
+			'dashed' => __( 'Dashed', 'ifthenpay-pay-button' ),
+			'dotted' => __( 'Dotted', 'ifthenpay-pay-button' ),
+			'double' => __( 'Double', 'ifthenpay-pay-button' ),
+		);
+		$sizes      = array(
 			'sm' => __( 'Small', 'ifthenpay-pay-button' ),
 			'md' => __( 'Medium', 'ifthenpay-pay-button' ),
 			'lg' => __( 'Large', 'ifthenpay-pay-button' ),
 		);
-		$icons    = array(
+		$icons      = array(
 			'none'  => __( 'None', 'ifthenpay-pay-button' ),
 			'lock'  => __( 'Lock', 'ifthenpay-pay-button' ),
 			'card'  => __( 'Card', 'ifthenpay-pay-button' ),
 			'arrow' => __( 'Arrow', 'ifthenpay-pay-button' ),
 			'heart' => __( 'Heart', 'ifthenpay-pay-button' ),
 		);
-		$widths   = array(
+		$widths     = array(
 			'0' => __( 'Fit the text', 'ifthenpay-pay-button' ),
 			'1' => __( 'Full width', 'ifthenpay-pay-button' ),
 		);
@@ -366,17 +436,7 @@ class ButtonEditor {
 			</div>
 
 			<div class="iftp-btn-design__grid">
-				<fieldset class="iftp-btn-field iftp-btn-design__wide">
-					<legend class="iftp-btn-field__label"><?php esc_html_e( 'Style', 'ifthenpay-pay-button' ); ?></legend>
-					<span class="iftp-btn-seg">
-						<?php foreach ( $variants as $variant => $label ) : ?>
-							<label class="iftp-btn-seg__option">
-								<input type="radio" name="config[design][variant]" value="<?php echo esc_attr( $variant ); ?>" <?php checked( $design['variant'], $variant ); ?> data-iftp-design="variant" />
-								<span><?php echo esc_html( $label ); ?></span>
-							</label>
-						<?php endforeach; ?>
-					</span>
-				</fieldset>
+				<?php self::render_fx_picker( 'variant', __( 'Style', 'ifthenpay-pay-button' ), $variants, $design ); ?>
 
 				<div class="iftp-btn-field">
 					<label class="iftp-btn-field__label" for="iftp-btn-color"><?php esc_html_e( 'Colour', 'ifthenpay-pay-button' ); ?></label>
@@ -432,6 +492,40 @@ class ButtonEditor {
 				</fieldset>
 			</div>
 
+			<div class="iftp-btn-design__grid">
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-border-width"><?php esc_html_e( 'Border', 'ifthenpay-pay-button' ); ?> <output class="iftp-btn-range__value" for="iftp-btn-border-width" data-iftp-border-out></output></label>
+					<span class="iftp-btn-range">
+						<input type="range" class="iftp-btn-range__input" id="iftp-btn-border-width" name="config[design][border_width]" min="0" max="<?php echo esc_attr( (string) ButtonDesign::BORDER_MAX ); ?>" step="1" value="<?php echo esc_attr( (string) $design['border_width'] ); ?>" data-iftp-design="border_width" />
+					</span>
+				</div>
+
+				<fieldset class="iftp-btn-field">
+					<legend class="iftp-btn-field__label"><?php esc_html_e( 'Border line', 'ifthenpay-pay-button' ); ?></legend>
+					<span class="iftp-btn-seg">
+						<?php foreach ( $borders as $border => $label ) : ?>
+							<label class="iftp-btn-seg__option">
+								<input type="radio" name="config[design][border_style]" value="<?php echo esc_attr( $border ); ?>" <?php checked( $design['border_style'], $border ); ?> data-iftp-design="border_style" />
+								<span><?php echo esc_html( $label ); ?></span>
+							</label>
+						<?php endforeach; ?>
+					</span>
+					<p class="iftp-btn-field__help"><?php esc_html_e( 'Double shows from 3 px.', 'ifthenpay-pay-button' ); ?></p>
+				</fieldset>
+
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-border-color"><?php esc_html_e( 'Border colour', 'ifthenpay-pay-button' ); ?></label>
+					<span class="iftp-btn-color<?php echo $auto_bc ? ' is-auto' : ''; ?>" data-iftp-border-color>
+						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( $auto_bc ? $design['color'] : $design['border_color'] ); ?>" aria-label="<?php esc_attr_e( 'Pick the border colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="iftp-btn-border-color" />
+						<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="iftp-btn-border-color" name="config[design][border_color]" value="<?php echo esc_attr( $auto_bc ? $design['color'] : $design['border_color'] ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-design="border_color" />
+					</span>
+					<label class="iftp-btn-check">
+						<input type="checkbox" name="config[design][border_color_auto]" value="1" <?php checked( $auto_bc ); ?> data-iftp-design="border_color_auto" />
+						<?php esc_html_e( 'Use the style\'s own', 'ifthenpay-pay-button' ); ?>
+					</label>
+				</div>
+			</div>
+
 			<label class="iftp-btn-np__toggle">
 				<input type="hidden" name="config[design][shadow]" value="0" />
 				<input type="checkbox" class="iftp-btn-switch" name="config[design][shadow]" value="1" <?php checked( $design['shadow'] ); ?> data-iftp-design="shadow" />
@@ -441,18 +535,10 @@ class ButtonEditor {
 				</span>
 			</label>
 
-			<fieldset class="iftp-btn-field">
-				<legend class="iftp-btn-field__label"><?php esc_html_e( 'Effect', 'ifthenpay-pay-button' ); ?></legend>
-				<span class="iftp-btn-seg">
-					<?php foreach ( $effects as $effect => $label ) : ?>
-						<label class="iftp-btn-seg__option">
-							<input type="radio" name="config[design][effect]" value="<?php echo esc_attr( $effect ); ?>" <?php checked( $design['effect'], $effect ); ?> data-iftp-design="effect" />
-							<span><?php echo esc_html( $label ); ?></span>
-						</label>
-					<?php endforeach; ?>
-				</span>
-				<p class="iftp-btn-field__help"><?php esc_html_e( 'Lift rises on hover, Shine sweeps a light across it, Pulse gives it a soft heartbeat to draw the eye. Payers who turn motion off get a still button.', 'ifthenpay-pay-button' ); ?></p>
-			</fieldset>
+			<?php
+			self::render_fx_picker( 'effect', __( 'On hover', 'ifthenpay-pay-button' ), $effects, $design, __( 'What it does when the pointer is on it. Point at a sample to see it. Nudge moves the icon, so pick one below.', 'ifthenpay-pay-button' ) );
+			self::render_fx_picker( 'attention', __( 'Catch the eye', 'ifthenpay-pay-button' ), $attentions, $design, __( 'Keeps going on its own to draw attention, and rests while the button is hovered. Payers who turn motion off get a still button.', 'ifthenpay-pay-button' ) );
+			?>
 
 			<label class="iftp-btn-np__toggle">
 				<input type="hidden" name="config[design][upper]" value="0" />
@@ -506,12 +592,65 @@ class ButtonEditor {
 	}
 
 	/**
+	 * A row of tiles, each a radio with a small live sample of the button wearing that choice. buttons.js
+	 * redraws the samples in the current colours.
+	 *
+	 * @param string                $key     The design key the radios set.
+	 * @param string                $legend  The field's name.
+	 * @param array<string, string> $options Value => label.
+	 * @param array<string, mixed>  $design  The current design.
+	 * @param string                $help    A line under the tiles.
+	 */
+	private static function render_fx_picker( string $key, string $legend, array $options, array $design, string $help = '' ): void {
+		$help_id = 'iftp-btn-fx-' . $key . '-help';
+		?>
+		<fieldset class="iftp-btn-field iftp-btn-design__wide"<?php echo '' !== $help ? ' aria-describedby="' . esc_attr( $help_id ) . '"' : ''; ?>>
+			<legend class="iftp-btn-field__label"><?php echo esc_html( $legend ); ?></legend>
+			<span class="iftp-btn-fxpick<?php echo 'effect' === $key ? ' iftp-btn-fxpick--hover' : ''; ?>">
+				<?php foreach ( $options as $value => $label ) : ?>
+					<?php
+					// A calm sample: only the choice this row is about moves.
+					$sample = array_merge(
+						$design,
+						array(
+							'source'    => ButtonDesign::SOURCE_CUSTOM,
+							'size'      => 'sm',
+							'full'      => false,
+							'effect'    => 'none',
+							'attention' => 'none',
+							$key        => $value,
+						)
+					);
+
+					if ( 'nudge' === $value && 'none' === $sample['icon'] ) {
+						$sample['icon'] = 'arrow';
+					}
+					?>
+					<label class="iftp-btn-fxpick__item">
+						<input type="radio" name="config[design][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $value ); ?>" <?php checked( $design[ $key ], $value ); ?> data-iftp-design="<?php echo esc_attr( $key ); ?>" />
+						<span class="iftp-btn-fxpick__stage" aria-hidden="true" data-iftp-fx-sample="<?php echo esc_attr( $key ); ?>" data-iftp-fx-value="<?php echo esc_attr( $value ); ?>">
+							<?php echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( $sample, __( 'Pay', 'ifthenpay-pay-button' ) ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes. ?>
+						</span>
+						<span class="iftp-btn-fxpick__name"><?php echo esc_html( $label ); ?></span>
+					</label>
+				<?php endforeach; ?>
+			</span>
+			<?php if ( '' !== $help ) : ?>
+				<p class="iftp-btn-field__help" id="<?php echo esc_attr( $help_id ); ?>"><?php echo esc_html( $help ); ?></p>
+			<?php endif; ?>
+		</fieldset>
+		<?php
+	}
+
+	/**
 	 * How the amount is set: fixed, chosen by the payer, or carried by the link.
 	 *
-	 * @param array<string, mixed> $config The button's config.
+	 * @param Button $button The button.
+	 * @param bool   $is_new Whether it's not saved yet.
 	 */
-	private function render_amount( array $config ): void {
-		$modes = array(
+	private function render_amount( Button $button, bool $is_new ): void {
+		$config = $button->config;
+		$modes  = array(
 			Button::MODE_FIXED => array( __( 'Fixed', 'ifthenpay-pay-button' ), __( 'Everyone pays the same.', 'ifthenpay-pay-button' ) ),
 			Button::MODE_PAYER => array( __( 'Payer chooses', 'ifthenpay-pay-button' ), __( 'Donations, tips, top-ups.', 'ifthenpay-pay-button' ) ),
 			Button::MODE_LINK  => array( __( 'From the link', 'ifthenpay-pay-button' ), __( 'Another plugin sends the total.', 'ifthenpay-pay-button' ) ),
@@ -551,6 +690,18 @@ class ButtonEditor {
 				<label class="iftp-btn-field__label" for="iftp-btn-max"><?php esc_html_e( 'Largest (€)', 'ifthenpay-pay-button' ); ?></label>
 				<input type="number" class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-max" name="config[max]" min="<?php echo esc_attr( (string) Button::MIN_AMOUNT ); ?>" step="0.01" inputmode="decimal" value="<?php echo esc_attr( number_format( (float) $config['max'], 2, '.', '' ) ); ?>" data-iftp-preview="max" />
 			</div>
+		</div>
+
+		<div class="iftp-btn-amount-link" data-iftp-when-mode="link">
+			<?php if ( $is_new ) : ?>
+				<p class="iftp-btn-field__help"><?php esc_html_e( 'Save the button first; the link for the other plugin appears here.', 'ifthenpay-pay-button' ); ?></p>
+			<?php else : ?>
+				<?php ButtonsPage::print_copy_field( __( 'Link for the other plugin', 'ifthenpay-pay-button' ), $this->bridge_link( $button ), 'iftp-btn-amount-link-out' ); ?>
+				<p class="iftp-btn-field__help">
+					<?php esc_html_e( 'Paste it into the other plugin\'s "redirect after submit" and swap each {tag} for that plugin\'s own merge tag.', 'ifthenpay-pay-button' ); ?>
+					<button type="button" class="iftp-btn-btn iftp-btn-btn--link" data-iftp-goto-tab="connect"><?php esc_html_e( 'Choose the fields in Connect', 'ifthenpay-pay-button' ); ?></button>
+				</p>
+			<?php endif; ?>
 		</div>
 
 		<div class="iftp-btn-field" data-iftp-when-mode="payer">
@@ -784,17 +935,17 @@ class ButtonEditor {
 	 * @param array<string, mixed> $config The button's config.
 	 */
 	private function render_after( array $config ): void {
-		self::open_card( 'iftp-btn-ec-after', __( 'After payment', 'ifthenpay-pay-button' ), __( 'Failed, cancelled and pending outcomes always show the popup set in Checkout.', 'ifthenpay-pay-button' ) );
+		self::open_card( 'iftp-btn-ec-after', __( 'After payment', 'ifthenpay-pay-button' ), __( 'Failed, cancelled and pending outcomes always show the popup set in Default Checkout.', 'ifthenpay-pay-button' ) );
 		?>
 		<div class="iftp-btn-field">
 			<label class="iftp-btn-field__label" for="iftp-btn-paid-redirect"><?php esc_html_e( 'When paid', 'ifthenpay-pay-button' ); ?></label>
 			<select class="iftp-btn-field__control" id="iftp-btn-paid-redirect" name="config[paid_redirect]" data-iftp-paid-type>
-				<option value="" <?php selected( $config['paid_redirect'], '' ); ?>><?php esc_html_e( 'Use the Checkout setting', 'ifthenpay-pay-button' ); ?></option>
+				<option value="" <?php selected( $config['paid_redirect'], '' ); ?>><?php esc_html_e( 'Use the Default Checkout setting', 'ifthenpay-pay-button' ); ?></option>
 				<option value="popup" <?php selected( $config['paid_redirect'], 'popup' ); ?>><?php esc_html_e( 'Show the thank-you popup', 'ifthenpay-pay-button' ); ?></option>
 				<option value="page" <?php selected( $config['paid_redirect'], 'page' ); ?>><?php esc_html_e( 'Go to a page on this site', 'ifthenpay-pay-button' ); ?></option>
 				<option value="url" <?php selected( $config['paid_redirect'], 'url' ); ?>><?php esc_html_e( 'Go to an address', 'ifthenpay-pay-button' ); ?></option>
 			</select>
-			<p class="iftp-btn-field__help"><a href="<?php echo esc_url( CheckoutSettingsPage::url() ); ?>"><?php esc_html_e( 'Edit the popup messages in Checkout', 'ifthenpay-pay-button' ); ?></a></p>
+			<p class="iftp-btn-field__help"><a href="<?php echo esc_url( CheckoutSettingsPage::url() ); ?>"><?php esc_html_e( 'Edit the popup messages in Default Checkout', 'ifthenpay-pay-button' ); ?></a></p>
 		</div>
 		<div class="iftp-btn-field" data-iftp-when-paid="page">
 			<label class="iftp-btn-field__label" for="iftp-btn-paid-page"><?php esc_html_e( 'Page', 'ifthenpay-pay-button' ); ?></label>
@@ -911,13 +1062,12 @@ class ButtonEditor {
 	}
 
 	/**
-	 * The bridge: a link template for another plugin's redirect, and a webhook back to it.
+	 * What the link builder can carry: param => [label, starting merge tag].
 	 *
-	 * @param Button $button The button.
-	 * @param bool   $is_new Whether it's not saved yet.
+	 * @return array<string, array{0: string, 1: string}>
 	 */
-	private function render_bridge( Button $button, bool $is_new ): void {
-		$params = array(
+	private static function bridge_params(): array {
+		return array(
 			PayLinks::PARAM_AMOUNT    => array( __( 'Amount', 'ifthenpay-pay-button' ), '{total}' ),
 			'payer_name'              => array( __( 'Name', 'ifthenpay-pay-button' ), '{name}' ),
 			'email'                   => array( __( 'Email', 'ifthenpay-pay-button' ), '{email}' ),
@@ -926,9 +1076,48 @@ class ButtonEditor {
 			'note'                    => array( __( 'Note', 'ifthenpay-pay-button' ), '{message}' ),
 			PayLinks::PARAM_REFERENCE => array( __( 'Reference', 'ifthenpay-pay-button' ), '{entry_id}' ),
 		);
-		$base   = $is_new ? '' : $this->links->url( $button );
+	}
+
+	/**
+	 * The params ticked to start with.
+	 *
+	 * @param Button $button The button.
+	 * @return string[]
+	 */
+	private static function bridge_preselected( Button $button ): array {
 		// A fixed amount ignores the link's, so I only tick Amount when the button takes one.
-		$preselected = Button::MODE_FIXED === $button->mode() ? array( 'payer_name', 'email', PayLinks::PARAM_REFERENCE ) : array( PayLinks::PARAM_AMOUNT, 'payer_name', 'email', PayLinks::PARAM_REFERENCE );
+		return Button::MODE_FIXED === $button->mode() ? array( 'payer_name', 'email', PayLinks::PARAM_REFERENCE ) : array( PayLinks::PARAM_AMOUNT, 'payer_name', 'email', PayLinks::PARAM_REFERENCE );
+	}
+
+	/**
+	 * The redirect link with the starting tags, so it's right before buttons.js takes over.
+	 *
+	 * @param Button $button The button.
+	 */
+	private function bridge_link( Button $button ): string {
+		$base  = $this->links->url( $button );
+		$parts = array();
+
+		foreach ( self::bridge_params() as $param => $labels ) {
+			if ( in_array( $param, self::bridge_preselected( $button ), true ) ) {
+				// The tag stays raw, like in buttons.js, so the other plugin still finds it.
+				$parts[] = $param . '=' . $labels[1];
+			}
+		}
+
+		return $base . ( false === strpos( $base, '?' ) ? '?' : '&' ) . implode( '&', $parts );
+	}
+
+	/**
+	 * The bridge: a link template for another plugin's redirect, and a webhook back to it.
+	 *
+	 * @param Button $button The button.
+	 * @param bool   $is_new Whether it's not saved yet.
+	 */
+	private function render_bridge( Button $button, bool $is_new ): void {
+		$params      = self::bridge_params();
+		$base        = $is_new ? '' : $this->links->url( $button );
+		$preselected = self::bridge_preselected( $button );
 
 		self::open_card( 'iftp-btn-ec-bridge', __( 'Connect another plugin', 'ifthenpay-pay-button' ), __( 'For a form or booking plugin ifthenpay has no integration with: it sends the payer here after submit, and hears back when they pay.', 'ifthenpay-pay-button' ) );
 		?>
@@ -958,7 +1147,7 @@ class ButtonEditor {
 						<input type="text" class="iftp-btn-field__control iftp-btn-builder__tag" id="iftp-btn-tag-<?php echo esc_attr( $param ); ?>" value="<?php echo esc_attr( $param_labels[1] ); ?>" spellcheck="false" data-iftp-builder-tag="<?php echo esc_attr( $param ); ?>" />
 					</div>
 				<?php endforeach; ?>
-				<?php ButtonsPage::print_copy_field( __( 'Redirect link', 'ifthenpay-pay-button' ), $base, 'iftp-btn-builder-out' ); ?>
+				<?php ButtonsPage::print_copy_field( __( 'Redirect link', 'ifthenpay-pay-button' ), $this->bridge_link( $button ), 'iftp-btn-builder-out' ); ?>
 				<p class="iftp-btn-field__help" data-iftp-builder-warning hidden><?php esc_html_e( 'This button\'s amount is fixed, so the amount in the link is ignored. Switch Amount to "From the link" to take the form\'s total.', 'ifthenpay-pay-button' ); ?></p>
 			</div>
 
@@ -1030,6 +1219,7 @@ class ButtonEditor {
 						<div class="iftp-btn-steps__head">
 							<span class="iftp-btn-steps__title" data-iftp-preview-step-title></span>
 							<span class="iftp-btn-steps__count" data-iftp-preview-step-count></span>
+							<span class="iftp-btn-steps__pct" data-iftp-preview-step-pct></span>
 						</div>
 						<ol class="iftp-btn-steps__track" data-iftp-preview-track></ol>
 					</div>

@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Every ifthenpay payment a button started, or one recorded by hand. There's no host plugin, so this table is the only record.
  *
- * @phpstan-type Transaction array{ref: string, gateway_key: string, button_id: int, external_ref: string, source_url: string, amount: float, pay_method: string, request_id: string, transaction_id: string, payment_url: string, customer_name: string, customer_email: string, status: string, field_snapshot: string, created_at: int, updated_at: int, reminded_at: int, spots: int, spot_option: string, hold_until: int}
+ * @phpstan-type Transaction array{ref: string, gateway_key: string, button_id: int, external_ref: string, source_url: string, amount: float, pay_method: string, request_id: string, transaction_id: string, payment_url: string, customer_name: string, customer_email: string, status: string, field_snapshot: string, created_at: int, updated_at: int, spots: int, spot_option: string, hold_until: int}
  */
 class TransactionStore {
 
@@ -51,7 +51,7 @@ class TransactionStore {
 	private const CUSTOMER_MAX_LENGTH = 191;
 
 	// The list and CSV never show the snapshot, so I leave the LONGTEXT out of their reads.
-	private const LIST_COLUMNS = 't.ref, t.gateway_key, t.button_id, t.external_ref, t.source_url, t.amount, t.pay_method, t.request_id, t.transaction_id, t.payment_url, t.customer_name, t.customer_email, t.status, t.created_at, t.updated_at, t.reminded_at, t.spots, t.spot_option, t.hold_until';
+	private const LIST_COLUMNS = 't.ref, t.gateway_key, t.button_id, t.external_ref, t.source_url, t.amount, t.pay_method, t.request_id, t.transaction_id, t.payment_url, t.customer_name, t.customer_email, t.status, t.created_at, t.updated_at, t.spots, t.spot_option, t.hold_until';
 
 	private const CACHE_GROUP     = 'iftp_btn';
 	private const ENTRY_CACHE_TTL = 600;
@@ -99,7 +99,6 @@ class TransactionStore {
             field_snapshot LONGTEXT NULL,
             created_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
             updated_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            reminded_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
             spots SMALLINT UNSIGNED NOT NULL DEFAULT 0,
             spot_option TEXT NULL,
             hold_until BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -448,7 +447,7 @@ class TransactionStore {
 	}
 
 	/**
-	 * A button's most recent paid payment, for the invoicing test. Rare, so uncached.
+	 * A button's most recent paid payment, for the invoicing test.
 	 *
 	 * @param int $button_id The button's post ID.
 	 * @return Transaction|null
@@ -456,10 +455,19 @@ class TransactionStore {
 	public function latest_paid_for_button( int $button_id ): ?array {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom plugin table; one row for an admin's test click.
-		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE button_id = %d AND status = %s ORDER BY created_at DESC, ref DESC LIMIT 1', self::table_name(), $button_id, self::STATUS_PAID ), ARRAY_A );
+		// An empty array means "no paid payment yet", so that answer gets cached too.
+		$cache_key = 'latest_paid_' . $this->last_changed() . '_' . $button_id;
+		$row       = wp_cache_get( $cache_key, self::CACHE_GROUP );
 
-		return is_array( $row ) ? self::hydrate( $row ) : null;
+		if ( ! is_array( $row ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom plugin table, cached below.
+			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE button_id = %d AND status = %s ORDER BY created_at DESC, ref DESC LIMIT 1', self::table_name(), $button_id, self::STATUS_PAID ), ARRAY_A );
+			$row = is_array( $row ) ? $row : array();
+
+			wp_cache_set( $cache_key, $row, self::CACHE_GROUP, self::LIST_CACHE_TTL );
+		}
+
+		return array() !== $row ? self::hydrate( $row ) : null;
 	}
 
 	/**
@@ -793,101 +801,31 @@ class TransactionStore {
 	}
 
 	/**
-	 * Stamps when the given rows last got a payment email, so reminders don't repeat.
+	 * The money still waiting: every pending payment's count and total.
 	 *
-	 * @param array<int, string> $refs The transaction references.
+	 * @return array{count: int, amount: float}
 	 */
-	public function mark_reminded( array $refs ): void {
+	public function waiting(): array {
 		global $wpdb;
 
-		$refs = self::clean_refs( $refs );
-
-		if ( array() === $refs ) {
-			return;
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- custom plugin table, cache invalidated below; prepare_for_refs() prepares it.
-		$wpdb->query( self::prepare_for_refs( 'UPDATE %i SET reminded_at = %d WHERE ref IN ({refs})', $refs, array( self::table_name(), time() ) ) );
-
-		$this->forget( $refs );
-	}
-
-	/**
-	 * Pending ifthenpay payments older than the cutoff that never got a reminder, oldest first: the automatic reminders' queue.
-	 *
-	 * @param int $cutoff Unix timestamp; only rows created before it.
-	 * @param int $limit  How many at most.
-	 * @return array<int, string> Their refs.
-	 */
-	public function due_for_reminder( int $cutoff, int $limit ): array {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom plugin table; a cron sweep, caching it would be pointless.
-		$refs = $wpdb->get_col( $wpdb->prepare( "SELECT ref FROM %i WHERE status = %s AND gateway_key NOT IN (%s, '') AND customer_email <> '' AND reminded_at = 0 AND created_at < %d ORDER BY created_at ASC LIMIT %d", self::table_name(), self::STATUS_PENDING, self::MANUAL_GATEWAY_KEY, $cutoff, $limit ) );
-
-		return array_map( 'strval', $refs );
-	}
-
-	/**
-	 * Every pending ifthenpay payment that has a customer email, oldest first: what "Remind all" sends to.
-	 *
-	 * @param int $limit How many at most.
-	 * @return array<int, string> Their refs.
-	 */
-	public function remindable( int $limit ): array {
-		global $wpdb;
-
-		$cache_key = 'remindable_' . $this->last_changed() . '_' . $limit;
-		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
-
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom plugin table, cached below.
-		$refs = array_map( 'strval', $wpdb->get_col( $wpdb->prepare( "SELECT ref FROM %i WHERE status = %s AND gateway_key NOT IN (%s, '') AND customer_email <> '' ORDER BY created_at ASC LIMIT %d", self::table_name(), self::STATUS_PENDING, self::MANUAL_GATEWAY_KEY, $limit ) ) );
-
-		wp_cache_set( $cache_key, $refs, self::CACHE_GROUP, self::LIST_CACHE_TTL );
-
-		return $refs;
-	}
-
-	/**
-	 * The money still waiting: every pending payment's count and total, split by age, plus the oldest few.
-	 *
-	 * @param int $limit How many of the oldest to return.
-	 * @return array{count: int, amount: float, ages: array{fresh: float, days: float, stale: float}, oldest: array<int, Transaction>}
-	 */
-	public function waiting( int $limit ): array {
-		global $wpdb;
-
-		$cache_key = 'waiting_' . $this->last_changed() . '_' . $limit;
+		$cache_key = 'waiting_' . $this->last_changed();
 		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
 
 		if ( is_array( $cached ) ) {
 			/**
 			 * Only this method writes the key, so the shape is known.
 			 *
-			 * @var array{count: int, amount: float, ages: array{fresh: float, days: float, stale: float}, oldest: array<int, Transaction>} $cached
+			 * @var array{count: int, amount: float} $cached
 			 */
 			return $cached;
 		}
 
-		$now = time();
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom plugin table, cached right below.
-		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT COUNT(*) AS total, SUM(amount) AS amount, SUM(CASE WHEN created_at >= %d THEN amount ELSE 0 END) AS fresh, SUM(CASE WHEN created_at < %d AND created_at >= %d THEN amount ELSE 0 END) AS days, SUM(CASE WHEN created_at < %d THEN amount ELSE 0 END) AS stale FROM %i WHERE status = %s', $now - DAY_IN_SECONDS, $now - DAY_IN_SECONDS, $now - 3 * DAY_IN_SECONDS, $now - 3 * DAY_IN_SECONDS, self::table_name(), self::STATUS_PENDING ), ARRAY_A );
+		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT COUNT(*) AS total, SUM(amount) AS amount FROM %i WHERE status = %s', self::table_name(), self::STATUS_PENDING ), ARRAY_A );
 
-		$where   = $wpdb->prepare( ' WHERE status = %s', self::STATUS_PENDING );
 		$waiting = array(
 			'count'  => (int) ( $row['total'] ?? 0 ),
 			'amount' => round( (float) ( $row['amount'] ?? 0 ), 2 ),
-			'ages'   => array(
-				'fresh' => round( (float) ( $row['fresh'] ?? 0 ), 2 ),
-				'days'  => round( (float) ( $row['days'] ?? 0 ), 2 ),
-				'stale' => round( (float) ( $row['stale'] ?? 0 ), 2 ),
-			),
-			'oldest' => $this->fetch_page( $where, ' ORDER BY created_at ASC, ref ASC', $limit, 0 ),
 		);
 
 		wp_cache_set( $cache_key, $waiting, self::CACHE_GROUP, self::LIST_CACHE_TTL );
@@ -1320,7 +1258,6 @@ class TransactionStore {
 			'field_snapshot' => $text( 'field_snapshot' ),
 			'created_at'     => $int( 'created_at' ),
 			'updated_at'     => $int( 'updated_at' ),
-			'reminded_at'    => $int( 'reminded_at' ),
 			'spots'          => $int( 'spots' ),
 			'spot_option'    => $text( 'spot_option' ),
 			'hold_until'     => $int( 'hold_until' ),

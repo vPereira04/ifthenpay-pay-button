@@ -68,7 +68,7 @@ class CheckoutSettingsPage {
 	 * @param string $parent_slug The parent menu slug.
 	 */
 	public function add_page( string $parent_slug ): void {
-		$hook = add_submenu_page( $parent_slug, __( 'Checkout', 'ifthenpay-pay-button' ), __( 'Checkout', 'ifthenpay-pay-button' ), Plugin::admin_cap(), self::PAGE_SLUG, array( $this, 'render' ) );
+		$hook = add_submenu_page( $parent_slug, __( 'Default Checkout', 'ifthenpay-pay-button' ), __( 'Default Checkout', 'ifthenpay-pay-button' ), Plugin::admin_cap(), self::PAGE_SLUG, array( $this, 'render' ) );
 
 		$this->hook = is_string( $hook ) ? $hook : '';
 	}
@@ -99,7 +99,7 @@ class CheckoutSettingsPage {
 		wp_add_inline_style( 'iftp-btn-buttons', LookControls::swatch_css() );
 		// The pay page's background image and video come from the Media Library.
 		wp_enqueue_media();
-		wp_enqueue_script( 'iftp-btn-buttons', IFTP_BTN_URL . $js, array( Plugin::UI_SCRIPT_HANDLE, Plugin::METHOD_LOGOS_HANDLE ), Plugin::asset_version( $js ), true );
+		wp_enqueue_script( 'iftp-btn-buttons', IFTP_BTN_URL . $js, array( Plugin::UI_SCRIPT_HANDLE, Plugin::METHOD_LOGOS_HANDLE, Plugin::VIDEO_LOOP_HANDLE ), Plugin::asset_version( $js ), true );
 		wp_localize_script(
 			'iftp-btn-buttons',
 			'iftpBtnButtons',
@@ -241,7 +241,7 @@ class CheckoutSettingsPage {
 		);
 		?>
 		<div class="wrap iftp-btn-buttons iftp-btn-checkout-settings">
-			<?php ButtonsPage::print_header( __( 'Checkout', 'ifthenpay-pay-button' ), __( 'How the checkout and its popups look and every word they say, where pay links live, and who gets emailed.', 'ifthenpay-pay-button' ) ); ?>
+			<?php ButtonsPage::print_header( __( 'Default Checkout', 'ifthenpay-pay-button' ) ); ?>
 			<?php
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag from the redirect after a checked save.
 			if ( isset( $_GET['iftp_notice'] ) ) {

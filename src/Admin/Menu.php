@@ -140,7 +140,7 @@ class Menu {
 		$screen = get_current_screen();
 
 		if ( null !== $screen && false !== strpos( $screen->id, 'page_' . self::SLUG ) ) {
-			$classes .= ' iftp-btn-screen iftp-btn-mode-' . $this->settings->get_display_mode();
+			$classes .= ' iftp-btn-screen';
 		}
 
 		return $classes;

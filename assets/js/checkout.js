@@ -350,6 +350,13 @@
 			return Promise.resolve( false );
 		}
 
+		// The AI studio's preview of an unsaved button: everything works except paying.
+		if ( form.dataset.preview ) {
+			showError( form, form.dataset.preview );
+
+			return Promise.resolve( false );
+		}
+
 		showError( form, '' );
 		setBusy( form, true );
 
@@ -384,6 +391,7 @@
 	function bindForm( form ) {
 		const steps = Array.prototype.slice.call( form.querySelectorAll( '[data-iftp-btn-step]' ) );
 		const bars = form.querySelectorAll( '[data-iftp-btn-bar]' );
+		const pct = form.querySelector( '[data-iftp-btn-step-pct]' );
 		const back = form.querySelector( '[data-iftp-btn-back]' );
 		const submit = form.querySelector( '[data-iftp-btn-submit]' );
 		const body = form.querySelector( '[data-iftp-btn-body]' );
@@ -408,7 +416,14 @@
 				return names[ key ];
 			} ).length;
 
-			bars[ current ].style.setProperty( '--iftp-fill', keys.length ? String( done / keys.length ) : '1' );
+			const fill = keys.length ? done / keys.length : 1;
+
+			bars[ current ].style.setProperty( '--iftp-fill', String( fill ) );
+
+			// The whole form's share, for the One line style.
+			if ( pct ) {
+				pct.textContent = Math.round( ( current + fill ) / bars.length * 100 ) + '%';
+			}
 		};
 
 		const show = function ( index ) {
@@ -429,6 +444,12 @@
 			bars.forEach( function ( bar, at ) {
 				bar.classList.toggle( 'is-done', at < index );
 				bar.classList.toggle( 'is-current', at === index );
+
+				if ( at === index ) {
+					bar.setAttribute( 'aria-current', 'step' );
+				} else {
+					bar.removeAttribute( 'aria-current' );
+				}
 			} );
 
 			const title = form.querySelector( '[data-iftp-btn-step-title]' );
@@ -553,13 +574,6 @@
 			openDialog( dialog );
 			countOpen( form ? form.dataset.button : '' );
 		} );
-
-		// A click on the backdrop lands on the dialog itself, outside the form.
-		dialog.addEventListener( 'click', function ( event ) {
-			if ( event.target === dialog ) {
-				closeDialog( dialog );
-			}
-		} );
 	} );
 
 	/* ---------------------------------------------------------------- Pay page: skip the form when the link filled it in */
@@ -569,14 +583,14 @@
 	const pageForm = document.querySelector( '.iftp-btn-page [data-iftp-btn-form]' );
 
 	// The pay page is the checkout already open; coming back to it from ifthenpay isn't a new look.
-	if ( pageForm && ! returning ) {
+	if ( pageForm && ! returning && ! pageForm.dataset.preview ) {
 		countOpen( pageForm.dataset.button );
 	}
 
 	function autoStart() {
 		const form = document.querySelector( '.iftp-btn-page [data-iftp-btn-form][data-skip="1"]' );
 
-		if ( ! form || returning || firstInvalid( form ) ) {
+		if ( ! form || returning || form.dataset.preview || firstInvalid( form ) ) {
 			return;
 		}
 
@@ -624,9 +638,10 @@
 	// The popup's background video, built like CheckoutLook::video_markup(); kept while it's the same one.
 	function videoLayer( dialog, video ) {
 		const src = video && video.src ? video.src : '';
+		const key = src ? [ src, video.start, video.end ].join( '|' ) : '';
 		let layer = dialog.querySelector( '[data-iftp-video]' );
 
-		if ( layer && layer.dataset.for === src ) {
+		if ( layer && layer.dataset.for === key ) {
 			return;
 		}
 
@@ -642,12 +657,22 @@
 		const media = document.createElement( embed ? 'iframe' : 'video' );
 
 		layer = document.createElement( 'div' );
-		layer.className = 'iftp-btn-pagevideo';
+		layer.className = 'iftp-btn-pagevideo is-waiting';
 		layer.setAttribute( 'aria-hidden', 'true' );
 		layer.dataset.iftpVideo = '';
-		layer.dataset.for = src;
+		layer.dataset.for = key;
 		media.className = 'iftp-btn-pagevideo__media' + ( embed ? ' iftp-btn-pagevideo__media--embed' : '' );
 		media.dataset.src = src;
+
+		// Looping part of it, as CheckoutLook::video_markup() marks it.
+		if ( video.start !== null && video.start !== undefined ) {
+			media.dataset.loopStart = video.start;
+			media.dataset.loopEnd = video.end || 0;
+		}
+
+		if ( window.iftpBtnVideoLoop ) {
+			window.iftpBtnVideoLoop( media );
+		}
 
 		if ( embed ) {
 			media.title = '';

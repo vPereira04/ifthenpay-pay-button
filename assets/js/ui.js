@@ -3,7 +3,7 @@
 ( function () {
 	'use strict';
 
-	var selector = '.iftp-btn-settings select, .iftp-btn-entries select, .iftp-btn-entry select, .iftp-btn-dialog select';
+	var selector = '.iftp-btn-settings select, .iftp-btn-entries select, .iftp-btn-entry select, .iftp-btn-dialog select, .iftp-btn-btoolbar select';
 	var chevronSvg = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 	var checkSvg = '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m3.5 8.5 3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 	// The top layer keeps the list above dialogs and out of any overflow clipping; older browsers get it absolutely positioned.

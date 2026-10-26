@@ -18,8 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * One path for every payment email: "Send payment email", "Remind", "Remind all" and the automatic reminders.
- * Each send stamps the row's reminded_at, so the automatic reminder never doubles a manual one.
+ * One path for every payment email: "Send payment email", one entry or many.
  *
  * @phpstan-import-type Transaction from TransactionStore
  */
@@ -107,12 +106,6 @@ class PaymentEmailSender {
 			$this->settings
 		);
 
-		if ( ! $sent ) {
-			return self::MAIL_FAILED;
-		}
-
-		$this->transactions->mark_reminded( array( $record['ref'] ) );
-
-		return self::SENT;
+		return $sent ? self::SENT : self::MAIL_FAILED;
 	}
 }

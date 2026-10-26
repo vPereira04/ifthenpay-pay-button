@@ -88,7 +88,6 @@ class EntriesController {
 		add_action( 'wp_ajax_iftp_btn_update_status', array( $this, 'update_status' ) );
 		add_action( 'wp_ajax_iftp_btn_create_entry', array( $this, 'create_entry' ) );
 		add_action( 'wp_ajax_iftp_btn_save_columns', array( $this, 'save_columns' ) );
-		add_action( 'wp_ajax_iftp_btn_save_layout', array( $this, 'save_layout' ) );
 		add_action( 'wp_ajax_iftp_btn_resend_payment_email', array( $this, 'resend_payment_email' ) );
 		add_action( 'wp_ajax_iftp_btn_send_payment_emails', array( $this, 'send_payment_emails' ) );
 		add_action( 'admin_post_' . EntriesPage::EXPORT_ACTION, array( $this, 'export' ) );
@@ -258,18 +257,6 @@ class EntriesController {
 				'order'  => $order,
 			)
 		);
-	}
-
-	/**
-	 * Saves the current admin's layout from editor mode, sent as one JSON field.
-	 */
-	public function save_layout(): void {
-		$this->guard();
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- guard() verified the nonce; Layout::sanitize() keeps only known keys and values, and sanitizing the JSON could corrupt it.
-		$raw = isset( $_POST['layout'] ) && is_string( $_POST['layout'] ) ? json_decode( wp_unslash( $_POST['layout'] ), true ) : null;
-
-		wp_send_json_success( array( 'layout' => Layout::save( $raw ) ) );
 	}
 
 	/**
