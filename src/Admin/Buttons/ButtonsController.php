@@ -12,8 +12,10 @@ namespace Ifthenpay\PayButton\Admin\Buttons;
 use Ifthenpay\PayButton\Ai\Studio;
 use Ifthenpay\PayButton\Bridge\InvoiceHook;
 use Ifthenpay\PayButton\Bridge\OutgoingWebhook;
+use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
 use Ifthenpay\PayButton\Plugin;
+use Ifthenpay\PayButton\Repository\CheckoutSettings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -73,6 +75,8 @@ class ButtonsController {
 		$rotate = isset( $_POST['rotate_secret'] );
 		$tab    = isset( $_POST['tab'] ) ? sanitize_key( wp_unslash( $_POST['tab'] ) ) : '';
 		$by_ai  = isset( $_POST[ AiStudioPage::DRAFT_VAR ] );
+		// The "make it the default" button submits the form too.
+		$make_default = isset( $_POST['make_default'] );
 		// Button::sanitize_config() cleans every key by its own rules, so here it's only unslashed.
 		$config = isset( $_POST['config'] ) && is_array( $_POST['config'] ) ? map_deep( wp_unslash( $_POST['config'] ), static fn( $value ) => is_string( $value ) ? $value : '' ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
@@ -83,6 +87,12 @@ class ButtonsController {
 
 		if ( $rotate ) {
 			$config['webhook_secret'] = '';
+		}
+
+		// "Save and make it the default": its design becomes the site's, and it follows that from now on.
+		if ( $make_default ) {
+			( new CheckoutSettings() )->set_button_design( ButtonDesign::sanitize( $config['design'] ?? array() ) );
+			$config['design'] = array( 'source' => ButtonDesign::SOURCE_SITE ) + ( is_array( $config['design'] ?? null ) ? $config['design'] : array() );
 		}
 
 		// The chat that built this version is done with once it's kept; read the button before it changes.
@@ -100,7 +110,7 @@ class ButtonsController {
 		// Back to the tab they saved from.
 		$fragment = in_array( $tab, array( 'look', 'design', 'after', 'connect' ), true ) ? '#' . $tab : '';
 
-		$this->back( add_query_arg( 'iftp_notice', $id > 0 ? 'saved' : 'created', ButtonsPage::edit_url( $saved ) ) . $fragment );
+		$this->back( add_query_arg( 'iftp_notice', $make_default ? 'default' : ( $id > 0 ? 'saved' : 'created' ), ButtonsPage::edit_url( $saved ) ) . $fragment );
 	}
 
 	/**

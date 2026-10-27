@@ -83,6 +83,13 @@ class ButtonsPage {
 	private string $hook = '';
 
 	/**
+	 * Checkout settings, for the default button design.
+	 *
+	 * @var CheckoutSettings
+	 */
+	private CheckoutSettings $checkout_settings;
+
+	/**
 	 * Sets up the screen.
 	 *
 	 * @param ButtonRepository   $buttons      Buttons storage.
@@ -90,9 +97,10 @@ class ButtonsPage {
 	 * @param TransactionStore   $transactions Transactions storage.
 	 */
 	public function __construct( ButtonRepository $buttons, SettingsRepository $settings, TransactionStore $transactions ) {
-		$this->buttons      = $buttons;
-		$this->settings     = $settings;
-		$this->transactions = $transactions;
+		$this->buttons           = $buttons;
+		$this->settings          = $settings;
+		$this->transactions      = $transactions;
+		$this->checkout_settings = new CheckoutSettings();
 	}
 
 	/**
@@ -177,6 +185,7 @@ class ButtonsPage {
 				'lookPresets'  => CheckoutLook::presets(),
 				'lookWidths'   => CheckoutLook::WIDTHS,
 				'siteLook'     => self::site_look_for_js(),
+				'siteDesign'   => $this->checkout_settings->get_button_design(),
 				'sample'       => CheckoutSettingsPage::sample_values(),
 				'i18n'         => array(
 					'copied'      => __( 'Copied.', 'ifthenpay-pay-button' ),
@@ -285,7 +294,7 @@ class ButtonsPage {
 	 * The theme's button colours and corners as CSS variables, so the admin's "theme look" stand-in comes close.
 	 * Block themes and core's defaults both say it in global styles; anything I can't read safely is left out.
 	 */
-	private static function theme_button_css(): string {
+	public static function theme_button_css(): string {
 		$styles = function_exists( 'wp_get_global_styles' ) ? wp_get_global_styles( array( 'elements', 'button' ), array( 'transforms' => array( 'resolve-variables' ) ) ) : array();
 		$styles = is_array( $styles ) ? $styles : array();
 		$map    = array(
@@ -343,7 +352,7 @@ class ButtonsPage {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only picks which version to show; saving checks its own nonce.
 		$draft = isset( $_GET[ AiStudioPage::DRAFT_VAR ] ) && $this->settings->is_connected() ? ( new Studio() )->draft( $button ) : null;
 
-		( new ButtonEditor( $this->settings, new PayLinks() ) )->render( $button, $draft );
+		( new ButtonEditor( $this->settings, new PayLinks(), $this->checkout_settings ) )->render( $button, $draft );
 	}
 
 	/**
@@ -399,6 +408,7 @@ class ButtonsPage {
 		$notice   = isset( $_GET['iftp_notice'] ) ? sanitize_key( wp_unslash( $_GET['iftp_notice'] ) ) : '';
 		$messages = array(
 			'saved'      => array( 'success', __( 'Button saved.', 'ifthenpay-pay-button' ) ),
+			'default'    => array( 'success', __( 'Button saved, and its design is now the default for every button set to Default design.', 'ifthenpay-pay-button' ) ),
 			'created'    => array( 'success', __( 'Button created. Place it with the block, the shortcode or its link.', 'ifthenpay-pay-button' ) ),
 			'duplicated' => array( 'success', __( 'Button copied. The copy is off until you turn it on.', 'ifthenpay-pay-button' ) ),
 			'deleted'    => array( 'success', __( 'Button deleted. Its payments are still in Payments.', 'ifthenpay-pay-button' ) ),
@@ -743,6 +753,11 @@ class ButtonsPage {
 		$abandon    = CheckoutOpens::abandon_rate( $opens, $paid );
 		$share      = $limit > 0 ? min( 1.0, $taken / $limit ) : 0.0;
 		$sold_out   = self::sold_out( $button, $taken );
+		$looks      = array(
+			ButtonDesign::SOURCE_SITE   => __( 'Default design', 'ifthenpay-pay-button' ),
+			ButtonDesign::SOURCE_THEME  => __( 'Theme look', 'ifthenpay-pay-button' ),
+			ButtonDesign::SOURCE_CUSTOM => __( 'Custom look', 'ifthenpay-pay-button' ),
+		);
 		$payments   = add_query_arg(
 			array(
 				'page'   => EntriesPage::PAGE_SLUG,
@@ -755,9 +770,9 @@ class ButtonsPage {
 			<a class="iftp-btn-bcard__stage" href="<?php echo esc_url( $edit ); ?>" tabindex="-1" aria-hidden="true">
 				<?php
 				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes.
-				echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( $button->config['design'], $button->display_label() ) . '</span>';
+				echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( ButtonDesign::for_button( $button, $this->checkout_settings ), $button->display_label() ) . '</span>';
 				?>
-				<span class="iftp-btn-bcard__look"><?php echo ButtonDesign::SOURCE_CUSTOM === $button->config['design']['source'] ? esc_html__( 'Custom look', 'ifthenpay-pay-button' ) : esc_html__( 'Theme look', 'ifthenpay-pay-button' ); ?></span>
+				<span class="iftp-btn-bcard__look"><?php echo esc_html( $looks[ $button->config['design']['source'] ] ?? $looks[ ButtonDesign::SOURCE_THEME ] ); ?></span>
 				<?php if ( $sold_out ) : ?>
 					<span class="iftp-btn-bcard__badge iftp-btn-bcard__badge--sold"><?php esc_html_e( 'Sold out', 'ifthenpay-pay-button' ); ?></span>
 				<?php elseif ( $limit > 0 && $share >= self::ALMOST_FULL ) : ?>

@@ -168,7 +168,7 @@ The shortcode also takes `label` (the button text) and `align` (`left`, `center`
 #### Step 11 — Give the button's checkout its own look
 
 1. Open the **Checkout design** tab.
-2. Keep **The site's look** (Default Checkout › Design) or give this button **Its own look**.
+2. Keep **The site's look** (Default Design › Checkout) or give this button **Its own look**.
 3. **Start from a look**, then change the colours, the card's opacity and glass blur, dark mode, corners and fields.
 4. The **preview** follows every change: checkout, pay page and each popup, in light and dark.
 
@@ -188,7 +188,7 @@ Further down, **Popups and footer** styles the popups after paying and the payme
 
 1. Open the **Button design** tab.
 2. Write the **Button text**.
-3. **Match my theme**, or **Custom**: start from a preset, then pick the style (filled, outline, soft, gradient, glass, 3D, neon, brutal or ghost), colours, corners, border, size, a hover effect, an attention effect and an icon.
+3. **Default design** (the one set in **Default Design › Button**, shared by every button that uses it), **Match my theme**, or **Custom**: start from a preset, then pick the style (filled, outline, soft, gradient, glass, 3D, neon, brutal or ghost), colours, corners, border, size, a hover effect, an attention effect and an icon. Like a custom one? **Save and make it the default**.
 4. Click **Save button**.
 
 (screenshot 13)
@@ -196,7 +196,7 @@ Further down, **Popups and footer** styles the popups after paying and the payme
 #### Step 14 — Choose what happens after payment, and send paid payments to your invoicing app
 
 1. Open the **After payment** tab.
-2. **When paid**: use the Default Checkout setting, or a popup, a page or a URL just for this button.
+2. **When paid**: use the Default Design setting, or a popup, a page or a URL just for this button.
 3. **Send to your invoicing app** (optional): each paid payment goes straight to InvoiceXpress, Moloni, Vendus, TOConline or any app with an API.
 4. The app's **address**, method, format, headers (e.g. your API key) and a **body** built from tags.
 
@@ -225,14 +225,16 @@ With **Go straight to ifthenpay** on, a link that already fills in everything re
 
 A button the AI builds goes live as soon as it's created, so check its prices before you share it.
 
-#### Optional — Design every checkout, pay page and popup
+#### Optional — Design every checkout, pay page, popup and button
 
-1. Open **Pay Button › Default Checkout**.
-2. **Start from a look**, then tweak the colours, shape, fonts, pay page background and Custom CSS below.
+1. Open **Pay Button › Default Design**.
+2. **Start from a look** (each one sets the pay page background too), then tweak the colours, shape, fonts, pay page background and Custom CSS below.
 3. The **preview** follows every change: checkout, pay page and each popup.
 4. Click **Save Settings**.
 
 (screenshot 17)
+
+The **Button** tab sets the default button design: every button set to **Default design** wears it, so many buttons across a site look the same and change together.
 
 A button set to **The site's look** in its **Checkout design** tab uses this one.
 
@@ -339,7 +341,7 @@ Yes. `iftp_btn_payment_url( $button_id, array( 'amount' => 49.90, 'reference' =>
 
 <details>
 <summary><strong>Can I change every word the payer sees?</strong></summary>
-Yes. **Default Checkout › Texts** rewrites every label, button and message of the checkout, in any language. The popups after payment are in **Default Checkout › Messages**.
+Yes. **Default Design › Texts** rewrites every label, button and message of the checkout, in any language. The popups after payment are in **Default Design › Messages**.
 </details>
 
 <details>
@@ -397,7 +399,7 @@ This plugin integrates with the ifthenpay payment platform to process payments m
   - **Anthropic Claude**: [Commercial Terms](https://www.anthropic.com/legal/commercial-terms), [Privacy Policy](https://www.anthropic.com/legal/privacy)
   - **OpenAI**: [Terms of Use](https://openai.com/policies/terms-of-use/), [Privacy Policy](https://openai.com/policies/privacy-policy/)
 - **YouTube and Vimeo (optional)**
-  - **What it is and what it is used for**: If you pick a YouTube or Vimeo link as the pay page's background video (Default Checkout › Design, or a button's Checkout design tab), the pay page and the checkout opened on it show that video in an embedded player: YouTube's privacy-enhanced `youtube-nocookie.com` player, or Vimeo's with Do Not Track on.
+  - **What it is and what it is used for**: If you pick a YouTube or Vimeo link as the pay page's background video (Default Design › Checkout, or a button's Checkout design tab), the pay page and the checkout opened on it show that video in an embedded player: YouTube's privacy-enhanced `youtube-nocookie.com` player, or Vimeo's with Do Not Track on.
   - **What data is sent and when**: when a payer opens that pay page, or a checkout or popup over that background, their browser loads the player from YouTube or Vimeo, which receives the payer's IP address, browser details and the page it's shown on, as with any embedded video. Nothing about the payment is sent. A video you upload to your own Media Library is served from your site and sends nothing anywhere.
   - **YouTube**: [Terms of Service](https://www.youtube.com/t/terms), [Google Privacy Policy](https://policies.google.com/privacy)
   - **Vimeo**: [Terms of Service](https://vimeo.com/terms), [Privacy Policy](https://vimeo.com/privacy)
@@ -442,13 +444,13 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
     ![Connect another plugin](.wordpress-org/screenshot-15.png)
 16. **(Admin Only) Optional: build or edit a button with AI**
     ![Build with AI](.wordpress-org/screenshot-16.png)
-17. **(Admin Only) Default Checkout › Design: the look of every checkout, pay page and popup**
-    ![Default Checkout design](.wordpress-org/screenshot-17.png)
-18. **(Admin Only) Default Checkout › Messages: what the payer sees after paying**
+17. **(Admin Only) Default Design › Checkout: the look of every checkout, pay page and popup**
+    ![Default Design, Checkout tab](.wordpress-org/screenshot-17.png)
+18. **(Admin Only) Default Design › Messages: what the payer sees after paying**
     ![Checkout messages](.wordpress-org/screenshot-18.png)
-19. **(Admin Only) Default Checkout › Texts: every word the payer reads, in your own words or language**
+19. **(Admin Only) Default Design › Texts: every word the payer reads, in your own words or language**
     ![Checkout texts](.wordpress-org/screenshot-19.png)
-20. **(Admin Only) Default Checkout › Links & emails: pay link address and payment emails**
+20. **(Admin Only) Default Design › Links & emails: pay link address and payment emails**
     ![Links and emails](.wordpress-org/screenshot-20.png)
 21. **(Admin Only) Payments: every payment, its status and the totals**
     ![Payments](.wordpress-org/screenshot-21.png)
@@ -473,7 +475,7 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
 
 ### Examples
 
-What you can do with the design options. Every button can keep the site-wide look from **Default Checkout › Design** or have its own in the button's **Checkout design** and **Button design** tabs.
+What you can do with the design options. Every button can keep the site-wide look from **Default Design › Checkout** or have its own in the button's **Checkout design** and **Button design** tabs.
 
 1. **Every button with its own design.** Pay Button › Buttons shows each button as it looks on your site, with what it collected and its spots.
    ![Buttons with their own designs](.wordpress-org/examples/example-1.png)

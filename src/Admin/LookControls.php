@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Default Checkout › Design and a button's Checkout design tab draw the same cards and preview; only where the fields
+ * Default Design › Checkout and a button's Checkout design tab draw the same cards and preview; only where the fields
  * post to differs (`look[…]` or `config[look][…]`). buttons.js reads them by their data-iftp-look keys.
  *
  * @phpstan-import-type Look from CheckoutLook
@@ -48,23 +48,50 @@ class LookControls {
 	}
 
 	/**
-	 * Each start-from look's swatch colours, for the screen's stylesheet: one rule per look, keyed on its button.
+	 * Each start-from look's swatch, for the screen's stylesheet: one rule per look, keyed on its button. The
+	 * swatch is a tiny pay page, so it takes the page variables CheckoutLook prints, with the pattern scaled down.
 	 */
 	public static function swatch_css(): string {
 		$css = '';
 
-		foreach ( CheckoutLook::presets() as $key => $preset ) {
+		foreach ( self::swatch_looks() as $key => $look ) {
+			$vars = CheckoutLook::variables( $look );
+			$rule = '';
+
+			foreach ( array( '--iftp-page-bg', '--iftp-page-glow', '--iftp-page-glow2', '--iftp-page-orb', '--iftp-page-orb2', '--iftp-page-crystal', '--iftp-page-pattern', '--iftp-page-pattern-tile', '--iftp-page-fx-opacity', '--iftp-card-bg', '--iftp-card-filter' ) as $name ) {
+				$rule .= $name . ':' . $vars[ $name ] . ';';
+			}
+
 			$css .= sprintf(
-				'.iftp-btn-looksets__item[data-iftp-look-preset="%1$s"] .iftp-btn-looksets__swatch{--s:%2$s;--i:%3$s;--a:%4$s;--r:%5$dpx}',
+				'.iftp-btn-looksets__item[data-iftp-look-preset="%1$s"] .iftp-btn-looksets__swatch{%2$s--i:%3$s;--a:%4$s;--r:%5$dpx}',
 				sanitize_key( $key ),
-				(string) sanitize_hex_color( (string) $preset['surface'] ),
-				(string) sanitize_hex_color( (string) $preset['ink'] ),
-				(string) sanitize_hex_color( (string) $preset['accent'] ),
-				min( 14, (int) $preset['radius'] )
+				$rule,
+				$look['ink'],
+				$look['accent'],
+				min( 10, $look['radius'] )
 			);
 		}
 
 		return $css;
+	}
+
+	/**
+	 * The start-from looks as whole looks, ready to draw as swatches.
+	 *
+	 * @return array<string, Look>
+	 */
+	private static function swatch_looks(): array {
+		$looks = array();
+
+		foreach ( CheckoutLook::presets() as $key => $preset ) {
+			$look = CheckoutLook::sanitize( $preset );
+
+			// A swatch is a few centimetres wide, so the pattern shrinks with it.
+			$look['pay_fx_size'] = max( 16, (int) round( $look['pay_fx_size'] / 4 ) );
+			$looks[ $key ]       = $look;
+		}
+
+		return $looks;
 	}
 
 	/**
@@ -99,16 +126,19 @@ class LookControls {
 				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-start">
 					<div class="iftp-btn-ecard__intro">
 						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-start"><?php esc_html_e( 'Start from a look', 'ifthenpay-pay-button' ); ?></h2>
-						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'For the checkout, the pay page and the popups after paying. Pick one, then tweak anything below.', 'ifthenpay-pay-button' ); ?></p>
+						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'For the checkout, the pay page and the popups after paying: colours, shape and the background behind the card. Pick one, then tweak anything below.', 'ifthenpay-pay-button' ); ?></p>
 					</div>
 					<div class="iftp-btn-ecard__body">
 						<div class="iftp-btn-looksets" role="group" aria-labelledby="iftp-btn-look-start">
 							<?php foreach ( CheckoutLook::presets() as $key => $preset ) : ?>
 								<button type="button" class="iftp-btn-looksets__item" data-iftp-look-preset="<?php echo esc_attr( $key ); ?>">
 									<span class="iftp-btn-looksets__swatch" aria-hidden="true">
-										<span class="iftp-btn-looksets__line"></span>
-										<span class="iftp-btn-looksets__line iftp-btn-looksets__line--short"></span>
-										<span class="iftp-btn-looksets__cta"></span>
+										<span class="iftp-btn-looksets__bg <?php echo esc_attr( CheckoutLook::page_classes( CheckoutLook::sanitize( $preset ) ) ); ?>"></span>
+										<span class="iftp-btn-looksets__card">
+											<span class="iftp-btn-looksets__line"></span>
+											<span class="iftp-btn-looksets__line iftp-btn-looksets__line--short"></span>
+											<span class="iftp-btn-looksets__cta"></span>
+										</span>
 									</span>
 									<span class="iftp-btn-looksets__name"><?php echo esc_html( (string) $preset['label'] ); ?></span>
 								</button>

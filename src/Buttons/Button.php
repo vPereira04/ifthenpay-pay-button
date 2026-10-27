@@ -139,7 +139,8 @@ class Button {
 			'webhook_url'     => '',
 			'webhook_secret'  => '',
 			'invoice_hook'    => InvoiceHook::defaults(),
-			'design'          => ButtonDesign::defaults(),
+			// New buttons wear the site's default design until they're given their own.
+			'design'          => array( 'source' => ButtonDesign::SOURCE_SITE ) + ButtonDesign::defaults(),
 			'form'            => FormFields::defaults(),
 			'first_step'      => '',
 			'pay_description' => '',

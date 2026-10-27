@@ -514,11 +514,11 @@
 
 	// Same as ButtonDesign::text_color() without a picked colour.
 	function autoText( design ) {
-		if ( design.variant === 'gradient' ) {
+		if ( design.variant === 'gradient' || design.variant === 'aurora' ) {
 			return onColor( mix( design.color, design.color2 ) );
 		}
 
-		return [ 'filled', 'glass', '3d', 'brutal' ].indexOf( design.variant ) === -1 ? design.color : onColor( design.color );
+		return [ 'filled', 'split', 'halo', 'glass', '3d', 'brutal' ].indexOf( design.variant ) === -1 ? design.color : onColor( design.color );
 	}
 
 	function toHex( parts ) {
@@ -694,6 +694,7 @@
 			effect: pick( 'effect' ) || 'none',
 			attention: pick( 'attention' ) || 'none',
 			upper: !! pick( 'upper' ),
+			logos: !! pick( 'logos' ),
 		};
 
 		// wp_localize_script() hands numbers over as strings.
@@ -708,13 +709,51 @@
 		return design;
 	}
 
+	// A stored design (ButtonDesign's keys) in readDesign()'s shape.
+	function designFrom( stored ) {
+		const turnBy = parseInt( config.gradientTurn, 10 ) || 40;
+		const design = {
+			source: stored.source,
+			variant: stored.variant,
+			color: stored.color,
+			radius: parseInt( stored.radius, 10 ) || 0,
+			borderWidth: parseInt( stored.border_width, 10 ) || 0,
+			borderStyle: stored.border_style,
+			borderColor: stored.border_color || '',
+			size: stored.size,
+			icon: stored.icon,
+			// wp_localize_script() turns false into '' and true into '1'.
+			full: !! stored.full,
+			shadow: !! stored.shadow,
+			effect: stored.effect,
+			attention: stored.attention,
+			upper: !! stored.upper,
+			logos: !! stored.logos,
+			color2: stored.color2 || turn( stored.color, turnBy ),
+			ownText: stored.text || '',
+		};
+
+		design.text = design.ownText || autoText( design );
+
+		return design;
+	}
+
+	// What the button wears: its own controls, or the site's default while it follows that.
+	function shownDesign( form ) {
+		const design = readDesign( form );
+
+		return design.source === 'site' && config.siteDesign ? designFrom( config.siteDesign ) : design;
+	}
+
 	// The same markup as ButtonDesign::preview_markup().
 	function buildButton( form, design, label ) {
 		const custom = design.source === 'custom';
 		const classes = [ 'iftp-btn-pay__button' ];
 		const button = document.createElement( 'span' );
 		const text = document.createElement( 'span' );
-		const iconSource = form.querySelector( '[data-iftp-icon-svg="' + design.icon + '"]' );
+		// Same as ButtonDesign::inner_html(): split's end block always holds an icon, after the text.
+		const split = custom && design.variant === 'split';
+		const iconSource = form.querySelector( '[data-iftp-icon-svg="' + ( split && design.icon === 'none' ? 'arrow' : design.icon ) + '"]' );
 
 		if ( custom ) {
 			const rgb = channels( design.color ).join( ' ' );
@@ -746,6 +785,7 @@
 			button.style.setProperty( '--iftp-pb-color2', design.color2 );
 			button.style.setProperty( '--iftp-pb-text', design.text );
 			button.style.setProperty( '--iftp-pb-on', onColor( design.color ) );
+			button.style.setProperty( '--iftp-pb-on2', onColor( design.color2 ) );
 			button.style.setProperty( '--iftp-pb-radius', design.radius >= ( parseInt( config.pill, 10 ) || 32 ) ? '999px' : design.radius + 'px' );
 			button.style.setProperty( '--iftp-pb-bw', design.borderWidth + 'px' );
 			button.style.setProperty( '--iftp-pb-bs', design.borderStyle );
@@ -769,7 +809,7 @@
 		if ( iconSource && iconSource.firstElementChild ) {
 			const icon = iconSource.firstElementChild.cloneNode( true );
 
-			if ( design.icon === 'arrow' ) {
+			if ( split || design.icon === 'arrow' ) {
 				button.appendChild( icon );
 			} else {
 				button.insertBefore( icon, text );
@@ -781,18 +821,18 @@
 
 	function renderButton( form, label ) {
 		const wrap = form.querySelector( '[data-iftp-preview-button]' );
-		const design = readDesign( form );
+		const shown = shownDesign( form );
 
 		wrap.textContent = '';
-		wrap.appendChild( buildButton( form, design, label ) );
+		wrap.appendChild( buildButton( form, shown, label ) );
 
 		const note = form.querySelector( '[data-iftp-theme-note]' );
 
 		if ( note ) {
-			note.hidden = design.source === 'custom';
+			note.hidden = shown.source === 'custom';
 		}
 
-		renderSamples( form, design );
+		renderSamples( form, readDesign( form ) );
 	}
 
 	// The picker tiles, in the current colours. Same overrides as ButtonEditor::render_fx_picker().
@@ -2190,8 +2230,8 @@
 	if ( editor ) {
 		bindReveal( editor, 'input[name="config[amount_mode]"]', 'data-iftp-when-mode' );
 		bindReveal( editor, '[data-iftp-paid-type]', 'data-iftp-when-paid' );
-		bindReveal( editor, 'input[name="config[design][source]"]', 'data-iftp-when-source' );
-		bindReveal( editor, 'input[name="config[design][variant]"]', 'data-iftp-when-variant' );
+		bindReveal( editor, 'input[data-iftp-design="source"]', 'data-iftp-when-source' );
+		bindReveal( editor, 'input[data-iftp-design="variant"]', 'data-iftp-when-variant' );
 		bindReveal( editor, 'input[name="config[spots][mode]"]', 'data-iftp-when-spots' );
 		bindReveal( editor, 'input[name="config[spots][quantity]"]', 'data-iftp-when-quantity' );
 		bindReveal( editor, 'input[name="config[spots][show_left]"]', 'data-iftp-when-left' );
@@ -2262,7 +2302,7 @@
 			const picked = editor.querySelectorAll( '[data-iftp-preview="method"]:checked' );
 
 			const strip = editor.querySelector( '[data-iftp-preview-logos]' );
-			const logosOn = !! editor.querySelector( 'input[name="config[design][logos]"][type="checkbox"]:checked' );
+			const logosOn = shownDesign( editor ).logos;
 
 			methods.textContent = '';
 			strip.textContent = '';
@@ -3241,14 +3281,44 @@
 					return;
 				}
 
-				[ 'accent', 'surface', 'ink', 'radius', 'field_radius', 'fields' ].forEach( function ( key ) {
+				[ 'accent', 'surface', 'ink', 'radius', 'field_radius', 'fields', 'pay_grad', 'pay_fx', 'pay_fx_size', 'pay_fx_strength', 'card_opacity', 'card_blur' ].forEach( function ( key ) {
 					set( key, preset[ key ] );
 				} );
 				set( 'accent_text_auto', true );
 
+				// The background too; a blank colour means "auto", like the boxes' own checkboxes.
+				set( 'pay_bg', preset.pay_bg );
+				[ 'pay_color', 'pay_color2' ].forEach( function ( key ) {
+					set( key + '_auto', ! preset[ key ] );
+
+					if ( preset[ key ] ) {
+						set( key, preset[ key ] );
+					}
+				} );
+
+				// Radios that show or hide parts of the card (background, effect) need their change to fire.
+				[ 'pay_bg', 'pay_fx' ].forEach( function ( key ) {
+					const picked = form.querySelector( '[data-iftp-look="' + key + '"]:checked' );
+
+					if ( picked ) {
+						picked.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+					}
+				} );
+
 				const accent = form.querySelector( '[data-iftp-look="accent"]' );
 
 				accent.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+
+				// The colour pickers follow their boxes, auto ones included now that apply() filled them.
+				form.querySelectorAll( '[data-iftp-color-for]' ).forEach( function ( swatch ) {
+					const field = form.querySelector( '#' + swatch.dataset.iftpColorFor );
+					const color = field && field.matches( '[data-iftp-look]' ) ? hex( field.value ) : '';
+
+					if ( color ) {
+						swatch.value = color;
+					}
+				} );
+
 				show( 'checkout' );
 			} );
 		} );
@@ -3460,6 +3530,28 @@
 			bindTabs( settingsForm );
 			bindDirty( settingsForm );
 			bindLook( settingsForm );
+			bindReveal( settingsForm, 'input[data-iftp-design="source"]', 'data-iftp-when-source' );
+			bindReveal( settingsForm, 'input[data-iftp-design="variant"]', 'data-iftp-when-variant' );
+			bindDesignControls( settingsForm );
+
+			// The Button tab's preview: the default design on the site's own pay text, with the enabled logos.
+			const strip = settingsForm.querySelector( '[data-iftp-preview-logos]' );
+			const label = settingsForm.querySelector( '[data-iftp-preview-button] .iftp-btn-pay__label' );
+			const payText = label ? label.textContent : '';
+			const drawButton = function ( event ) {
+				if ( ! event.target.closest( '[data-iftp-panel="button"]' ) ) {
+					return;
+				}
+
+				renderButton( settingsForm, payText );
+
+				if ( strip ) {
+					strip.hidden = ! readDesign( settingsForm ).logos || ! strip.children.length;
+				}
+			};
+
+			settingsForm.addEventListener( 'input', drawButton );
+			settingsForm.addEventListener( 'change', drawButton );
 		}
 
 		// Two views of one message: the textarea is what's submitted, the contenteditable mirrors it.

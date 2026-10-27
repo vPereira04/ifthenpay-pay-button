@@ -1,6 +1,6 @@
 <?php
 /**
- * The Checkout settings screen.
+ * The Default Design screen.
  *
  * @package Ifthenpay\PayButton
  */
@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Ifthenpay\PayButton\Admin;
 
 use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
+use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
 use Ifthenpay\PayButton\Checkout\MergeTags;
@@ -17,14 +18,16 @@ use Ifthenpay\PayButton\Dates;
 use Ifthenpay\PayButton\Frontend\ButtonRenderer;
 use Ifthenpay\PayButton\Plugin;
 use Ifthenpay\PayButton\Repository\CheckoutSettings;
+use Ifthenpay\PayButton\Repository\SettingsRepository;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * Everything around a payment that isn't the gateway, in four tabs: how the checkout and popups look (with a
- * live preview), what the popups say (with merge tags), every other word the payer reads, and pay links and emails.
+ * Everything around a payment that isn't the gateway, in five tabs: how the checkout and popups look and how the
+ * default button looks (each with a live preview), what the popups say (with merge tags), every other word the
+ * payer reads, and pay links and emails.
  */
 class CheckoutSettingsPage {
 
@@ -68,16 +71,18 @@ class CheckoutSettingsPage {
 	 * @param string $parent_slug The parent menu slug.
 	 */
 	public function add_page( string $parent_slug ): void {
-		$hook = add_submenu_page( $parent_slug, __( 'Default Checkout', 'ifthenpay-pay-button' ), __( 'Default Checkout', 'ifthenpay-pay-button' ), Plugin::admin_cap(), self::PAGE_SLUG, array( $this, 'render' ) );
+		$hook = add_submenu_page( $parent_slug, __( 'Default Design', 'ifthenpay-pay-button' ), __( 'Default Design', 'ifthenpay-pay-button' ), Plugin::admin_cap(), self::PAGE_SLUG, array( $this, 'render' ) );
 
 		$this->hook = is_string( $hook ) ? $hook : '';
 	}
 
 	/**
-	 * The screen's URL.
+	 * The screen's URL, open on a tab if one is given.
+	 *
+	 * @param string $tab A tab key, e.g. `button` or `messages`.
 	 */
-	public static function url(): string {
-		return add_query_arg( array( 'page' => self::PAGE_SLUG ), admin_url( 'admin.php' ) );
+	public static function url( string $tab = '' ): string {
+		return add_query_arg( array( 'page' => self::PAGE_SLUG ), admin_url( 'admin.php' ) ) . ( '' !== $tab ? '#' . $tab : '' );
 	}
 
 	/**
@@ -96,7 +101,7 @@ class CheckoutSettingsPage {
 		wp_enqueue_style( Plugin::ADMIN_STYLE_HANDLE );
 		wp_enqueue_style( 'iftp-btn-buttons', IFTP_BTN_URL . $css, array( Plugin::ADMIN_STYLE_HANDLE ), Plugin::asset_version( $css ) );
 		wp_enqueue_style( ButtonRenderer::STYLE_HANDLE );
-		wp_add_inline_style( 'iftp-btn-buttons', LookControls::swatch_css() );
+		wp_add_inline_style( 'iftp-btn-buttons', ButtonsPage::theme_button_css() . LookControls::swatch_css() );
 		// The pay page's background image and video come from the Media Library.
 		wp_enqueue_media();
 		wp_enqueue_script( 'iftp-btn-buttons', IFTP_BTN_URL . $js, array( Plugin::UI_SCRIPT_HANDLE, Plugin::METHOD_LOGOS_HANDLE, Plugin::VIDEO_LOOP_HANDLE ), Plugin::asset_version( $js ), true );
@@ -104,12 +109,15 @@ class CheckoutSettingsPage {
 			'iftp-btn-buttons',
 			'iftpBtnButtons',
 			array(
-				'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-				'nonce'       => '',
-				'lookPresets' => CheckoutLook::presets(),
-				'lookWidths'  => CheckoutLook::WIDTHS,
-				'sample'      => self::sample_values(),
-				'i18n'        => array(
+				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+				'nonce'        => '',
+				'lookPresets'  => CheckoutLook::presets(),
+				'lookWidths'   => CheckoutLook::WIDTHS,
+				'presets'      => ButtonDesign::presets(),
+				'pill'         => ButtonDesign::PILL,
+				'gradientTurn' => ButtonDesign::GRADIENT_TURN,
+				'sample'       => self::sample_values(),
+				'i18n'         => array(
 					'copied'     => __( 'Copied.', 'ifthenpay-pay-button' ),
 					'copyFailed' => __( 'Could not copy. Select the text and copy it yourself.', 'ifthenpay-pay-button' ),
 					'linkPrompt' => __( 'Link address', 'ifthenpay-pay-button' ),
@@ -197,6 +205,9 @@ class CheckoutSettingsPage {
 
 		$this->settings->set_look( CheckoutLook::sanitize( $look ) );
 
+		// ButtonDesign::sanitize() cleans every key by its own rules, so here it's only unslashed.
+		$this->settings->set_button_design( ButtonDesign::sanitize( isset( $_POST['button_design'] ) && is_array( $_POST['button_design'] ) ? map_deep( wp_unslash( $_POST['button_design'] ), static fn( $value ) => is_string( $value ) ? $value : '' ) : array() ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
 		// CheckoutTexts::sanitize() cleans each text, so here it's only unslashed.
 		$this->settings->set_texts( CheckoutTexts::sanitize( isset( $_POST['texts'] ) && is_array( $_POST['texts'] ) ? wp_unslash( $_POST['texts'] ) : array() ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
@@ -221,7 +232,7 @@ class CheckoutSettingsPage {
 		}
 
 		// Back to the tab they saved from.
-		wp_safe_redirect( add_query_arg( 'iftp_notice', 'saved', self::url() ) . ( in_array( $tab, array( 'messages', 'texts', 'links' ), true ) ? '#' . $tab : '' ) );
+		wp_safe_redirect( add_query_arg( 'iftp_notice', 'saved', self::url() ) . ( in_array( $tab, array( 'button', 'messages', 'texts', 'links' ), true ) ? '#' . $tab : '' ) );
 		exit;
 	}
 
@@ -234,14 +245,15 @@ class CheckoutSettingsPage {
 		}
 
 		$tabs = array(
-			'design'   => __( 'Design', 'ifthenpay-pay-button' ),
+			'look'     => __( 'Checkout', 'ifthenpay-pay-button' ),
+			'button'   => __( 'Button', 'ifthenpay-pay-button' ),
 			'messages' => __( 'Messages', 'ifthenpay-pay-button' ),
 			'texts'    => __( 'Texts', 'ifthenpay-pay-button' ),
 			'links'    => __( 'Links & emails', 'ifthenpay-pay-button' ),
 		);
 		?>
 		<div class="wrap iftp-btn-buttons iftp-btn-checkout-settings">
-			<?php ButtonsPage::print_header( __( 'Default Checkout', 'ifthenpay-pay-button' ) ); ?>
+			<?php ButtonsPage::print_header( __( 'Default Design', 'ifthenpay-pay-button' ) ); ?>
 			<?php
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag from the redirect after a checked save.
 			if ( isset( $_GET['iftp_notice'] ) ) {
@@ -257,13 +269,13 @@ class CheckoutSettingsPage {
 
 			<form class="iftp-btn-csettings" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-iftp-csettings>
 				<input type="hidden" name="action" value="<?php echo esc_attr( self::SAVE_ACTION ); ?>" />
-				<input type="hidden" name="tab" value="design" data-iftp-tab-input />
+				<input type="hidden" name="tab" value="look" data-iftp-tab-input />
 				<?php wp_nonce_field( self::SAVE_ACTION ); ?>
 
 				<div class="iftp-btn-csettings__bar">
-					<div class="iftp-btn-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Checkout settings', 'ifthenpay-pay-button' ); ?>" data-iftp-tabs hidden>
+					<div class="iftp-btn-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Default design', 'ifthenpay-pay-button' ); ?>" data-iftp-tabs hidden>
 						<?php foreach ( $tabs as $key => $label ) : ?>
-							<button type="button" class="iftp-btn-tabs__tab" role="tab" id="iftp-btn-tab-<?php echo esc_attr( $key ); ?>" aria-controls="iftp-btn-panel-<?php echo esc_attr( $key ); ?>" aria-selected="<?php echo 'design' === $key ? 'true' : 'false'; ?>" tabindex="<?php echo 'design' === $key ? '0' : '-1'; ?>" data-iftp-tab="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></button>
+							<button type="button" class="iftp-btn-tabs__tab" role="tab" id="iftp-btn-tab-<?php echo esc_attr( $key ); ?>" aria-controls="iftp-btn-panel-<?php echo esc_attr( $key ); ?>" aria-selected="<?php echo 'look' === $key ? 'true' : 'false'; ?>" tabindex="<?php echo 'look' === $key ? '0' : '-1'; ?>" data-iftp-tab="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></button>
 						<?php endforeach; ?>
 					</div>
 					<p class="iftp-btn-editor__dirty" data-iftp-dirty hidden><?php esc_html_e( 'Unsaved changes', 'ifthenpay-pay-button' ); ?></p>
@@ -272,8 +284,11 @@ class CheckoutSettingsPage {
 
 				<div class="iftp-btn-lookpage">
 					<div class="iftp-btn-lookpage__controls">
-						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-design" aria-labelledby="iftp-btn-tab-design" data-iftp-panel="design">
+						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-look" aria-labelledby="iftp-btn-tab-look" data-iftp-panel="look">
 							<?php ( new LookControls( 'look' ) )->render_cards( $this->settings->get_look(), true ); ?>
+						</div>
+						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-button" aria-labelledby="iftp-btn-tab-button" data-iftp-panel="button">
+							<?php $this->render_button(); ?>
 						</div>
 						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-messages" aria-labelledby="iftp-btn-tab-messages" data-iftp-panel="messages">
 							<?php $this->render_messages(); ?>
@@ -287,13 +302,50 @@ class CheckoutSettingsPage {
 					</div>
 					<aside class="iftp-btn-lookpage__aside">
 						<div class="iftp-btn-lookpage__sticky">
-							<?php ( new LookControls( 'look' ) )->render_preview( $this->settings->get_look(), $this->settings->get_confirmation() ); ?>
+							<div data-iftp-aside="look">
+								<?php ( new LookControls( 'look' ) )->render_preview( $this->settings->get_look(), $this->settings->get_confirmation() ); ?>
+							</div>
+							<section class="iftp-btn-preview" aria-labelledby="iftp-btn-preview-title" data-iftp-aside="button">
+								<?php DesignControls::render_stage( $this->settings->get_button_design(), CheckoutTexts::get( 'pay_now' ), self::preview_logos() ); ?>
+							</section>
 						</div>
 					</aside>
 				</div>
 			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * The Button tab: the design every button set to "Default design" wears.
+	 */
+	private function render_button(): void {
+		?>
+		<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-default-design">
+			<div class="iftp-btn-ecard__intro">
+				<h2 class="iftp-btn-ecard__title" id="iftp-btn-default-design"><?php esc_html_e( 'Default button design', 'ifthenpay-pay-button' ); ?></h2>
+				<p class="iftp-btn-ecard__description"><?php esc_html_e( 'Every button set to Default design wears this, so many buttons across your site look the same and change together. A button can still have its own in its Button design tab.', 'ifthenpay-pay-button' ); ?></p>
+			</div>
+			<div class="iftp-btn-ecard__body">
+				<?php ( new DesignControls( 'button_design', false ) )->render( $this->settings->get_button_design() ); ?>
+			</div>
+		</section>
+		<?php
+	}
+
+	/**
+	 * The payment logos under the Button tab's preview: the methods switched on in Gateway Configuration.
+	 */
+	private static function preview_logos(): string {
+		$html = '';
+
+		foreach ( ( new SettingsRepository() )->get_methods() as $method ) {
+			if ( $method['enabled'] && '' !== $method['account'] && '' !== (string) ( $method['logo'] ?? '' ) ) {
+				$html .= '<img src="' . esc_url( $method['logo'] ?? '' ) . '"' . ButtonRenderer::dark_logo_attr( $method ) . ' alt="" height="18" loading="lazy" />';
+			}
+		}
+
+		return $html;
 	}
 
 	/**

@@ -9,13 +9,16 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Buttons;
 
+use Ifthenpay\PayButton\Repository\CheckoutSettings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * A button either takes the theme's own button look or a custom one: style, colours, corners, border, size,
- * shadow, a hover effect, an attention effect and letter case. Icon, width and the method logos work with both.
+ * A button either takes the site's default design (Default Design › Button), the theme's own button look or a
+ * custom one: style, colours, corners, border, size, shadow, a hover effect, an attention effect and letter case.
+ * Icon, width and the method logos work with the theme's look and a custom one.
  * The custom look is a few CSS variables plus BEM modifiers, so checkout.css does the drawing and the admin
  * preview uses the exact same rules.
  *
@@ -23,13 +26,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class ButtonDesign {
 
+	public const SOURCE_SITE   = 'site';
 	public const SOURCE_THEME  = 'theme';
 	public const SOURCE_CUSTOM = 'custom';
-	public const SOURCES       = array( self::SOURCE_THEME, self::SOURCE_CUSTOM );
+	public const SOURCES       = array( self::SOURCE_SITE, self::SOURCE_THEME, self::SOURCE_CUSTOM );
 
-	public const VARIANTS      = array( 'filled', 'outline', 'soft', 'gradient', 'glass', '3d', 'neon', 'brutal', 'ghost' );
+	// What the site's default itself can be: it can't point at itself.
+	public const OWN_SOURCES = array( self::SOURCE_THEME, self::SOURCE_CUSTOM );
+
+	public const VARIANTS      = array( 'filled', 'outline', 'soft', 'gradient', 'aurora', 'split', 'halo', 'glass', '3d', 'neon', 'brutal', 'ghost' );
 	public const SIZES         = array( 'sm', 'md', 'lg' );
-	public const ICONS         = array( 'none', 'lock', 'card', 'arrow', 'heart' );
+	public const ICONS         = array( 'none', 'lock', 'card', 'arrow', 'heart', 'cart', 'gift', 'ticket', 'calendar', 'star', 'sparkles', 'paw', 'leaf' );
 	public const EFFECTS       = array( 'none', 'lift', 'grow', 'shine', 'glow', 'fill', 'nudge' );
 	public const ATTENTIONS    = array( 'none', 'pulse', 'ripple', 'heartbeat', 'wiggle', 'bounce', 'shimmer', 'breathe', 'orbit' );
 	public const BORDER_STYLES = array( 'solid', 'dashed', 'dotted', 'double' );
@@ -38,7 +45,7 @@ class ButtonDesign {
 	public const BORDER_MAX = 6;
 
 	// The styles drawn solid in the main colour, so their text goes black or white by contrast.
-	private const SOLID_VARIANTS = array( 'filled', 'glass', '3d', 'brutal' );
+	private const SOLID_VARIANTS = array( 'filled', 'split', 'halo', 'glass', '3d', 'brutal' );
 
 	// How far round the colour wheel a gradient's own second colour sits from the first.
 	public const GRADIENT_TURN = 40;
@@ -50,7 +57,7 @@ class ButtonDesign {
 	private const WHITE = '#ffffff';
 
 	/**
-	 * A new button's look: the theme's.
+	 * The site's default before anyone sets it: the theme's look.
 	 *
 	 * @return ButtonDesignConfig
 	 */
@@ -253,9 +260,60 @@ class ButtonDesign {
 				'effect'       => 'fill',
 				'upper'        => false,
 			),
+			'aurora'    => array(
+				'label'   => __( 'Aurora', 'ifthenpay-pay-button' ),
+				'variant' => 'aurora',
+				'color'   => '#7c3aed',
+				'color2'  => '#ec4899',
+				'text'    => '#ffffff',
+				'radius'  => self::PILL,
+				'size'    => 'lg',
+				'icon'    => 'sparkles',
+				'shadow'  => true,
+				'effect'  => 'grow',
+				'upper'   => false,
+			),
+			'split'     => array(
+				'label'   => __( 'Split', 'ifthenpay-pay-button' ),
+				'variant' => 'split',
+				'color'   => '#0f766e',
+				'color2'  => '#facc15',
+				'text'    => '',
+				'radius'  => 12,
+				'size'    => 'lg',
+				'icon'    => 'arrow',
+				'shadow'  => true,
+				'effect'  => 'nudge',
+				'upper'   => false,
+			),
+			'halo'      => array(
+				'label'     => __( 'Halo', 'ifthenpay-pay-button' ),
+				'variant'   => 'halo',
+				'color'     => '#e4505b',
+				'color2'    => '',
+				'text'      => '',
+				'radius'    => self::PILL,
+				'size'      => 'lg',
+				'icon'      => 'heart',
+				'shadow'    => false,
+				'effect'    => 'glow',
+				'attention' => 'breathe',
+				'upper'     => false,
+			),
 		);
 
 		return array_map( static fn( array $preset ): array => $preset + $base, $presets );
+	}
+
+	/**
+	 * The design a button shows: its own, or the site's default when it follows that.
+	 *
+	 * @param Button           $button   The button.
+	 * @param CheckoutSettings $settings Where the site's default is stored.
+	 * @return ButtonDesignConfig
+	 */
+	public static function for_button( Button $button, CheckoutSettings $settings ): array {
+		return self::SOURCE_SITE === $button->config['design']['source'] ? $settings->get_button_design() : $button->config['design'];
 	}
 
 	/**
@@ -376,15 +434,17 @@ class ButtonDesign {
 	 * @param string               $label  The text.
 	 */
 	public static function inner_html( array $design, string $label ): string {
-		$icon = self::icon( (string) $design['icon'] );
+		$split = 'split' === $design['variant'] && self::SOURCE_CUSTOM === $design['source'];
+		// Split's end block always holds an icon, an arrow when none is picked.
+		$icon = self::icon( $split && 'none' === $design['icon'] ? 'arrow' : (string) $design['icon'] );
 		$text = '<span class="iftp-btn-pay__label">' . esc_html( $label ) . '</span>';
 
 		if ( '' === $icon ) {
 			return $text;
 		}
 
-		// The arrow points onwards, so it goes after the text.
-		return 'arrow' === $design['icon'] ? $text . $icon : $icon . $text;
+		// The arrow points onwards, so it goes after the text; so does anything in split's end block.
+		return $split || 'arrow' === $design['icon'] ? $text . $icon : $icon . $text;
 	}
 
 	/**
@@ -394,10 +454,18 @@ class ButtonDesign {
 	 */
 	public static function icon( string $icon ): string {
 		$paths = array(
-			'lock'  => '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/>',
-			'card'  => '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h3"/>',
-			'arrow' => '<path d="M5 12h14M13 6l6 6-6 6"/>',
-			'heart' => '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+			'lock'     => '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/>',
+			'card'     => '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h3"/>',
+			'arrow'    => '<path d="M5 12h14M13 6l6 6-6 6"/>',
+			'heart'    => '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+			'cart'     => '<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.4 11a1.5 1.5 0 0 0 1.5 1.2h7.8a1.5 1.5 0 0 0 1.4-1.1L20 8H6.2"/>',
+			'gift'     => '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/>',
+			'ticket'   => '<path d="M3 9a2 2 0 0 0 0 6v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M14 5v2M14 11v2M14 17v2"/>',
+			'calendar' => '<rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/>',
+			'star'     => '<path d="m12 3 2.8 5.6 6.2.9-4.5 4.4 1 6.1-5.5-2.9-5.5 2.9 1-6.1L3 9.5l6.2-.9z"/>',
+			'sparkles' => '<path d="m11 3 1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="m19 15 .8 2.2 2.2.8-2.2.8L19 21l-.8-2.2-2.2-.8 2.2-.8z"/>',
+			'paw'      => '<circle cx="6.5" cy="10.5" r="1.8"/><circle cx="10" cy="6" r="1.8"/><circle cx="14.5" cy="6" r="1.8"/><circle cx="18" cy="10.5" r="1.8"/><path d="M8 17.6c0-2.6 1.9-4.8 4.2-4.8s4.2 2.2 4.2 4.8c0 1.5-1.2 2.6-2.7 2.6-.6 0-1-.3-1.5-.3s-.9.3-1.5.3C9.2 20.2 8 19.1 8 17.6z"/>',
+			'leaf'     => '<path d="M5 20c0-9 5.5-15 15-15 0 10-6 15-14 15"/><path d="M5 20c2.5-4.5 6-7.5 10-9.5"/>',
 		);
 
 		if ( ! isset( $paths[ $icon ] ) ) {
@@ -418,7 +486,7 @@ class ButtonDesign {
 			return (string) $design['text'];
 		}
 
-		if ( 'gradient' === $design['variant'] ) {
+		if ( in_array( $design['variant'], array( 'gradient', 'aurora' ), true ) ) {
 			return self::on_color( self::mix( (string) $design['color'], self::second_color( $design ) ) );
 		}
 
@@ -544,6 +612,9 @@ class ButtonDesign {
 			(int) $design['border_width'],
 			$design['border_style']
 		);
+
+		// What reads on the second colour, for split's end block.
+		$style .= ';--iftp-pb-on2:' . self::on_color( self::second_color( $design ) );
 
 		return '' !== $design['border_color'] ? $style . ';--iftp-pb-bc:' . $design['border_color'] : $style;
 	}

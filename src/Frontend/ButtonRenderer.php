@@ -69,6 +69,16 @@ class ButtonRenderer {
 	private static int $instances = 0;
 
 	/**
+	 * Whether the look CSS and the script data were added to the handles yet.
+	 *
+	 * @var array{style: bool, script: bool}
+	 */
+	private array $attached = array(
+		'style'  => false,
+		'script' => false,
+	);
+
+	/**
 	 * Sets up the renderer.
 	 *
 	 * @param SettingsRepository|null $settings          Gateway settings.
@@ -86,6 +96,9 @@ class ButtonRenderer {
 		// On init, not wp_enqueue_scripts: the block's style and the editor preview need the handles too.
 		add_action( 'init', array( $this, 'register_assets' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_for_result' ), 20 );
+		// I only build the look CSS and the script data on requests that actually print them.
+		add_filter( 'print_styles_array', array( $this, 'attach_look' ) );
+		add_filter( 'print_scripts_array', array( $this, 'attach_script_data' ) );
 	}
 
 	/**
@@ -96,10 +109,37 @@ class ButtonRenderer {
 		$css = 'assets/css/checkout.css';
 
 		wp_register_style( self::STYLE_HANDLE, IFTP_BTN_URL . $css, array(), Plugin::asset_version( $css ) );
-		// The site's checkout look, and the merchant's own CSS after it.
-		wp_add_inline_style( self::STYLE_HANDLE, CheckoutLook::css( $this->checkout_settings->get_look() ) );
 		wp_register_script( self::SCRIPT_HANDLE, IFTP_BTN_URL . $js, array( Plugin::METHOD_LOGOS_HANDLE, Plugin::VIDEO_LOOP_HANDLE ), Plugin::asset_version( $js ), true );
-		wp_localize_script( self::SCRIPT_HANDLE, 'iftpBtnCheckout', $this->script_data() );
+	}
+
+	/**
+	 * Adds the site's checkout look, and the merchant's own CSS after it, once the stylesheet is about to print.
+	 *
+	 * @param mixed $handles The styles about to print.
+	 * @return mixed
+	 */
+	public function attach_look( $handles ) {
+		if ( ! $this->attached['style'] && is_array( $handles ) && in_array( self::STYLE_HANDLE, $handles, true ) ) {
+			$this->attached['style'] = true;
+			wp_add_inline_style( self::STYLE_HANDLE, CheckoutLook::css( $this->checkout_settings->get_look() ) );
+		}
+
+		return $handles;
+	}
+
+	/**
+	 * Adds what checkout.js needs once the script is about to print.
+	 *
+	 * @param mixed $handles The scripts about to print.
+	 * @return mixed
+	 */
+	public function attach_script_data( $handles ) {
+		if ( ! $this->attached['script'] && is_array( $handles ) && in_array( self::SCRIPT_HANDLE, $handles, true ) ) {
+			$this->attached['script'] = true;
+			wp_localize_script( self::SCRIPT_HANDLE, 'iftpBtnCheckout', $this->script_data() );
+		}
+
+		return $handles;
 	}
 
 	/**
@@ -129,6 +169,7 @@ class ButtonRenderer {
 		global $wp_locale;
 
 		$confirmation = $this->checkout_settings->get_confirmation();
+		$look         = $this->checkout_settings->get_look();
 
 		return array(
 			'checkoutUrl' => esc_url_raw( rest_url( RestController::NAMESPACE . '/checkout' ) ),
@@ -140,10 +181,10 @@ class ButtonRenderer {
 			'resultSig'   => ReturnHandler::RESULT_SIG,
 			'messages'    => array_map( 'wp_kses_post', $confirmation['messages'] ),
 			'showDetails' => $confirmation['show_details'],
-			'popupIcon'   => $this->checkout_settings->get_look()['popup_icon'],
-			'scene'       => CheckoutLook::scene_classes( $this->checkout_settings->get_look() ),
-			'dark'        => '' !== CheckoutLook::dark_class( $this->checkout_settings->get_look() ),
-			'sceneVideo'  => CheckoutLook::scene_video( $this->checkout_settings->get_look() ),
+			'popupIcon'   => $look['popup_icon'],
+			'scene'       => CheckoutLook::scene_classes( $look ),
+			'dark'        => '' !== CheckoutLook::dark_class( $look ),
+			'sceneVideo'  => CheckoutLook::scene_video( $look ),
 			// So "Checking your payment" already wears the button's own look, not the site's for a second.
 			'resultLook'  => $this->returning_look(),
 			'logo'        => esc_url_raw( IFTP_BTN_URL . 'assets/img/logo-color.svg' ),
@@ -201,7 +242,7 @@ class ButtonRenderer {
 		self::enqueue();
 
 		$available = ( new CheckoutService( $this->settings ) )->availability( $button );
-		$design    = $button->config['design'];
+		$design    = ButtonDesign::for_button( $button, $this->checkout_settings );
 		$label     = $button->display_label( is_string( $args['label'] ?? null ) ? $args['label'] : '' );
 		$look      = ButtonDesign::attributes( $design );
 		$inner     = ButtonDesign::inner_html( $design, $label );

@@ -180,7 +180,16 @@ class RestController {
 	public function count_open( WP_REST_Request $request ): WP_REST_Response {
 		$button = $this->buttons->find( (int) $request->get_param( 'button' ) );
 
-		if ( null !== $button && $button->active ) {
+		if ( null === $button || ! $button->active ) {
+			return new WP_REST_Response( null, 204 );
+		}
+
+		// The route is public, so one address counts once per button every half hour; a script can't inflate the stats.
+		$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		$key = 'iftp_btn_open_' . md5( wp_salt() . $ip . '|' . $button->id );
+
+		if ( false === get_transient( $key ) ) {
+			set_transient( $key, 1, 30 * MINUTE_IN_SECONDS );
 			CheckoutOpens::record( $button->id );
 		}
 

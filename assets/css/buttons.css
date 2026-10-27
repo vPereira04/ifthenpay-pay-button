@@ -1826,6 +1826,32 @@ body.iftp-btn-screen .iftp-btn-tabs__tab[aria-selected="true"] {
 	background: var(--iftp-inset);
 }
 
+/* Icon, width and logos: they hide, together, while a button follows the default design. */
+.iftp-btn-design__shared {
+	display: grid;
+	gap: 16px;
+}
+
+/* "Save and make it the default", under a button's own design. */
+.iftp-btn-makedefault {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px 16px;
+	padding: 14px 16px;
+	border: 1px dashed var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+}
+
+.iftp-btn-makedefault__text {
+	flex: 1 1 260px;
+	margin: 0;
+	color: var(--iftp-ink-2);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
 .iftp-btn-design__grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2717,6 +2743,11 @@ body.iftp-btn-screen .iftp-btn-fb__chip--page {
 	margin-top: 16px;
 }
 
+/* As in the editor: the aside runs the form's full height, so the preview has room to stay in view. */
+.iftp-btn-lookpage__aside {
+	align-self: stretch;
+}
+
 .iftp-btn-csettings[data-tab="links"] .iftp-btn-lookpage {
 	grid-template-columns: minmax(0, 1fr);
 }
@@ -2729,9 +2760,22 @@ body.iftp-btn-screen .iftp-btn-fb__chip--page {
 	min-width: 0;
 }
 
+/* Under the sticky tab bar; taller than the screen, it scrolls on its own. */
 .iftp-btn-lookpage__sticky {
 	position: sticky;
 	top: 116px;
+	max-height: calc(100vh - 132px);
+	margin: -4px;
+	padding: 4px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: thin;
+}
+
+/* One preview at a time: the button's on the Button tab, the checkout's on the others. */
+.iftp-btn-csettings[data-tab="button"] [data-iftp-aside="look"],
+.iftp-btn-csettings:not([data-tab="button"]) [data-iftp-aside="button"] {
+	display: none;
 }
 
 .iftp-btn-lookpage .iftp-btn-panel {
@@ -2870,13 +2914,39 @@ body.iftp-btn-screen .iftp-btn-looksets__item:hover {
 	transform: translateY(-1px);
 }
 
+/* A tiny pay page: the look's real background (checkout.css's pagebg classes), with its card on top. */
 .iftp-btn-looksets__swatch {
+	position: relative;
+	display: grid;
+	padding: 14px 12px;
+	overflow: hidden;
+	border-radius: 10px;
+	box-shadow: inset 0 0 0 1px rgb(18 26 44 / 10%);
+	isolation: isolate;
+}
+
+.iftp-btn-looksets__bg {
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	overflow: hidden;
+	isolation: isolate;
+}
+
+/* Its effect layers belong to the swatch, not the admin's viewport. */
+body.iftp-btn-screen .iftp-btn-looksets__bg::before,
+body.iftp-btn-screen .iftp-btn-looksets__bg::after {
+	position: absolute;
+}
+
+.iftp-btn-looksets__card {
 	display: grid;
 	gap: 5px;
-	padding: 12px;
+	padding: 10px;
 	border-radius: var(--r);
-	background: var(--s);
-	box-shadow: inset 0 0 0 1px rgb(18 26 44 / 10%);
+	background: var(--iftp-card-bg);
+	box-shadow: 0 4px 12px rgb(0 0 0 / 12%), inset 0 0 0 1px rgb(255 255 255 / 14%);
+	backdrop-filter: var(--iftp-card-filter, none);
 }
 
 .iftp-btn-looksets__line {
@@ -3406,6 +3476,8 @@ body.iftp-btn-screen .iftp-btn-msg__raw {
 
 	.iftp-btn-lookpage__sticky {
 		position: static;
+		max-height: none;
+		overflow: visible;
 	}
 }
 

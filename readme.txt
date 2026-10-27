@@ -65,16 +65,16 @@ All settings are made in Pay Button in your WordPress admin and in your ifthenpa
 10. **Step 8 — Edit a question:** Click a question to edit its label, type, options, help text, whether it's required, and full or half width [1]. "Show this" asks it only when an earlier answer is (or isn't) one of the options you tick, e.g. a T-shirt size only for Supporter tickets [2] (screenshot 8).
 11. **Step 9 — Spots (optional):** Choose No limit, Limited spots, or Spots per option, where each option of one choice field gets its own spots and price [1]. Split by picks the Dropdown, Single choice or Multiple choice field whose options have spots [2]; each option gets its own spots and price [3]. Total spots is an optional cap across every option [4] (screenshot 9). "Payer picks how many" lets the payer choose a quantity, and "Say when few are left" shows "Only X left". An unpaid payment keeps its spot until its ifthenpay link expires.
 12. **Step 10 — Methods and Place it:** Under Payment methods, leave them all unticked to offer every method switched on in Gateway Configuration, or tick only the ones this button takes [1]. Copy the shortcode and paste it on any page or post [2], or share the pay link, the button's own pay page, for emails, social posts or a QR code [3]. In the block editor, add the "ifthenpay Pay Button" block and pick the button [4] (screenshot 10). The shortcode also takes `label` and `align` (left, center or right).
-13. **Step 11 — Checkout design:** Open the Checkout design tab [1]. Keep the site's look (Default Checkout › Design) or give this button its own look [2]. Start from a look, then change the colours, the card's opacity and glass blur, dark mode, corners and fields [3]. The preview follows every change: checkout, pay page and each popup, in light and dark [4] (screenshot 11).
+13. **Step 11 — Checkout design:** Open the Checkout design tab [1]. Keep the site's look (Default Design › Checkout) or give this button its own look [2]. Start from a look, then change the colours, the card's opacity and glass blur, dark mode, corners and fields [3]. The preview follows every change: checkout, pay page and each popup, in light and dark [4] (screenshot 11).
 14. **Step 12 — Page progress and pay page:** Page progress shows the steps of a long form in seven ways: bars, named bars, one line, numbers, dots, ring or just words [1]. Pay page sets what sits behind the checkout card: soft glow, gradient, plain, an image or a video (file, YouTube or Vimeo) [2]. Gradients come soft, aurora or diagonal, and an effect adds crystals, waves, bokeh or grain [3] (screenshot 12).
-15. **Step 13 — Button design:** Open the Button design tab [1] and write the Button text [2]. Choose Match my theme, or Custom: start from a preset, then pick the style (filled, outline, soft, gradient, glass, 3D, neon, brutal or ghost), colours, corners, border, size, hover and attention effects, and icon [3]. Click Save button [4] (screenshot 13).
-16. **Step 14 — After payment and invoicing:** Open the After payment tab [1]. When paid, use the Default Checkout setting, or a popup, a page or a URL just for this button [2]. Optionally, Send to your invoicing app sends each paid payment straight to InvoiceXpress, Moloni, Vendus, TOConline or any app with an API [3]: set the app's address, method, format, headers (e.g. your API key) and a body built from tags [4] (screenshot 14). If the app is down, it's tried again after 5 minutes, 30 minutes and 3 hours.
+15. **Step 13 — Button design:** Open the Button design tab [1] and write the Button text [2]. Choose Default design (the one in Default Design › Button, shared by every button that uses it), Match my theme, or Custom: start from a preset, then pick the style (filled, outline, soft, gradient, glass, 3D, neon, brutal or ghost), colours, corners, border, size, hover and attention effects, and icon [3]. Click Save button [4] (screenshot 13).
+16. **Step 14 — After payment and invoicing:** Open the After payment tab [1]. When paid, use the Default Design setting, or a popup, a page or a URL just for this button [2]. Optionally, Send to your invoicing app sends each paid payment straight to InvoiceXpress, Moloni, Vendus, TOConline or any app with an API [3]: set the app's address, method, format, headers (e.g. your API key) and a body built from tags [4] (screenshot 14). If the app is down, it's tried again after 5 minutes, 30 minutes and 3 hours.
 
 Optional extras:
 
 * **Connect another plugin:** In the button's Connect tab [1], tick the values the other plugin sends and swap each {tag} for that plugin's own merge tag, then copy the Redirect link into its "redirect after submit" setting [2]. Add a Webhook URL to get a signed JSON event when a payment is paid, fails or is cancelled (Zapier, Make, n8n…); Send a test checks it [3] (screenshot 15).
 * **Build or edit with AI:** Describe the button, or what to change, in your own words and send; Build with AI on the Buttons screen starts a new one, and Edit with AI in the editor changes this one. Each message is billed to your own AI account [1]. Or start from an idea [2]. The preview is the real pay page, redrawn after every answer, and never takes payments [3]. See it on Desktop or Phone, or at Full page [4] (screenshot 16). A button the AI builds goes live as soon as it's created, so check its prices first.
-* **Default checkout design:** Open Pay Button › Default Checkout [1]. Start from a look, then tweak the colours, shape, fonts, pay page background and Custom CSS [2]. The preview follows every change: checkout, pay page and each popup [3]. Click Save Settings [4] (screenshot 17).
+* **Default design:** Open Pay Button › Default Design [1]. Start from a look (each one sets the pay page background too), then tweak the colours, shape, fonts, pay page background and Custom CSS [2]. The preview follows every change: checkout, pay page and each popup [3]. Click Save Settings [4] (screenshot 17). The Button tab sets the default button design that every button set to Default design wears.
 * **Messages after paying:** In the Messages tab [1], choose what happens when paid: a popup message, a WordPress page or a custom URL [2]. Write the title and message for each outcome (Paid, Pending, Failed, Cancelled), with tags like {name} or {payment_id} [3] (screenshot 18).
 * **Texts:** In the Texts tab [1], rewrite any text the payer reads: buttons, labels, spots, the popup and the error messages, in any language. Blank keeps the original; keep the words in {braces} [2] (screenshot 19).
 * **Links & emails:** In the Links & emails tab [1], the Link base is the start of every pay link, e.g. /pay/your-button/ [2]. Switch on the Receipt to the payer [3] and Tell me about every payment [4], then click Save Settings [5] (screenshot 20).
@@ -127,7 +127,7 @@ Yes. `iftp_btn_payment_url( $button_id, array( 'amount' => 49.90, 'reference' =>
 
 = Can I change every word the payer sees? =
 
-Yes. Default Checkout › Texts rewrites every label, button and message of the checkout, in any language. The popups after payment are in Default Checkout › Messages.
+Yes. Default Design › Texts rewrites every label, button and message of the checkout, in any language. The popups after payment are in Default Design › Messages.
 
 = Is there a sandbox? =
 
@@ -186,7 +186,7 @@ This plugin integrates with the ifthenpay payment platform to process payments m
 
 **YouTube and Vimeo (optional)**
 
-* What it is and what it is used for: If you pick a YouTube or Vimeo link as the pay page's background video (Default Checkout › Design, or a button's Checkout design tab), the pay page and the checkout opened on it show that video in an embedded player: YouTube's privacy-enhanced youtube-nocookie.com player, or Vimeo's with Do Not Track on.
+* What it is and what it is used for: If you pick a YouTube or Vimeo link as the pay page's background video (Default Design › Checkout, or a button's Checkout design tab), the pay page and the checkout opened on it show that video in an embedded player: YouTube's privacy-enhanced youtube-nocookie.com player, or Vimeo's with Do Not Track on.
 * What data is sent and when: when a payer opens that pay page, or a checkout or popup over that background, their browser loads the player from YouTube or Vimeo, which receives the payer's IP address, browser details and the page it's shown on, as with any embedded video. Nothing about the payment is sent. A video you upload to your own Media Library is served from your site and sends nothing anywhere.
 * YouTube: [Terms of Service](https://www.youtube.com/t/terms), [Google Privacy Policy](https://policies.google.com/privacy)
 * Vimeo: [Terms of Service](https://vimeo.com/terms), [Privacy Policy](https://vimeo.com/privacy)
@@ -213,10 +213,10 @@ All network requests are performed server-side over HTTPS, except the logo image
 14. (Admin Only) Step 14: what happens after payment, and sending paid payments to your invoicing app
 15. (Admin Only) Optional: connect a form or booking plugin ifthenpay has no integration with
 16. (Admin Only) Optional: build or edit a button with AI
-17. (Admin Only) Default Checkout › Design: the look of every checkout, pay page and popup
-18. (Admin Only) Default Checkout › Messages: what the payer sees after paying
-19. (Admin Only) Default Checkout › Texts: every word the payer reads, in your own words or language
-20. (Admin Only) Default Checkout › Links & emails: pay link address and payment emails
+17. (Admin Only) Default Design › Checkout: the look of every checkout, pay page and popup
+18. (Admin Only) Default Design › Messages: what the payer sees after paying
+19. (Admin Only) Default Design › Texts: every word the payer reads, in your own words or language
+20. (Admin Only) Default Design › Links & emails: pay link address and payment emails
 21. (Admin Only) Payments: every payment, its status and the totals
 22. (Admin Only) A payment's details
 23. (Customers Experience) Pay buttons on a page

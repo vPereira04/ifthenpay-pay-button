@@ -11,6 +11,7 @@ namespace Ifthenpay\PayButton\Admin\Buttons;
 
 use Ifthenpay\PayButton\Admin\AiPanel;
 use Ifthenpay\PayButton\Admin\CheckoutSettingsPage;
+use Ifthenpay\PayButton\Admin\DesignControls;
 use Ifthenpay\PayButton\Admin\GatewaySettingsPage;
 use Ifthenpay\PayButton\Admin\LookControls;
 use Ifthenpay\PayButton\Ai\ButtonSchema;
@@ -300,11 +301,11 @@ class ButtonEditor {
 		// Until the button has its own, the controls start from the site's look.
 		$look  = $own ? $button->config['look'] : $this->checkout_settings->get_look();
 		$modes = array(
-			Button::LOOK_SITE => array( __( 'The site\'s look', 'ifthenpay-pay-button' ), __( 'Same as every other button, from Default Checkout › Design.', 'ifthenpay-pay-button' ) ),
+			Button::LOOK_SITE => array( __( 'The site\'s look', 'ifthenpay-pay-button' ), __( 'Same as every other button, from Default Design › Checkout.', 'ifthenpay-pay-button' ) ),
 			Button::LOOK_OWN  => array( __( 'Its own look', 'ifthenpay-pay-button' ), __( 'Colours, shape, pay page and popups just for this button.', 'ifthenpay-pay-button' ) ),
 		);
 
-		self::open_card( 'iftp-btn-ec-look', __( 'Checkout design', 'ifthenpay-pay-button' ), __( 'How this button\'s checkout, its pay page and the popups after paying look. Their words stay in Default Checkout › Messages.', 'ifthenpay-pay-button' ) );
+		self::open_card( 'iftp-btn-ec-look', __( 'Checkout design', 'ifthenpay-pay-button' ), __( 'How this button\'s checkout, its pay page and the popups after paying look. Their words stay in Default Design › Messages.', 'ifthenpay-pay-button' ) );
 		?>
 		<fieldset class="iftp-btn-segment iftp-btn-segment--two">
 			<legend class="screen-reader-text"><?php esc_html_e( 'Whose look it uses', 'ifthenpay-pay-button' ); ?></legend>
@@ -318,7 +319,7 @@ class ButtonEditor {
 		</fieldset>
 		<p class="iftp-btn-field__help" data-iftp-when-lookmode="site">
 			<?php esc_html_e( 'Change the site\'s look for every button at once:', 'ifthenpay-pay-button' ); ?>
-			<a href="<?php echo esc_url( CheckoutSettingsPage::url() ); ?>"><?php esc_html_e( 'Default Checkout › Design', 'ifthenpay-pay-button' ); ?></a>
+			<a href="<?php echo esc_url( CheckoutSettingsPage::url() ); ?>"><?php esc_html_e( 'Default Design › Checkout', 'ifthenpay-pay-button' ); ?></a>
 		</p>
 		<?php
 		self::close_card();
@@ -330,73 +331,17 @@ class ButtonEditor {
 	}
 
 	/**
-	 * The button's look: its text, the theme's style or a custom one, and the extras that work with both.
+	 * The button's look: its text, the site's default design, the theme's style or a custom one.
 	 *
 	 * @param Button $button The button.
 	 */
 	private function render_design( Button $button ): void {
-		$design     = $button->config['design'];
-		$custom     = ButtonDesign::SOURCE_CUSTOM === $design['source'];
-		$auto       = '' === $design['text'];
-		$auto2      = '' === $design['color2'];
-		$auto_bc    = '' === $design['border_color'];
-		$sources    = array(
-			ButtonDesign::SOURCE_THEME  => array( __( 'Match my theme', 'ifthenpay-pay-button' ), __( 'Looks like the other buttons on your site.', 'ifthenpay-pay-button' ) ),
-			ButtonDesign::SOURCE_CUSTOM => array( __( 'Custom', 'ifthenpay-pay-button' ), __( 'Your own colour, shape and size.', 'ifthenpay-pay-button' ) ),
-		);
-		$variants   = array(
-			'filled'   => __( 'Filled', 'ifthenpay-pay-button' ),
-			'outline'  => __( 'Outline', 'ifthenpay-pay-button' ),
-			'soft'     => __( 'Soft', 'ifthenpay-pay-button' ),
-			'gradient' => __( 'Gradient', 'ifthenpay-pay-button' ),
-			'glass'    => __( 'Glass', 'ifthenpay-pay-button' ),
-			'3d'       => __( '3D', 'ifthenpay-pay-button' ),
-			'neon'     => __( 'Neon', 'ifthenpay-pay-button' ),
-			'brutal'   => __( 'Brutal', 'ifthenpay-pay-button' ),
-			'ghost'    => __( 'Ghost', 'ifthenpay-pay-button' ),
-		);
-		$effects    = array(
-			'none'  => __( 'None', 'ifthenpay-pay-button' ),
-			'lift'  => __( 'Lift', 'ifthenpay-pay-button' ),
-			'grow'  => __( 'Grow', 'ifthenpay-pay-button' ),
-			'shine' => __( 'Shine', 'ifthenpay-pay-button' ),
-			'glow'  => __( 'Glow', 'ifthenpay-pay-button' ),
-			'fill'  => __( 'Fill', 'ifthenpay-pay-button' ),
-			'nudge' => __( 'Nudge', 'ifthenpay-pay-button' ),
-		);
-		$attentions = array(
-			'none'      => __( 'None', 'ifthenpay-pay-button' ),
-			'pulse'     => __( 'Pulse', 'ifthenpay-pay-button' ),
-			'ripple'    => __( 'Ripple', 'ifthenpay-pay-button' ),
-			'heartbeat' => __( 'Heartbeat', 'ifthenpay-pay-button' ),
-			'wiggle'    => __( 'Wiggle', 'ifthenpay-pay-button' ),
-			'bounce'    => __( 'Bounce', 'ifthenpay-pay-button' ),
-			'shimmer'   => __( 'Shimmer', 'ifthenpay-pay-button' ),
-			'breathe'   => __( 'Breathe', 'ifthenpay-pay-button' ),
-			'orbit'     => __( 'Orbit', 'ifthenpay-pay-button' ),
-		);
-		$borders    = array(
-			'solid'  => __( 'Solid', 'ifthenpay-pay-button' ),
-			'dashed' => __( 'Dashed', 'ifthenpay-pay-button' ),
-			'dotted' => __( 'Dotted', 'ifthenpay-pay-button' ),
-			'double' => __( 'Double', 'ifthenpay-pay-button' ),
-		);
-		$sizes      = array(
-			'sm' => __( 'Small', 'ifthenpay-pay-button' ),
-			'md' => __( 'Medium', 'ifthenpay-pay-button' ),
-			'lg' => __( 'Large', 'ifthenpay-pay-button' ),
-		);
-		$icons      = array(
-			'none'  => __( 'None', 'ifthenpay-pay-button' ),
-			'lock'  => __( 'Lock', 'ifthenpay-pay-button' ),
-			'card'  => __( 'Card', 'ifthenpay-pay-button' ),
-			'arrow' => __( 'Arrow', 'ifthenpay-pay-button' ),
-			'heart' => __( 'Heart', 'ifthenpay-pay-button' ),
-		);
-		$widths     = array(
-			'0' => __( 'Fit the text', 'ifthenpay-pay-button' ),
-			'1' => __( 'Full width', 'ifthenpay-pay-button' ),
-		);
+		$design = $button->config['design'];
+
+		// Following the default, the controls start from it, so Custom picks up where the default left off.
+		if ( ButtonDesign::SOURCE_SITE === $design['source'] ) {
+			$design = array( 'source' => ButtonDesign::SOURCE_SITE ) + $this->checkout_settings->get_button_design();
+		}
 
 		self::open_card( 'iftp-btn-ec-design', __( 'Button design', 'ifthenpay-pay-button' ), __( 'How the button looks on your pages. A block\'s own colour settings still win over these.', 'ifthenpay-pay-button' ) );
 		?>
@@ -405,241 +350,13 @@ class ButtonEditor {
 			<input type="text" class="iftp-btn-field__control" id="iftp-btn-label" name="config[label]" maxlength="60" value="<?php echo esc_attr( $button->config['label'] ); ?>" placeholder="<?php echo esc_attr( CheckoutTexts::get( 'pay_now' ) ); ?>" aria-describedby="iftp-btn-label-help" data-iftp-preview="label" />
 			<p class="iftp-btn-field__help" id="iftp-btn-label-help"><?php esc_html_e( 'A fixed amount is added after it when "Show the amount on the button" is on.', 'ifthenpay-pay-button' ); ?></p>
 		</div>
-
-		<fieldset class="iftp-btn-segment iftp-btn-segment--two">
-			<legend class="screen-reader-text"><?php esc_html_e( 'Where the look comes from', 'ifthenpay-pay-button' ); ?></legend>
-			<?php foreach ( $sources as $source => $labels ) : ?>
-				<label class="iftp-btn-segment__option">
-					<input type="radio" name="config[design][source]" value="<?php echo esc_attr( $source ); ?>" <?php checked( $design['source'], $source ); ?> data-iftp-design="source" />
-					<span class="iftp-btn-segment__title"><?php echo esc_html( $labels[0] ); ?></span>
-					<span class="iftp-btn-segment__hint"><?php echo esc_html( $labels[1] ); ?></span>
-				</label>
-			<?php endforeach; ?>
-		</fieldset>
-
-		<div class="iftp-btn-design" data-iftp-when-source="custom"<?php echo $custom ? '' : ' hidden'; ?>>
-			<div class="iftp-btn-field">
-				<span class="iftp-btn-field__label" id="iftp-btn-presets-label"><?php esc_html_e( 'Start from', 'ifthenpay-pay-button' ); ?></span>
-				<div class="iftp-btn-looks" role="group" aria-labelledby="iftp-btn-presets-label">
-					<?php foreach ( ButtonDesign::presets() as $key => $preset ) : ?>
-						<button type="button" class="iftp-btn-looks__item" data-iftp-preset="<?php echo esc_attr( $key ); ?>">
-							<span class="iftp-btn-looks__stage" aria-hidden="true">
-								<?php
-								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes.
-								echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( array_merge( ButtonDesign::defaults(), $preset, array( 'source' => ButtonDesign::SOURCE_CUSTOM ) ), __( 'Pay', 'ifthenpay-pay-button' ) ) . '</span>';
-								?>
-							</span>
-							<span class="iftp-btn-looks__name"><?php echo esc_html( $preset['label'] ); ?></span>
-						</button>
-					<?php endforeach; ?>
-				</div>
-			</div>
-
-			<div class="iftp-btn-design__grid">
-				<?php self::render_fx_picker( 'variant', __( 'Style', 'ifthenpay-pay-button' ), $variants, $design ); ?>
-
-				<div class="iftp-btn-field">
-					<label class="iftp-btn-field__label" for="iftp-btn-color"><?php esc_html_e( 'Colour', 'ifthenpay-pay-button' ); ?></label>
-					<span class="iftp-btn-color">
-						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( $design['color'] ); ?>" aria-label="<?php esc_attr_e( 'Pick the colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="iftp-btn-color" />
-						<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="iftp-btn-color" name="config[design][color]" value="<?php echo esc_attr( $design['color'] ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-design="color" />
-					</span>
-				</div>
-
-				<div class="iftp-btn-field" data-iftp-when-variant="gradient"<?php echo 'gradient' === $design['variant'] ? '' : ' hidden'; ?>>
-					<label class="iftp-btn-field__label" for="iftp-btn-color2"><?php esc_html_e( 'Second colour', 'ifthenpay-pay-button' ); ?></label>
-					<span class="iftp-btn-color<?php echo $auto2 ? ' is-auto' : ''; ?>" data-iftp-color2>
-						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( ButtonDesign::second_color( $design ) ); ?>" aria-label="<?php esc_attr_e( 'Pick the second colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="iftp-btn-color2" />
-						<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="iftp-btn-color2" name="config[design][color2]" value="<?php echo esc_attr( ButtonDesign::second_color( $design ) ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-design="color2" />
-					</span>
-					<label class="iftp-btn-check">
-						<input type="checkbox" name="config[design][color2_auto]" value="1" <?php checked( $auto2 ); ?> data-iftp-design="color2_auto" />
-						<?php esc_html_e( 'Pick it for me (a neighbouring shade)', 'ifthenpay-pay-button' ); ?>
-					</label>
-				</div>
-
-				<div class="iftp-btn-field">
-					<label class="iftp-btn-field__label" for="iftp-btn-text-color"><?php esc_html_e( 'Text colour', 'ifthenpay-pay-button' ); ?></label>
-					<span class="iftp-btn-color<?php echo $auto ? ' is-auto' : ''; ?>" data-iftp-text-color>
-						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( ButtonDesign::text_color( $design ) ); ?>" aria-label="<?php esc_attr_e( 'Pick the text colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="iftp-btn-text-color" />
-						<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="iftp-btn-text-color" name="config[design][text]" value="<?php echo esc_attr( ButtonDesign::text_color( $design ) ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-design="text" />
-					</span>
-					<label class="iftp-btn-check">
-						<input type="checkbox" name="config[design][text_auto]" value="1" <?php checked( $auto ); ?> data-iftp-design="text_auto" />
-						<?php esc_html_e( 'Pick it for me (best contrast)', 'ifthenpay-pay-button' ); ?>
-					</label>
-				</div>
-
-				<div class="iftp-btn-field">
-					<label class="iftp-btn-field__label" for="iftp-btn-radius"><?php esc_html_e( 'Corners', 'ifthenpay-pay-button' ); ?> <output class="iftp-btn-range__value" for="iftp-btn-radius" data-iftp-radius-out></output></label>
-					<span class="iftp-btn-range">
-						<span class="iftp-btn-range__end iftp-btn-range__end--square" aria-hidden="true"></span>
-						<input type="range" class="iftp-btn-range__input" id="iftp-btn-radius" name="config[design][radius]" min="0" max="<?php echo esc_attr( (string) ButtonDesign::PILL ); ?>" step="1" value="<?php echo esc_attr( (string) $design['radius'] ); ?>" data-iftp-design="radius" />
-						<span class="iftp-btn-range__end iftp-btn-range__end--pill" aria-hidden="true"></span>
-					</span>
-				</div>
-
-				<fieldset class="iftp-btn-field">
-					<legend class="iftp-btn-field__label"><?php esc_html_e( 'Size', 'ifthenpay-pay-button' ); ?></legend>
-					<span class="iftp-btn-seg">
-						<?php foreach ( $sizes as $size => $label ) : ?>
-							<label class="iftp-btn-seg__option">
-								<input type="radio" name="config[design][size]" value="<?php echo esc_attr( $size ); ?>" <?php checked( $design['size'], $size ); ?> data-iftp-design="size" />
-								<span><?php echo esc_html( $label ); ?></span>
-							</label>
-						<?php endforeach; ?>
-					</span>
-				</fieldset>
-			</div>
-
-			<div class="iftp-btn-design__grid">
-				<div class="iftp-btn-field">
-					<label class="iftp-btn-field__label" for="iftp-btn-border-width"><?php esc_html_e( 'Border', 'ifthenpay-pay-button' ); ?> <output class="iftp-btn-range__value" for="iftp-btn-border-width" data-iftp-border-out></output></label>
-					<span class="iftp-btn-range">
-						<input type="range" class="iftp-btn-range__input" id="iftp-btn-border-width" name="config[design][border_width]" min="0" max="<?php echo esc_attr( (string) ButtonDesign::BORDER_MAX ); ?>" step="1" value="<?php echo esc_attr( (string) $design['border_width'] ); ?>" data-iftp-design="border_width" />
-					</span>
-				</div>
-
-				<fieldset class="iftp-btn-field">
-					<legend class="iftp-btn-field__label"><?php esc_html_e( 'Border line', 'ifthenpay-pay-button' ); ?></legend>
-					<span class="iftp-btn-seg">
-						<?php foreach ( $borders as $border => $label ) : ?>
-							<label class="iftp-btn-seg__option">
-								<input type="radio" name="config[design][border_style]" value="<?php echo esc_attr( $border ); ?>" <?php checked( $design['border_style'], $border ); ?> data-iftp-design="border_style" />
-								<span><?php echo esc_html( $label ); ?></span>
-							</label>
-						<?php endforeach; ?>
-					</span>
-					<p class="iftp-btn-field__help"><?php esc_html_e( 'Double shows from 3 px.', 'ifthenpay-pay-button' ); ?></p>
-				</fieldset>
-
-				<div class="iftp-btn-field">
-					<label class="iftp-btn-field__label" for="iftp-btn-border-color"><?php esc_html_e( 'Border colour', 'ifthenpay-pay-button' ); ?></label>
-					<span class="iftp-btn-color<?php echo $auto_bc ? ' is-auto' : ''; ?>" data-iftp-border-color>
-						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( $auto_bc ? $design['color'] : $design['border_color'] ); ?>" aria-label="<?php esc_attr_e( 'Pick the border colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="iftp-btn-border-color" />
-						<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="iftp-btn-border-color" name="config[design][border_color]" value="<?php echo esc_attr( $auto_bc ? $design['color'] : $design['border_color'] ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-design="border_color" />
-					</span>
-					<label class="iftp-btn-check">
-						<input type="checkbox" name="config[design][border_color_auto]" value="1" <?php checked( $auto_bc ); ?> data-iftp-design="border_color_auto" />
-						<?php esc_html_e( 'Use the style\'s own', 'ifthenpay-pay-button' ); ?>
-					</label>
-				</div>
-			</div>
-
-			<label class="iftp-btn-np__toggle">
-				<input type="hidden" name="config[design][shadow]" value="0" />
-				<input type="checkbox" class="iftp-btn-switch" name="config[design][shadow]" value="1" <?php checked( $design['shadow'] ); ?> data-iftp-design="shadow" />
-				<span class="iftp-btn-np__toggle-text">
-					<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Soft shadow', 'ifthenpay-pay-button' ); ?></span>
-					<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'A glow in the button\'s colour that lifts a little on hover.', 'ifthenpay-pay-button' ); ?></span>
-				</span>
-			</label>
-
-			<?php
-			self::render_fx_picker( 'effect', __( 'On hover', 'ifthenpay-pay-button' ), $effects, $design, __( 'What it does when the pointer is on it. Point at a sample to see it. Nudge moves the icon, so pick one below.', 'ifthenpay-pay-button' ) );
-			self::render_fx_picker( 'attention', __( 'Catch the eye', 'ifthenpay-pay-button' ), $attentions, $design, __( 'Keeps going on its own to draw attention, and rests while the button is hovered. Payers who turn motion off get a still button.', 'ifthenpay-pay-button' ) );
-			?>
-
-			<label class="iftp-btn-np__toggle">
-				<input type="hidden" name="config[design][upper]" value="0" />
-				<input type="checkbox" class="iftp-btn-switch" name="config[design][upper]" value="1" <?php checked( $design['upper'] ); ?> data-iftp-design="upper" />
-				<span class="iftp-btn-np__toggle-text">
-					<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Capital letters', 'ifthenpay-pay-button' ); ?></span>
-					<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'PAY NOW, a little spaced out.', 'ifthenpay-pay-button' ); ?></span>
-				</span>
-			</label>
+		<?php ( new DesignControls( 'config[design]', true ) )->render( $design ); ?>
+		<div class="iftp-btn-makedefault" data-iftp-when-source="theme custom"<?php echo ButtonDesign::SOURCE_SITE === $design['source'] ? ' hidden' : ''; ?>>
+			<p class="iftp-btn-makedefault__text"><?php esc_html_e( 'Like it? Make it the default design: every button set to Default design wears it, and this one switches to it.', 'ifthenpay-pay-button' ); ?></p>
+			<button type="submit" class="iftp-btn-btn iftp-btn-btn--secondary" name="make_default" value="1"><?php esc_html_e( 'Save and make it the default', 'ifthenpay-pay-button' ); ?></button>
 		</div>
-
-		<div class="iftp-btn-design__grid">
-			<fieldset class="iftp-btn-field iftp-btn-design__wide">
-				<legend class="iftp-btn-field__label"><?php esc_html_e( 'Icon', 'ifthenpay-pay-button' ); ?></legend>
-				<span class="iftp-btn-seg iftp-btn-seg--icons">
-					<?php foreach ( $icons as $icon => $label ) : ?>
-						<label class="iftp-btn-seg__option">
-							<input type="radio" name="config[design][icon]" value="<?php echo esc_attr( $icon ); ?>" <?php checked( $design['icon'], $icon ); ?> data-iftp-design="icon" />
-							<span>
-								<span class="iftp-btn-seg__icon" data-iftp-icon-svg="<?php echo esc_attr( $icon ); ?>"><?php echo ButtonDesign::icon( $icon ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
-								<?php echo esc_html( $label ); ?>
-							</span>
-						</label>
-					<?php endforeach; ?>
-				</span>
-			</fieldset>
-
-			<fieldset class="iftp-btn-field iftp-btn-design__wide">
-				<legend class="iftp-btn-field__label"><?php esc_html_e( 'Width', 'ifthenpay-pay-button' ); ?></legend>
-				<span class="iftp-btn-seg">
-					<?php foreach ( $widths as $width => $label ) : ?>
-						<label class="iftp-btn-seg__option">
-							<input type="radio" name="config[design][full]" value="<?php echo esc_attr( (string) $width ); ?>" <?php checked( $design['full'] ? '1' : '0', (string) $width ); ?> data-iftp-design="full" />
-							<span><?php echo esc_html( $label ); ?></span>
-						</label>
-					<?php endforeach; ?>
-				</span>
-			</fieldset>
-		</div>
-
-		<label class="iftp-btn-np__toggle">
-			<input type="hidden" name="config[design][logos]" value="0" />
-			<input type="checkbox" class="iftp-btn-switch" name="config[design][logos]" value="1" <?php checked( $design['logos'] ); ?> data-iftp-design="logos" />
-			<span class="iftp-btn-np__toggle-text">
-				<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Show the payment logos under the button', 'ifthenpay-pay-button' ); ?></span>
-				<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Payers see how they can pay before they click. Uses the methods this button offers.', 'ifthenpay-pay-button' ); ?></span>
-			</span>
-		</label>
 		<?php
 		self::close_card();
-	}
-
-	/**
-	 * A row of tiles, each a radio with a small live sample of the button wearing that choice. buttons.js
-	 * redraws the samples in the current colours.
-	 *
-	 * @param string                $key     The design key the radios set.
-	 * @param string                $legend  The field's name.
-	 * @param array<string, string> $options Value => label.
-	 * @param array<string, mixed>  $design  The current design.
-	 * @param string                $help    A line under the tiles.
-	 */
-	private static function render_fx_picker( string $key, string $legend, array $options, array $design, string $help = '' ): void {
-		$help_id = 'iftp-btn-fx-' . $key . '-help';
-		?>
-		<fieldset class="iftp-btn-field iftp-btn-design__wide"<?php echo '' !== $help ? ' aria-describedby="' . esc_attr( $help_id ) . '"' : ''; ?>>
-			<legend class="iftp-btn-field__label"><?php echo esc_html( $legend ); ?></legend>
-			<span class="iftp-btn-fxpick<?php echo 'effect' === $key ? ' iftp-btn-fxpick--hover' : ''; ?>">
-				<?php foreach ( $options as $value => $label ) : ?>
-					<?php
-					// A calm sample: only the choice this row is about moves.
-					$sample = array_merge(
-						$design,
-						array(
-							'source'    => ButtonDesign::SOURCE_CUSTOM,
-							'size'      => 'sm',
-							'full'      => false,
-							'effect'    => 'none',
-							'attention' => 'none',
-							$key        => $value,
-						)
-					);
-
-					if ( 'nudge' === $value && 'none' === $sample['icon'] ) {
-						$sample['icon'] = 'arrow';
-					}
-					?>
-					<label class="iftp-btn-fxpick__item">
-						<input type="radio" name="config[design][<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $value ); ?>" <?php checked( $design[ $key ], $value ); ?> data-iftp-design="<?php echo esc_attr( $key ); ?>" />
-						<span class="iftp-btn-fxpick__stage" aria-hidden="true" data-iftp-fx-sample="<?php echo esc_attr( $key ); ?>" data-iftp-fx-value="<?php echo esc_attr( $value ); ?>">
-							<?php echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( $sample, __( 'Pay', 'ifthenpay-pay-button' ) ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes. ?>
-						</span>
-						<span class="iftp-btn-fxpick__name"><?php echo esc_html( $label ); ?></span>
-					</label>
-				<?php endforeach; ?>
-			</span>
-			<?php if ( '' !== $help ) : ?>
-				<p class="iftp-btn-field__help" id="<?php echo esc_attr( $help_id ); ?>"><?php echo esc_html( $help ); ?></p>
-			<?php endif; ?>
-		</fieldset>
-		<?php
 	}
 
 	/**
@@ -935,17 +652,17 @@ class ButtonEditor {
 	 * @param array<string, mixed> $config The button's config.
 	 */
 	private function render_after( array $config ): void {
-		self::open_card( 'iftp-btn-ec-after', __( 'After payment', 'ifthenpay-pay-button' ), __( 'Failed, cancelled and pending outcomes always show the popup set in Default Checkout.', 'ifthenpay-pay-button' ) );
+		self::open_card( 'iftp-btn-ec-after', __( 'After payment', 'ifthenpay-pay-button' ), __( 'Failed, cancelled and pending outcomes always show the popup set in Default Design.', 'ifthenpay-pay-button' ) );
 		?>
 		<div class="iftp-btn-field">
 			<label class="iftp-btn-field__label" for="iftp-btn-paid-redirect"><?php esc_html_e( 'When paid', 'ifthenpay-pay-button' ); ?></label>
 			<select class="iftp-btn-field__control" id="iftp-btn-paid-redirect" name="config[paid_redirect]" data-iftp-paid-type>
-				<option value="" <?php selected( $config['paid_redirect'], '' ); ?>><?php esc_html_e( 'Use the Default Checkout setting', 'ifthenpay-pay-button' ); ?></option>
+				<option value="" <?php selected( $config['paid_redirect'], '' ); ?>><?php esc_html_e( 'Use the Default Design setting', 'ifthenpay-pay-button' ); ?></option>
 				<option value="popup" <?php selected( $config['paid_redirect'], 'popup' ); ?>><?php esc_html_e( 'Show the thank-you popup', 'ifthenpay-pay-button' ); ?></option>
 				<option value="page" <?php selected( $config['paid_redirect'], 'page' ); ?>><?php esc_html_e( 'Go to a page on this site', 'ifthenpay-pay-button' ); ?></option>
 				<option value="url" <?php selected( $config['paid_redirect'], 'url' ); ?>><?php esc_html_e( 'Go to an address', 'ifthenpay-pay-button' ); ?></option>
 			</select>
-			<p class="iftp-btn-field__help"><a href="<?php echo esc_url( CheckoutSettingsPage::url() ); ?>"><?php esc_html_e( 'Edit the popup messages in Default Checkout', 'ifthenpay-pay-button' ); ?></a></p>
+			<p class="iftp-btn-field__help"><a href="<?php echo esc_url( CheckoutSettingsPage::url( 'messages' ) ); ?>"><?php esc_html_e( 'Edit the popup messages in Default Design', 'ifthenpay-pay-button' ); ?></a></p>
 		</div>
 		<div class="iftp-btn-field" data-iftp-when-paid="page">
 			<label class="iftp-btn-field__label" for="iftp-btn-paid-page"><?php esc_html_e( 'Page', 'ifthenpay-pay-button' ); ?></label>
@@ -1195,23 +912,9 @@ class ButtonEditor {
 	 * @param Button $button The button.
 	 */
 	private function render_preview( Button $button ): void {
-		$design = $button->config['design'];
 		?>
 		<section class="iftp-btn-preview" aria-labelledby="iftp-btn-preview-title">
-			<div class="iftp-btn-preview__head">
-				<h2 class="iftp-btn-preview__title" id="iftp-btn-preview-title"><?php esc_html_e( 'Preview', 'ifthenpay-pay-button' ); ?></h2>
-				<span class="iftp-btn-stagebg" role="group" aria-label="<?php esc_attr_e( 'Preview background', 'ifthenpay-pay-button' ); ?>">
-					<button type="button" class="iftp-btn-stagebg__option" data-iftp-stage-bg="light" aria-pressed="true"><span class="screen-reader-text"><?php esc_html_e( 'Light background', 'ifthenpay-pay-button' ); ?></span></button>
-					<button type="button" class="iftp-btn-stagebg__option iftp-btn-stagebg__option--dark" data-iftp-stage-bg="dark" aria-pressed="false"><span class="screen-reader-text"><?php esc_html_e( 'Dark background', 'ifthenpay-pay-button' ); ?></span></button>
-				</span>
-			</div>
-			<div class="iftp-btn-preview__stage" data-iftp-stage data-bg="light">
-				<span class="iftp-btn-pay iftp-btn-preview__pay" data-iftp-preview-button>
-					<?php echo ButtonDesign::preview_markup( $design, $button->display_label() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes. ?>
-				</span>
-				<span class="iftp-btn-pay__logos" data-iftp-preview-logos hidden></span>
-			</div>
-			<p class="iftp-btn-preview__note" data-iftp-theme-note<?php echo ButtonDesign::SOURCE_CUSTOM === $design['source'] ? ' hidden' : ''; ?>><?php esc_html_e( 'A close guess: on your pages it takes your theme\'s exact button style.', 'ifthenpay-pay-button' ); ?></p>
+			<?php DesignControls::render_stage( ButtonDesign::for_button( $button, $this->checkout_settings ), $button->display_label() ); ?>
 			<?php $own = CheckoutLook::inline_style( $button ); ?>
 			<div class="iftp-btn-preview__sheet iftp-btn-look" aria-hidden="true" data-iftp-look-mirror<?php echo '' !== $own ? ' style="' . esc_attr( $own ) . '"' : ''; ?>>
 				<div class="iftp-btn-form iftp-btn-form--preview">

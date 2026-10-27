@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Ai;
 
+use Ifthenpay\PayButton\Buttons\ButtonDesign;
+use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Repository\CheckoutSettings;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -52,9 +54,26 @@ class Prompt {
 				'- Half width for short pairs: date and time, postcode and city.',
 				'- Labels are short and friendly; placeholders show an example; help text only when it saves confusion. A text block can set expectations ("We deliver Tuesday to Saturday in Lisbon").',
 				'- The title names the thing being paid for ("Bouquet order", "Yoga class – 10 sessions"), never "Form" or "Payment".',
-				'- Give it a look that fits the subject: colours from the topic (flowers: rose and leaf green; spa: sage and sand; tech: indigo and violet; kids: warm and playful), a matching button, and a pay page with a gradient or a pattern (bokeh, waves, crystals or grain). For a new button set checkout.own to true, unless the merchant wants the site\'s look.',
-				'- Keep text readable: ink on surface and the button text on its colour need strong contrast. Light surfaces unless the merchant asks for a dark look.',
 				'- When the merchant gives no prices, pick realistic ones for Portugal in euros and say in the reply that they are examples to check.',
+				'',
+				'# Design',
+				'The look sells as much as the form. Design three parts as one piece: the button, the checkout card and the pay page background.',
+				'- A new button always gets its own design: button.source "custom" and checkout.own true, unless the merchant asks for the site\'s look. The current values of a new button are plain defaults, not choices to keep, so replace them.',
+				'- When the merchant asks for a different feel ("more elegant", "make it pop", "darker"), change all three parts so the difference is obvious, not just one colour.',
+				'- Pick one direction that fits the subject and commit to it, so buttons don\'t all look alike: airy (light tinted card, pale gradient, filled pill button); rich (a clearly tinted card such as #fff1dc for amber, a saturated gradient, glass card, gradient button); dark and glowing (dark surface like #1a1426 with light ink, dark pay_color, neon or glass button with glow); editorial (paper surface, grain, sharp corners, underline fields, brutal or outline button). Pure white #ffffff cards only for the airy direction.',
+				'- Then one palette: a main colour (accent, and usually button.color), the surface tinted towards it (or dark), ink in the same hue with strong contrast, pay_color and pay_color2 a neighbouring or complementary hue. The pay page must have presence: pay_color2 clearly saturated, never two near-whites. Examples: flowers rose #c93f7d with leaf green; spa sage #6b8f71 with sand; coffee espresso #6f4e37 with cream; tech indigo #5b5bd6 with violet; sea #0077b6 with aqua; kids coral and sunny yellow; luxury near-black with gold #c9a227.',
+				'- Pay page: vary it from button to button; never default to the same recipe. Backgrounds: glow (soft light from the accent), plain (one colour) or gradient, and among gradients soft for calm, aurora for dreamy, diagonal for bold and energetic. A pattern is optional: about half of good looks have none, and a clean gradient or glow with no pattern is often the most elegant. When one fits, choose by subject: bokeh for celebrations, beauty and events; waves for sea, wellness and calm; crystals for tech, design and premium; grain for craft, food, paper and vintage. Vary its scale too: pay_fx_size 60 to 120 is fine and dense, 200 to 400 large and soft; strength 20 to 35 is a hint, 50 to 70 a statement.',
+				'- Over a gradient or a pattern, a glass card (card_opacity 72 to 90, card_blur 14 to 20) looks rich; keep 100 on a plain page.',
+				'- Shape follows mood: soft and friendly is radius 24 to 32 with soft fields; classic and serious is 8 to 16 with outline fields; editorial or brutal is 0 to 6 with underline fields.',
+				'- The button is the hero, so design it, never a plain filled button with nothing else. It uses the accent and fits the card\'s roundness, and combines at least three of these: a stronger variant (gradient, aurora, split, halo, 3d, glass, neon or brutal), an icon that fits the subject, a hover effect, an attention effect, a styled border (border_width 2 to 4, a contrasting border_color, dashed or double for playful or retro), capitals for short labels, size lg.',
+				'- Variants by mood: aurora for creative, beauty, music and anything that should feel alive (skip attention effects that move the button, they stop the drift); split for shops, bookings and clear actions (color2 a strong contrast, e.g. teal with yellow, navy with coral); halo for warm, friendly, donations and wellness; gradient for lively and modern (color2 a clearly different neighbouring hue, e.g. coral into amber, violet into pink, teal into lime; not just a lighter shade); 3d for playful, kids, food and games; glass over rich or dark pages; neon only on dark looks; brutal with corners 0 to 8, a paper feel and a bright colour; filled only together with a styled border, an icon and an effect; outline or ghost only for calm, secondary buttons. Radius varies with the look: 32 for soft, 10 to 16 for classic, 0 to 6 for editorial.',
+				'- Hover: shine, glow, grow or fill catch more than lift; nudge only with an icon. Attention: a subtle breathe or shimmer suits most buttons; pulse, heartbeat, ripple, bounce, wiggle or orbit when it must shout (donations, sales, tickets, kids). Contrast: on a saturated or dark button colour set button.text to #ffffff; on a light or yellow one, a dark ink.',
+				'- Dark looks (surface and ink swapped) suit nightlife, gaming, luxury and tech; then use a dark pay_color too, and neon or glass buttons.',
+				'- Turn scene on for events, tickets and anything with a strong background, so the checkout opens full screen on it. Pick a steps style that fits: numbers or labels for long forms, dots or line for playful ones.',
+				'- Keep text readable: ink on surface and the button text on its colour need strong contrast; check them every time.',
+				'- These ready-made looks are known to work well. Use them as starting points and adapt the colours to the subject; don\'t copy one unchanged.',
+				'  Checkout looks: ' . self::presets( CheckoutLook::presets() ),
+				'  Buttons: ' . self::presets( ButtonDesign::presets() ),
 				'',
 				'# Rules',
 				'- Always return the whole button. Change what the merchant asked for and what has to follow from it; keep everything else exactly as it is in the current button.',
@@ -73,6 +92,21 @@ class Prompt {
 				'- The site\'s own checkout look (used when checkout.own is false): accent ' . $look['accent'] . ', surface ' . $look['surface'] . ', ink ' . $look['ink'] . ', pay page ' . $look['pay_bg'] . ( 'none' !== $look['pay_fx'] ? ' with ' . $look['pay_fx'] : '' ) . '.',
 			)
 		);
+	}
+
+	/**
+	 * Ready-made looks as compact JSON, keyed by name.
+	 *
+	 * @param array<string, array<string, mixed>> $presets The presets.
+	 */
+	private static function presets( array $presets ): string {
+		$named = array();
+
+		foreach ( $presets as $preset ) {
+			$named[ (string) $preset['label'] ] = array_diff_key( $preset, array( 'label' => true ) );
+		}
+
+		return (string) wp_json_encode( $named, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 	}
 
 	/**

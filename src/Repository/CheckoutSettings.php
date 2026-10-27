@@ -1,6 +1,6 @@
 <?php
 /**
- * Checkout settings storage: confirmation, look, texts, pay links, receipts, link signing.
+ * Checkout settings storage: confirmation, look, button design, texts, pay links, receipts, link signing.
  *
  * @package Ifthenpay\PayButton
  */
@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Repository;
 
+use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,6 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @phpstan-type Confirmation array{paid_type: string, paid_page: int, paid_url: string, show_details: bool, messages: array{paid: string, pending: string, failed: string, cancelled: string}, titles: array{paid: string, pending: string, failed: string, cancelled: string}}
  * @phpstan-import-type Look from CheckoutLook
+ * @phpstan-import-type ButtonDesignConfig from ButtonDesign
  */
 class CheckoutSettings {
 
@@ -36,6 +38,7 @@ class CheckoutSettings {
 	private const OPTION_SIGNING_SECRET = 'iftp_btn_signing_secret';
 	private const OPTION_LOOK           = 'iftp_btn_checkout_look';
 	private const OPTION_TEXTS          = 'iftp_btn_checkout_texts';
+	private const OPTION_BUTTON_DESIGN  = 'iftp_btn_button_design';
 
 	/**
 	 * The default popup message per outcome.
@@ -132,6 +135,41 @@ class CheckoutSettings {
 	public function set_look( array $look ): void {
 		// Autoloaded: every page with a button prints it.
 		update_option( self::OPTION_LOOK, $look, true );
+	}
+
+	/**
+	 * The button design every button set to "Default design" wears, every key filled in.
+	 *
+	 * @return ButtonDesignConfig
+	 */
+	public function get_button_design(): array {
+		return self::own_design( ButtonDesign::sanitize( get_option( self::OPTION_BUTTON_DESIGN, array() ) ) );
+	}
+
+	/**
+	 * Stores the default button design.
+	 *
+	 * @param array<string, mixed> $design A sanitized design.
+	 * @phpstan-param ButtonDesignConfig $design
+	 */
+	public function set_button_design( array $design ): void {
+		// Autoloaded: every page with a button reads it.
+		update_option( self::OPTION_BUTTON_DESIGN, self::own_design( $design ), true );
+	}
+
+	/**
+	 * The default can't follow itself, so "site" there means the theme's look.
+	 *
+	 * @param array<string, mixed> $design A sanitized design.
+	 * @phpstan-param ButtonDesignConfig $design
+	 * @return ButtonDesignConfig
+	 */
+	private static function own_design( array $design ): array {
+		if ( ! in_array( $design['source'], ButtonDesign::OWN_SOURCES, true ) ) {
+			$design['source'] = ButtonDesign::SOURCE_THEME;
+		}
+
+		return $design;
 	}
 
 	/**
@@ -271,7 +309,7 @@ class CheckoutSettings {
 	 * Removes every checkout option. Used on uninstall.
 	 */
 	public function delete_all(): void {
-		foreach ( array( self::OPTION_CONFIRMATION, self::OPTION_PAY_BASE, self::OPTION_RECEIPT_PAYER, self::OPTION_NOTIFY_ADMIN, self::OPTION_NOTIFY_EMAIL, self::OPTION_SIGNING_SECRET, self::OPTION_LOOK, self::OPTION_TEXTS ) as $option ) {
+		foreach ( array( self::OPTION_CONFIRMATION, self::OPTION_PAY_BASE, self::OPTION_RECEIPT_PAYER, self::OPTION_NOTIFY_ADMIN, self::OPTION_NOTIFY_EMAIL, self::OPTION_SIGNING_SECRET, self::OPTION_LOOK, self::OPTION_TEXTS, self::OPTION_BUTTON_DESIGN ) as $option ) {
 			delete_option( $option );
 		}
 	}

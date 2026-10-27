@@ -10,6 +10,8 @@ Initial public release.
 
 - Payment links always stay open for Gateway Configuration › **Expiry days**; the per-button "Link stays open (days)" setting is gone.
 - The "Checking your payment" popup wears the paying button's own look from the start, instead of the site's look until the status came back.
+- The **Default Checkout** screen is now **Default Design**, with Checkout, Button, Messages, Texts and Links & emails tabs. Its preview stays in view while the page scrolls.
+- The looks to **start from** set the pay page background too (colour, gradient, effect and the card's glass), not only the colours and shape.
 
 ### Added
 
@@ -18,6 +20,8 @@ Initial public release.
 - Checkout form builder: name, email, phone, tax number (NIF) and note as Off, Optional or Required, plus custom questions (short text, paragraph, email, phone, number, date, dropdown, single choice, multiple choice, agreement, text block) and page breaks with a step bar.
 - **Spots**: No limit, Limited spots, or Spots per option with a price per option, an optional total, a quantity picker, "Only X left" and sold-out states. An unpaid payment holds its spot until its ifthenpay link expires.
 - Button design: match the theme's buttons or a custom style (presets, colours, corners, border, size, icon, width, shadow, payment logos under the button). Custom styles are Filled, Outline, Soft, **Gradient** (with a second colour, or one picked for you), **Glass**, **3D**, **Neon**, **Brutal** and **Ghost**, picked from tiles that show each one in your colours. Presets: ifthenpay, Midnight, Outline, Soft, Ruby, Bold, Sunset, Glass, Candy, Neon, Brutal and Dashed.
+- **Default button design** (Default Design › Button): buttons set to **Default design**, as new buttons are, all wear it and change together. **Save and make it the default** on a button's own design makes it the default.
+- Seven more checkout looks to start from: **Ocean**, **Sunset**, **Prism**, **Blossom**, **Neon**, **Noir** and **Latte**. The swatches show each look's background.
 - Button **border**: width (0–6 px), line (solid, dashed, dotted or double) and its own colour, or the style's.
 - Button **hover effects**: Lift, Grow, Shine, Glow, Fill (the colour sweeps in) or Nudge (the arrow slides, other icons wiggle).
 - Button **attention effects** that loop to catch the eye and rest while the button is hovered: Pulse, Ripple, Heartbeat, Wiggle, Bounce, Shimmer, Breathe or Orbit (a spark running round the edge). Payers who turn motion off get a still button. A button saved with the old Pulse effect keeps pulsing.

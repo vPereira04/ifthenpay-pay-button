@@ -257,6 +257,61 @@
 	background-position: 100% 0;
 }
 
+/* Moving gradient: the two colours drift slowly back and forth on their own. An attention effect that moves
+   the button takes over the animation. */
+.iftp-btn-pay .iftp-btn-pay__button--aurora,
+.iftp-btn-pay .iftp-btn-pay__button--aurora:is(:hover, .is-hover):not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--aurora:focus:not(:disabled) {
+	background: linear-gradient(115deg, var(--iftp-pb-color), var(--iftp-pb-color2, var(--iftp-pb-color)), var(--iftp-pb-color), var(--iftp-pb-color2, var(--iftp-pb-color))) 0 50% / 300% 100%;
+	border-color: transparent;
+	animation: iftp-btn-drift 7s ease-in-out infinite alternate;
+}
+
+@keyframes iftp-btn-drift {
+
+	to {
+		background-position: 100% 50%;
+	}
+}
+
+/* Split: the label on the main colour, and an end block in the second colour holding the icon. */
+.iftp-btn-pay .iftp-btn-pay__button--split,
+.iftp-btn-pay .iftp-btn-pay__button--split:is(:hover, .is-hover):not(:disabled),
+.iftp-btn-pay .iftp-btn-pay__button--split:focus:not(:disabled) {
+	--iftp-pb-tab: 2.75em;
+	padding-right: calc(var(--iftp-pb-tab) + 1.1em);
+	background: linear-gradient(90deg, var(--iftp-pb-color) calc(100% - var(--iftp-pb-tab)), var(--iftp-pb-color2, var(--iftp-pb-color)) 0) border-box;
+	border-color: transparent;
+	overflow: hidden;
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--split:is(:hover, .is-hover):not(:disabled) {
+	filter: brightness(0.94) saturate(1.05);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--split .iftp-btn-pay__icon {
+	position: absolute;
+	top: 0;
+	right: calc(-1 * var(--iftp-pb-bw, 2px));
+	box-sizing: border-box;
+	width: var(--iftp-pb-tab);
+	height: 100%;
+	padding: 0 calc((var(--iftp-pb-tab) - 18px) / 2);
+	color: var(--iftp-pb-on2, var(--iftp-pb-text));
+}
+
+/* Halo: a lit pill, lighter at the top, with a soft ring and a coloured glow under it. Reads on light pages too. */
+.iftp-btn-pay .iftp-btn-pay__button--halo,
+.iftp-btn-pay .iftp-btn-pay__button--halo:focus:not(:disabled) {
+	--iftp-pb-sh: inset 0 1px 0 rgb(255 255 255 / 35%), 0 0 0 4px var(--iftp-pb-tint-strong), 0 10px 28px -6px var(--iftp-pb-glow);
+	background: radial-gradient(120% 150% at 50% 0%, color-mix(in srgb, var(--iftp-pb-color) 78%, #fff), var(--iftp-pb-color) 62%);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--halo:is(:hover, .is-hover):not(:disabled) {
+	--iftp-pb-sh: inset 0 1px 0 rgb(255 255 255 / 40%), 0 0 0 7px var(--iftp-pb-tint), 0 14px 36px -6px var(--iftp-pb-glow);
+	background: radial-gradient(120% 150% at 50% 0%, color-mix(in srgb, var(--iftp-pb-color) 70%, #fff), var(--iftp-pb-color) 62%);
+}
+
 /* Glass: the colour see-through and frosted, with a light top edge; it reads on light and dark pages alike,
    and shines over a photo or a colourful section. */
 .iftp-btn-pay .iftp-btn-pay__button--glass,
@@ -640,6 +695,7 @@
 
 @media (prefers-reduced-motion: reduce) {
 
+	.iftp-btn-pay .iftp-btn-pay__button--aurora,
 	.iftp-btn-pay [class*="iftp-btn-pay__button--cta-"],
 	.iftp-btn-pay [class*="iftp-btn-pay__button--cta-"]::before,
 	.iftp-btn-pay [class*="iftp-btn-pay__button--cta-"]::after,

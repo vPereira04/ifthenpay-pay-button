@@ -32,9 +32,9 @@ $iftp_btn_uninstall_site = static function (): void {
 		delete_option( \Ifthenpay\PayButton\Ai\Vault::name( 'connection' ) );
 	}
 
-	// The AI chats and their limits, per admin and per button.
+	// Every transient with a dynamic name: AI chats, rate limits, activation cooldowns, checkout opens.
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time cleanup of transients with dynamic names; no core API lists them.
-	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( '_transient_iftp_btn_ai_' ) . '%', $wpdb->esc_like( '_transient_timeout_iftp_btn_ai_' ) . '%' ) );
+	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( '_transient_iftp_btn_' ) . '%', $wpdb->esc_like( '_transient_timeout_iftp_btn_' ) . '%' ) );
 
 	if ( class_exists( \Ifthenpay\PayButton\Repository\CheckoutSettings::class ) ) {
 		( new \Ifthenpay\PayButton\Repository\CheckoutSettings() )->delete_all();

@@ -12,6 +12,7 @@ namespace Ifthenpay\PayButton\Ai;
 use Ifthenpay\PayButton\Ai\Providers\Provider;
 use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
+use Ifthenpay\PayButton\Repository\CheckoutSettings;
 use WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -371,9 +372,10 @@ class Studio {
 			'title'    => $latest['title'],
 			'canUndo'  => count( $thread['versions'] ) > 1,
 			'built'    => count( $thread['versions'] ) > 1,
-			'button'   => ButtonDesign::preview_markup( $button->config['design'], $button->display_label() ),
+			'button'   => ButtonDesign::preview_markup( ButtonDesign::for_button( $button, new CheckoutSettings() ), $button->display_label() ),
 			'prices'   => ButtonSchema::prices( $button->config ),
-			'preview'  => add_query_arg( 'v', (string) count( $thread['messages'] ), $preview_url ),
+			// Keyed on the version itself: a count repeats after "Start over" or Undo, and the frame would keep the old page.
+			'preview'  => add_query_arg( 'v', substr( md5( (string) wp_json_encode( $latest ) ), 0, 12 ), $preview_url ),
 		);
 	}
 
