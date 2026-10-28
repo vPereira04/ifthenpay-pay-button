@@ -39,12 +39,37 @@ abstract class Provider {
 	private int $timeout = self::TIMEOUT;
 
 	/**
+	 * How hard it thinks before it answers: quick, balanced or deep.
+	 *
+	 * @var string
+	 */
+	protected string $thinking = 'quick';
+
+	/**
+	 * How freely it picks its words and colours.
+	 *
+	 * @var float
+	 */
+	protected float $temperature = 0.7;
+
+	/**
 	 * Shortens the wait, so a fallback still fits in what's left of the request.
 	 *
 	 * @param int $seconds At most this long.
 	 */
 	public function set_timeout( int $seconds ): void {
 		$this->timeout = max( 10, min( self::TIMEOUT, $seconds ) );
+	}
+
+	/**
+	 * The merchant's choices from Configuration › AI. A model that can't take one just ignores it.
+	 *
+	 * @param string $thinking    One of AiSettings::THINKING.
+	 * @param float  $temperature The sampling temperature.
+	 */
+	public function set_style( string $thinking, float $temperature ): void {
+		$this->thinking    = $thinking;
+		$this->temperature = $temperature;
 	}
 
 	/**
@@ -161,7 +186,7 @@ abstract class Provider {
 
 		if ( 404 === $code ) {
 			/* translators: %s: the AI provider, e.g. Gemini */
-			return new WP_Error( 'iftp_btn_ai_gone', sprintf( __( '%s says this model isn\'t available to your key any more. Pick another one in Gateway Configuration.', 'ifthenpay-pay-button' ), $this->label() ) );
+			return new WP_Error( 'iftp_btn_ai_gone', sprintf( __( '%s says this model isn\'t available to your key any more. Pick another one in Configuration › AI.', 'ifthenpay-pay-button' ), $this->label() ) );
 		}
 
 		if ( 429 === $code ) {
@@ -169,9 +194,15 @@ abstract class Provider {
 			return new WP_Error( 'iftp_btn_ai_quota', sprintf( __( '%s says this key is over its limit or out of credit. Wait a minute, or check the billing on your account.', 'ifthenpay-pay-button' ), $this->label() ) );
 		}
 
+		// Google's 504: the model ran out of its own time, so it's a slow answer, not an overload.
+		if ( 504 === $code ) {
+			/* translators: %s: the AI provider, e.g. Gemini */
+			return new WP_Error( 'iftp_btn_ai_timeout', sprintf( __( '%s took too long to answer. Try again, or ask for a smaller change.', 'ifthenpay-pay-button' ), $this->label() ) );
+		}
+
 		if ( $code >= 500 ) {
 			/* translators: %s: the AI provider, e.g. Gemini */
-			return new WP_Error( 'iftp_btn_ai_busy', sprintf( __( '%s is busy right now. Try again in a moment.', 'ifthenpay-pay-button' ), $this->label() ) );
+			return new WP_Error( 'iftp_btn_ai_busy', sprintf( __( '%s is overloaded right now. Try again in a moment.', 'ifthenpay-pay-button' ), $this->label() ) );
 		}
 
 		return new WP_Error(

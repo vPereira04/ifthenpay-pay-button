@@ -70,7 +70,7 @@ No other plugin is needed.
 
 #### Step 1 — Connect your ifthenpay account
 
-1. Open **Pay Button › Gateway Configuration** and click **Connect** under **ifthenpay account**.
+1. Open **Pay Button › Configuration** and click **Connect** under **ifthenpay account**.
 2. Paste your **Backoffice Key**.
 3. Click **Connect**.
 
@@ -98,7 +98,7 @@ These settings apply to every button. Further down, **Display** sets how the plu
 
 #### Step 4 — Optional: connect your own AI
 
-1. Optional: in **AI assistant**, at the bottom of Gateway Configuration, click **Connect an AI**.
+1. Optional: in **AI assistant**, in Configuration › AI, click **Connect an AI**.
 2. Pick **Gemini**, **Claude** or **ChatGPT**.
 3. Paste your own **API key**. It's encrypted before it's saved and never shown again.
 4. Click **Connect**, then choose the **model**.
@@ -121,7 +121,7 @@ Gemini, Claude and ChatGPT are supported. The key is only used to build buttons,
 #### Step 6 — Set the button's checkout: title, pay link and amount
 
 1. On the **Checkout** tab, the **Title** and **Description** are what the payer sees at the top of the checkout.
-2. **Hosted payment page description** (optional): overrides the one in Gateway Configuration for this button.
+2. **Hosted payment page description** (optional): overrides the one in Configuration › Gateway for this button.
 3. **Pay link**: the address of the button's own pay page.
 4. Switch on **Take payments**.
 5. **Amount**: **Fixed**, **Payer chooses** (donations, tips, with suggested amounts) or **From the link** (another plugin sends the total).
@@ -156,7 +156,7 @@ Below these, **Payer picks how many** lets the payer choose a quantity (capped b
 
 #### Step 10 — Pick the button's methods, then place it on a page or share its pay link
 
-1. **Payment methods**: leave them all unticked to offer every method switched on in Gateway Configuration, or tick only the ones this button takes.
+1. **Payment methods**: leave them all unticked to offer every method switched on in Configuration › Gateway, or tick only the ones this button takes.
 2. Copy the **shortcode** and paste it on any page or post.
 3. Or share the **pay link**: the button's own pay page, for emails, social posts or a QR code.
 4. In the block editor, add the **ifthenpay Pay Button** block and pick this button.
@@ -168,7 +168,7 @@ The shortcode also takes `label` (the button text) and `align` (`left`, `center`
 #### Step 11 — Give the button's checkout its own look
 
 1. Open the **Checkout design** tab.
-2. Keep **The site's look** (Default Design › Checkout) or give this button **Its own look**.
+2. Keep **The site's look** (Default Design › Checkout & pay page) or give this button **Its own look**.
 3. **Start from a look**, then change the colours, the card's opacity and glass blur, dark mode, corners and fields.
 4. The **preview** follows every change: checkout, pay page and each popup, in light and dark.
 
@@ -196,7 +196,7 @@ Further down, **Popups and footer** styles the popups after paying and the payme
 #### Step 14 — Choose what happens after payment, and send paid payments to your invoicing app
 
 1. Open the **After payment** tab.
-2. **When paid**: use the Default Design setting, or a popup, a page or a URL just for this button.
+2. **When paid**: use the Configuration › Messages setting, or a popup, a page or a URL just for this button.
 3. **Send to your invoicing app** (optional): each paid payment goes straight to InvoiceXpress, Moloni, Vendus, TOConline or any app with an API.
 4. The app's **address**, method, format, headers (e.g. your API key) and a **body** built from tags.
 
@@ -255,7 +255,7 @@ A button set to **The site's look** in its **Checkout design** tab uses this one
 
 #### Optional — Pay link address and payment emails
 
-1. Open the **Links & emails** tab.
+1. Open **Configuration › Pay links** and **Emails**.
 2. **Link base**: the start of every pay link, e.g. `/pay/your-button/`.
 3. **Receipt to the payer**, once ifthenpay confirms the payment.
 4. **Tell me about every payment**, sent to the address below.
@@ -341,7 +341,7 @@ Yes. `iftp_btn_payment_url( $button_id, array( 'amount' => 49.90, 'reference' =>
 
 <details>
 <summary><strong>Can I change every word the payer sees?</strong></summary>
-Yes. **Default Design › Texts** rewrites every label, button and message of the checkout, in any language. The popups after payment are in **Default Design › Messages**.
+Yes. **Configuration › Texts** rewrites every label, button and message of the checkout, in any language. The popups after payment are in **Configuration › Messages**.
 </details>
 
 <details>
@@ -372,11 +372,11 @@ This plugin integrates with the ifthenpay payment platform to process payments m
   - **What it is and what it is used for**: The ifthenpay Backoffice is the merchant dashboard used to manage integrations and payment configurations. The plugin uses the ifthenpay API (`api.ifthenpay.com`) to read your Gateway Keys and payment methods, generate payment links and check transactions.
   - **What data is sent and when**:
     - During setup: the Backoffice Key, to read your Gateway Keys and their payment methods. The list of payment methods is also fetched from ifthenpay.
-    - During payment processing: the payment reference, the amount, the description, the enabled payment method accounts, the success/error/cancel return URLs, the language and the link's expiry date. The description is the one set in Gateway Configuration (or on the button); if you add payer tags such as `{name}` or `{email}` to it, those values are sent as part of the description. No other customer or checkout data is included.
+    - During payment processing: the payment reference, the amount, the description, the enabled payment method accounts, the success/error/cancel return URLs, the language and the link's expiry date. The description is the one set in Configuration › Gateway (or on the button); if you add payer tags such as `{name}` or `{email}` to it, those values are sent as part of the description. No other customer or checkout data is included.
     - During webhook registration: the anti-phishing key, the Gateway Key and this site's callback URL, so ifthenpay can notify the site directly when a payment is paid.
     - During callbacks (received from ifthenpay): the payment reference, the anti-phishing key, the amount, the payment method and the request ID.
     - While a payer waits on the result popup: the transaction ID, to ask ifthenpay for the payment's status.
-    - During payment method activation requests: when an admin clicks **Request Activation** in Pay Button › Gateway Configuration, an email is sent to ifthenpay support (suporte@ifthenpay.com) containing the Backoffice Key, Gateway Key, the requested payment method, the admin's email address, site URL, site name, WordPress version and plugin version.
+    - During payment method activation requests: when an admin clicks **Request Activation** in Pay Button › Configuration, an email is sent to ifthenpay support (suporte@ifthenpay.com) containing the Backoffice Key, Gateway Key, the requested payment method, the admin's email address, site URL, site name, WordPress version and plugin version.
     - Payment method logos on your checkout and admin screens, and the ifthenpay logo in the plugin's emails, are images loaded from ifthenpay's servers when the page or email is viewed.
   - **End-User License Agreement (EULA)**: [EULA](https://ifthenpay.com/eula/)
   - **Privacy Policy**: [Privacy Policy](https://ifthenpay.com/politica-de-privacidade/)
@@ -386,11 +386,11 @@ This plugin integrates with the ifthenpay payment platform to process payments m
   - **What data is sent and when**: when one of the button's payments is paid, fails or is cancelled (and when you click **Send a test**): the event, reference, status, amount, currency, quantity, method, the external reference, the button's ID and title, the payer's name, email, phone, tax number and note, the answers to your own checkout questions, and the created and updated times. Each request is signed with the button's secret in the `X-Iftp-Signature` header. The data goes only to the URL you enter, under that service's own terms.
 
 - **Your invoicing app (optional)**
-  - **What it is and what it is used for**: If you switch on **Send to your invoicing app** in a button's After payment tab (e.g. InvoiceXpress, Moloni, Vendus, TOConline or your own API), the plugin sends each of that button's paid payments to the address you enter, so the app can issue the invoice.
+  - **What it is and what it is used for**: If you switch on **Send to your invoicing app** in a button's Connect tab (e.g. InvoiceXpress, Moloni, Vendus, TOConline or your own API), the plugin sends each of that button's paid payments to the address you enter, so the app can issue the invoice.
   - **What data is sent and when**: when one of the button's payments is paid (with retries if the app doesn't answer, and when you click **Send a test**): only what you put in the request you write there, from the payment's merge tags: e.g. the payer's name, email, phone, tax number and note, the amount, quantity, method, payment ID, the button's title, the date and your own checkout answers, plus any headers you add (such as the app's API key). The data goes only to the address you enter, under that service's own terms.
 
 - **AI assistant: Google Gemini, Anthropic Claude or OpenAI (optional)**
-  - **What it is and what it is used for**: If you connect your own API key in **Pay Button › Gateway Configuration › AI assistant**, you can describe a button in a chat (Buttons › Build with AI, or Edit with AI in a button's editor) and the AI you picked builds or changes it. Nothing is sent until an administrator connects a key.
+  - **What it is and what it is used for**: If you connect your own API key in **Pay Button › Configuration › AI**, you can describe a button in a chat (Buttons › Build with AI, or Edit with AI in a button's editor) and the AI you picked builds or changes it. Nothing is sent until an administrator connects a key.
   - **What data is sent and when**:
     - When you connect: the API key, to check it and list the models it can use. The key is sent only in a request header to its own provider, and is stored on your site encrypted with your wp-config.php secret keys.
     - Each time you send a chat message: your message, the earlier messages of that chat, the button as it is (its title, texts, form questions and options, prices, spots and design), your site's name and language, and the colours of your site's checkout look. No payments, payer details or other site data are ever sent.
@@ -399,7 +399,7 @@ This plugin integrates with the ifthenpay payment platform to process payments m
   - **Anthropic Claude**: [Commercial Terms](https://www.anthropic.com/legal/commercial-terms), [Privacy Policy](https://www.anthropic.com/legal/privacy)
   - **OpenAI**: [Terms of Use](https://openai.com/policies/terms-of-use/), [Privacy Policy](https://openai.com/policies/privacy-policy/)
 - **YouTube and Vimeo (optional)**
-  - **What it is and what it is used for**: If you pick a YouTube or Vimeo link as the pay page's background video (Default Design › Checkout, or a button's Checkout design tab), the pay page and the checkout opened on it show that video in an embedded player: YouTube's privacy-enhanced `youtube-nocookie.com` player, or Vimeo's with Do Not Track on.
+  - **What it is and what it is used for**: If you pick a YouTube or Vimeo link as the pay page's background video (Default Design › Checkout & pay page, or a button's Design › Checkout & pay page), the pay page and the checkout opened on it show that video in an embedded player: YouTube's privacy-enhanced `youtube-nocookie.com` player, or Vimeo's with Do Not Track on.
   - **What data is sent and when**: when a payer opens that pay page, or a checkout or popup over that background, their browser loads the player from YouTube or Vimeo, which receives the payer's IP address, browser details and the page it's shown on, as with any embedded video. Nothing about the payment is sent. A video you upload to your own Media Library is served from your site and sends nothing anywhere.
   - **YouTube**: [Terms of Service](https://www.youtube.com/t/terms), [Google Privacy Policy](https://policies.google.com/privacy)
   - **Vimeo**: [Terms of Service](https://vimeo.com/terms), [Privacy Policy](https://vimeo.com/privacy)
@@ -444,13 +444,13 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
     ![Connect another plugin](.wordpress-org/screenshot-15.png)
 16. **(Admin Only) Optional: build or edit a button with AI**
     ![Build with AI](.wordpress-org/screenshot-16.png)
-17. **(Admin Only) Default Design › Checkout: the look of every checkout, pay page and popup**
+17. **(Admin Only) Default Design › Checkout & pay page: the look of every checkout, pay page and popup**
     ![Default Design, Checkout tab](.wordpress-org/screenshot-17.png)
-18. **(Admin Only) Default Design › Messages: what the payer sees after paying**
+18. **(Admin Only) Configuration › Messages: what the payer sees after paying**
     ![Checkout messages](.wordpress-org/screenshot-18.png)
-19. **(Admin Only) Default Design › Texts: every word the payer reads, in your own words or language**
+19. **(Admin Only) Configuration › Texts: every word the payer reads, in your own words or language**
     ![Checkout texts](.wordpress-org/screenshot-19.png)
-20. **(Admin Only) Default Design › Links & emails: pay link address and payment emails**
+20. **(Admin Only) Configuration › Emails and Pay links: payment emails and the pay link address**
     ![Links and emails](.wordpress-org/screenshot-20.png)
 21. **(Admin Only) Payments: every payment, its status and the totals**
     ![Payments](.wordpress-org/screenshot-21.png)
@@ -475,7 +475,7 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
 
 ### Examples
 
-What you can do with the design options. Every button can keep the site-wide look from **Default Design › Checkout** or have its own in the button's **Checkout design** and **Button design** tabs.
+What you can do with the design options. Every button can keep the site-wide look from **Default Design › Checkout & pay page** or have its own in the button's **Design** tab.
 
 1. **Every button with its own design.** Pay Button › Buttons shows each button as it looks on your site, with what it collected and its spots.
    ![Buttons with their own designs](.wordpress-org/examples/example-1.png)

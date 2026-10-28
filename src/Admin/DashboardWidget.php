@@ -175,7 +175,7 @@ class DashboardWidget {
 
 			<p class="iftp-btn-widget__footer">
 				<a class="iftp-btn-widget__cta" href="<?php echo esc_url( EntriesPage::list_url() ); ?>"><?php esc_html_e( 'View all entries', 'ifthenpay-pay-button' ); ?> <span aria-hidden="true">→</span></a>
-				<a href="<?php echo esc_url( GatewaySettingsPage::url() ); ?>"><?php esc_html_e( 'Gateway Configuration', 'ifthenpay-pay-button' ); ?></a>
+				<a href="<?php echo esc_url( ConfigurationPage::url() ); ?>"><?php esc_html_e( 'Configuration', 'ifthenpay-pay-button' ); ?></a>
 			</p>
 		</div>
 		<?php

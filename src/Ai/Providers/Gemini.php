@@ -103,14 +103,48 @@ class Gemini extends Provider {
 	 * @return array<string, mixed>|WP_Error
 	 */
 	public function complete( string $key, string $model, string $system, array $messages, array $schema ) {
-		$result = $this->generate( $key, $model, $system, $messages, self::to_openapi( $schema ) );
+		$thinking = $this->thinking_config( $model );
+		$result   = $this->generate( $key, $model, $system, $messages, self::to_openapi( $schema ), $thinking );
+
+		// A model that won't take the thinking setting just thinks its own way.
+		if ( is_wp_error( $result ) && array() !== $thinking && 'iftp_btn_ai_refused' === $result->get_error_code() && false !== stripos( $result->get_error_message(), 'think' ) ) {
+			$thinking = array();
+			$result   = $this->generate( $key, $model, $system, $messages, self::to_openapi( $schema ), $thinking );
+		}
 
 		// Some models turn down a schema this size; the shape then goes in the instructions instead.
 		if ( is_wp_error( $result ) && 'iftp_btn_ai_schema' === $result->get_error_code() ) {
-			$result = $this->generate( $key, $model, $system . "\n\nAnswer with one JSON object that follows this JSON schema exactly:\n" . wp_json_encode( $schema ), $messages, null );
+			$result = $this->generate( $key, $model, $system . "\n\nAnswer with one JSON object that follows this JSON schema exactly:\n" . wp_json_encode( $schema ), $messages, null, $thinking );
 		}
 
 		return $result;
+	}
+
+	/**
+	 * How long the model may think, from the merchant's setting. Left alone it can think for over a minute on a whole button, and the
+	 * retries then run out of time.
+	 *
+	 * @param string $model The model id.
+	 * @return array<string, int|string> Gemini's thinkingConfig, or nothing for a model that doesn't think.
+	 */
+	private function thinking_config( string $model ): array {
+		if ( 1 !== preg_match( '/^gemini-(\d+(?:\.\d+)?)/', $model, $match ) || (float) $match[1] < 2.5 ) {
+			return array();
+		}
+
+		$levels  = array(
+			'quick'    => 'low',
+			'balanced' => 'medium',
+			'deep'     => 'high',
+		);
+		$budgets = array(
+			'quick'    => 2048,
+			'balanced' => 6144,
+			'deep'     => 12288,
+		);
+
+		// Gemini 3 and later think by level; 2.5 by a token budget.
+		return (float) $match[1] >= 3 ? array( 'thinkingLevel' => $levels[ $this->thinking ] ?? 'low' ) : array( 'thinkingBudget' => $budgets[ $this->thinking ] ?? 2048 );
 	}
 
 	/**
@@ -121,17 +155,22 @@ class Gemini extends Provider {
 	 * @param string                            $system   The instructions.
 	 * @param array<int, array<string, string>> $messages The chat.
 	 * @param array<string, mixed>|null         $schema   The response schema, or null for plain JSON.
+	 * @param array<string, int|string>         $thinking The thinkingConfig, if any.
 	 * @return array<string, mixed>|WP_Error
 	 */
-	private function generate( string $key, string $model, string $system, array $messages, ?array $schema ) {
+	private function generate( string $key, string $model, string $system, array $messages, ?array $schema, array $thinking ) {
 		$config = array(
-			'temperature'      => 0.7,
+			'temperature'      => $this->temperature,
 			'maxOutputTokens'  => static::MAX_TOKENS,
 			'responseMimeType' => 'application/json',
 		);
 
 		if ( null !== $schema ) {
 			$config['responseSchema'] = $schema;
+		}
+
+		if ( array() !== $thinking ) {
+			$config['thinkingConfig'] = $thinking;
 		}
 
 		$response = $this->request(

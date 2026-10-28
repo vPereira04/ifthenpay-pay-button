@@ -107,14 +107,14 @@ class PaymentLinks {
 		$entities = array_column( $methods, 'entity' );
 		$default  = in_array( $this->settings->get_default_method(), $entities, true ) ? $this->settings->get_default_method_position() : '';
 		$expiry   = $this->expiry_days();
-		// The button's own description wins; otherwise the hosted payment page description from Gateway Configuration.
+		// The button's own description wins; otherwise the hosted payment page description from Configuration › Gateway.
 		$template = '' !== $button->config['pay_description'] ? $button->config['pay_description'] : $this->settings->get_description();
 
 		return $this->request_link( $record, self::description( $template, $record, $button ), $methods, $default, $expiry );
 	}
 
 	/**
-	 * How many days a link stays payable, from Gateway Configuration.
+	 * How many days a link stays payable, from Configuration › Gateway.
 	 */
 	public function expiry_days(): int {
 		return max( 1, $this->settings->get_expiry_days() );

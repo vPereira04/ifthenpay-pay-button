@@ -81,7 +81,7 @@ class AiPanel {
 	}
 
 	/**
-	 * The panel on Gateway Configuration.
+	 * The panel on Configuration › AI. Its popups come from render_dialogs(), outside any form.
 	 */
 	public function render_panel(): void {
 		$summary = $this->connection->summary();
@@ -96,7 +96,13 @@ class AiPanel {
 			</div>
 		</section>
 		<?php
-		if ( null === $summary ) {
+	}
+
+	/**
+	 * The connect popup, or the disconnect confirmation once connected.
+	 */
+	public function render_dialogs(): void {
+		if ( null === $this->connection->summary() ) {
 			$this->render_dialog();
 		} else {
 			$this->render_disconnect_dialog();
@@ -143,7 +149,7 @@ class AiPanel {
 	}
 
 	/**
-	 * The connect form: which AI, and its key. In a popup on Gateway Configuration, inline in the studio.
+	 * The connect form: which AI, and its key. In a popup on Configuration, inline in the studio.
 	 *
 	 * @param bool $inline Whether it sits in the page rather than a popup.
 	 */
@@ -244,7 +250,7 @@ class AiPanel {
 	/**
 	 * The strings ai.js shows.
 	 *
-	 * @return array<string, string|array<int, string>>
+	 * @return array<string, string|array<int, string|array{0: int, 1: string}>>
 	 */
 	private static function strings(): array {
 		return array(
@@ -279,6 +285,17 @@ class AiPanel {
 				__( 'Picking the colours…', 'ifthenpay-pay-button' ),
 				__( 'Polishing the pay page…', 'ifthenpay-pay-button' ),
 			),
+			// Shown once a wait runs past the usual lines: [ after this many seconds, the line ].
+			'thinkingSlow'  => array(
+				array( 20, __( 'Bigger buttons take a little longer…', 'ifthenpay-pay-button' ) ),
+				array( 40, __( 'Still on it, checking every detail…', 'ifthenpay-pay-button' ) ),
+				array( 70, __( 'The AI is slower than usual right now…', 'ifthenpay-pay-button' ) ),
+				array( 110, __( 'Still waiting for it. Your message is safe…', 'ifthenpay-pay-button' ) ),
+			),
+			/* translators: %s: the AI model, e.g. Gemini 3.5 Flash */
+			'stageRetry'    => __( '%s is overloaded. Trying again…', 'ifthenpay-pay-button' ),
+			/* translators: %s: the AI model, e.g. Gemini 2.5 Flash */
+			'stageFallback' => __( 'Switching to %s…', 'ifthenpay-pay-button' ),
 			'retry'         => __( 'Try again', 'ifthenpay-pay-button' ),
 			'undone'        => __( 'Went back one step.', 'ifthenpay-pay-button' ),
 			'checkPrices'   => __( 'Check the prices', 'ifthenpay-pay-button' ),

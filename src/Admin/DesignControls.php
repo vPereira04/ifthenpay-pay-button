@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Default Design › Button and a button's Button design tab draw the same controls and preview; only where the
+ * Default Design › Button and a button's Design › The button draw the same controls and preview; only where the
  * fields post to differs (`button_design[…]` or `config[design][…]`), and only a button can follow the default.
  * buttons.js reads them by their data-iftp-design keys.
  *
@@ -39,14 +39,34 @@ class DesignControls {
 	private bool $with_site;
 
 	/**
+	 * The design saved as the site's default, offered first among the presets to come back to.
+	 *
+	 * @var array<string, mixed>
+	 * @phpstan-var ButtonDesignConfig
+	 */
+	private array $saved;
+
+	/**
+	 * The design saved on the button being edited, offered after the default; empty when there is none.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $own;
+
+	/**
 	 * Sets up the controls.
 	 *
-	 * @param string $prefix    The field name prefix, e.g. `button_design` or `config[design]`.
-	 * @param bool   $with_site Whether to offer the site's default design.
+	 * @param string               $prefix    The field name prefix, e.g. `button_design` or `config[design]`.
+	 * @param bool                 $with_site Whether to offer the site's default design.
+	 * @param array<string, mixed> $saved     The design saved as the site's default.
+	 * @param array<string, mixed> $own       The design saved on the button being edited, if it has its own.
+	 * @phpstan-param ButtonDesignConfig $saved
 	 */
-	public function __construct( string $prefix, bool $with_site ) {
+	public function __construct( string $prefix, bool $with_site, array $saved, array $own = array() ) {
 		$this->prefix    = $prefix;
 		$this->with_site = $with_site;
+		$this->saved     = $saved;
+		$this->own       = $own;
 	}
 
 	/**
@@ -89,6 +109,14 @@ class DesignControls {
 			'neon'     => __( 'Neon', 'ifthenpay-pay-button' ),
 			'brutal'   => __( 'Brutal', 'ifthenpay-pay-button' ),
 			'ghost'    => __( 'Ghost', 'ifthenpay-pay-button' ),
+			'luxe'     => __( 'Luxe', 'ifthenpay-pay-button' ),
+			'beam'     => __( 'Beam', 'ifthenpay-pay-button' ),
+			'clay'     => __( 'Clay', 'ifthenpay-pay-button' ),
+			'ticket'   => __( 'Ticket', 'ifthenpay-pay-button' ),
+			'gloss'    => __( 'Gloss', 'ifthenpay-pay-button' ),
+			'ring'     => __( 'Ring', 'ifthenpay-pay-button' ),
+			'stripe'   => __( 'Stripe', 'ifthenpay-pay-button' ),
+			'cut'      => __( 'Cut', 'ifthenpay-pay-button' ),
 		);
 		$effects    = array(
 			'none'  => __( 'None', 'ifthenpay-pay-button' ),
@@ -98,6 +126,8 @@ class DesignControls {
 			'glow'  => __( 'Glow', 'ifthenpay-pay-button' ),
 			'fill'  => __( 'Fill', 'ifthenpay-pay-button' ),
 			'nudge' => __( 'Nudge', 'ifthenpay-pay-button' ),
+			'gild'  => __( 'Gild', 'ifthenpay-pay-button' ),
+			'tilt'  => __( 'Tilt', 'ifthenpay-pay-button' ),
 		);
 		$attentions = array(
 			'none'      => __( 'None', 'ifthenpay-pay-button' ),
@@ -135,6 +165,7 @@ class DesignControls {
 			'sparkles' => __( 'Sparkles', 'ifthenpay-pay-button' ),
 			'paw'      => __( 'Paw', 'ifthenpay-pay-button' ),
 			'leaf'     => __( 'Leaf', 'ifthenpay-pay-button' ),
+			'bolt'     => __( 'Bolt', 'ifthenpay-pay-button' ),
 		);
 		$widths     = array(
 			'0' => __( 'Fit the text', 'ifthenpay-pay-button' ),
@@ -160,10 +191,37 @@ class DesignControls {
 		<?php endif; ?>
 
 		<div class="iftp-btn-design" data-iftp-when-source="custom"<?php echo $custom ? '' : ' hidden'; ?>>
+			<?php self::open_fold( 'design-start', __( 'Start from a preset', 'ifthenpay-pay-button' ), __( 'One click sets the style, colours and effects. Tweak anything after.', 'ifthenpay-pay-button' ), true ); ?>
 			<div class="iftp-btn-field">
-				<span class="iftp-btn-field__label" id="iftp-btn-presets-label"><?php esc_html_e( 'Start from', 'ifthenpay-pay-button' ); ?></span>
+				<span class="screen-reader-text" id="iftp-btn-presets-label"><?php esc_html_e( 'Start from', 'ifthenpay-pay-button' ); ?></span>
 				<div class="iftp-btn-looks" role="group" aria-labelledby="iftp-btn-presets-label">
+					<button type="button" class="iftp-btn-looks__item" data-iftp-preset-saved="<?php echo esc_attr( (string) wp_json_encode( $this->saved ) ); ?>">
+						<span class="iftp-btn-looks__stage" aria-hidden="true">
+							<?php
+							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes.
+							echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( $this->saved, __( 'Pay', 'ifthenpay-pay-button' ) ) . '</span>';
+							?>
+						</span>
+						<span class="iftp-btn-looks__name"><?php esc_html_e( 'Default look', 'ifthenpay-pay-button' ); ?></span>
+					</button>
+					<?php if ( array() !== $this->own ) : ?>
+					<button type="button" class="iftp-btn-looks__item" data-iftp-preset-saved="<?php echo esc_attr( (string) wp_json_encode( $this->own ) ); ?>">
+						<span class="iftp-btn-looks__stage" aria-hidden="true">
+							<?php
+							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes.
+							echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( $this->own, __( 'Pay', 'ifthenpay-pay-button' ) ) . '</span>';
+							?>
+						</span>
+						<span class="iftp-btn-looks__name"><?php esc_html_e( 'This button\'s look', 'ifthenpay-pay-button' ); ?></span>
+					</button>
+					<?php endif; ?>
 					<?php foreach ( ButtonDesign::presets() as $key => $preset ) : ?>
+						<?php
+						// A button's own design isn't the ifthenpay one; that stays the site's.
+						if ( $this->with_site && 'ifthenpay' === $key ) {
+							continue;
+						}
+						?>
 						<button type="button" class="iftp-btn-looks__item" data-iftp-preset="<?php echo esc_attr( $key ); ?>">
 							<span class="iftp-btn-looks__stage" aria-hidden="true">
 								<?php
@@ -176,7 +234,9 @@ class DesignControls {
 					<?php endforeach; ?>
 				</div>
 			</div>
+			<?php self::close_fold(); ?>
 
+			<?php self::open_fold( 'design-style', __( 'Style and colour', 'ifthenpay-pay-button' ), __( 'Filled, outline, gradient, glass and more, in your colours.', 'ifthenpay-pay-button' ), true ); ?>
 			<div class="iftp-btn-design__grid">
 				<?php $this->render_fx_picker( 'variant', __( 'Style', 'ifthenpay-pay-button' ), $variants, $design ); ?>
 
@@ -188,7 +248,7 @@ class DesignControls {
 					</span>
 				</div>
 
-				<div class="iftp-btn-field" data-iftp-when-variant="gradient aurora split"<?php echo in_array( $design['variant'], array( 'gradient', 'aurora', 'split' ), true ) ? '' : ' hidden'; ?>>
+				<div class="iftp-btn-field" data-iftp-when-variant="gradient aurora split luxe beam"<?php echo in_array( $design['variant'], array( 'gradient', 'aurora', 'split', 'luxe', 'beam' ), true ) ? '' : ' hidden'; ?>>
 					<label class="iftp-btn-field__label" for="iftp-btn-color2"><?php esc_html_e( 'Second colour', 'ifthenpay-pay-button' ); ?></label>
 					<span class="iftp-btn-color<?php echo $auto2 ? ' is-auto' : ''; ?>" data-iftp-color2>
 						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( ButtonDesign::second_color( $design ) ); ?>" aria-label="<?php esc_attr_e( 'Pick the second colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="iftp-btn-color2" />
@@ -212,6 +272,11 @@ class DesignControls {
 					</label>
 				</div>
 
+			</div>
+			<?php self::close_fold(); ?>
+
+			<?php self::open_fold( 'design-shape', __( 'Shape, size and border', 'ifthenpay-pay-button' ), __( 'Corners, size, an outline and a soft shadow.', 'ifthenpay-pay-button' ) ); ?>
+			<div class="iftp-btn-design__grid">
 				<div class="iftp-btn-field">
 					<label class="iftp-btn-field__label" for="iftp-btn-radius"><?php esc_html_e( 'Corners', 'ifthenpay-pay-button' ); ?> <output class="iftp-btn-range__value" for="iftp-btn-radius" data-iftp-radius-out></output></label>
 					<span class="iftp-btn-range">
@@ -276,7 +341,9 @@ class DesignControls {
 					<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'A glow in the button\'s colour that lifts a little on hover.', 'ifthenpay-pay-button' ); ?></span>
 				</span>
 			</label>
+			<?php self::close_fold(); ?>
 
+			<?php self::open_fold( 'design-effects', __( 'Effects', 'ifthenpay-pay-button' ), __( 'What it does on hover, and a gentle move that catches the eye.', 'ifthenpay-pay-button' ) ); ?>
 			<?php
 			$this->render_fx_picker( 'effect', __( 'On hover', 'ifthenpay-pay-button' ), $effects, $design, __( 'What it does when the pointer is on it. Point at a sample to see it. Nudge moves the icon, so pick one below.', 'ifthenpay-pay-button' ) );
 			$this->render_fx_picker( 'attention', __( 'Catch the eye', 'ifthenpay-pay-button' ), $attentions, $design, __( 'Keeps going on its own to draw attention, and rests while the button is hovered. Payers who turn motion off get a still button.', 'ifthenpay-pay-button' ) );
@@ -290,9 +357,11 @@ class DesignControls {
 					<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'PAY NOW, a little spaced out.', 'ifthenpay-pay-button' ); ?></span>
 				</span>
 			</label>
+			<?php self::close_fold(); ?>
 		</div>
 
-		<div class="iftp-btn-design__shared" data-iftp-when-source="theme custom"<?php echo $own ? '' : ' hidden'; ?>>
+		<div class="iftp-btn-design iftp-btn-design__shared" data-iftp-when-source="theme custom"<?php echo $own ? '' : ' hidden'; ?>>
+			<?php self::open_fold( 'design-extras', __( 'Icon, width and logos', 'ifthenpay-pay-button' ), __( 'These work with your theme\'s look too.', 'ifthenpay-pay-button' ) ); ?>
 			<div class="iftp-btn-design__grid">
 				<fieldset class="iftp-btn-field iftp-btn-design__wide">
 					<legend class="iftp-btn-field__label"><?php esc_html_e( 'Icon', 'ifthenpay-pay-button' ); ?></legend>
@@ -330,7 +399,37 @@ class DesignControls {
 					<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Payers see how they can pay before they click. Uses the methods this button offers.', 'ifthenpay-pay-button' ); ?></span>
 				</span>
 			</label>
+			<?php self::close_fold(); ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Opens a group that folds away, so only the part being worked on takes room. buttons.js remembers which are open.
+	 *
+	 * @param string $id          Its key, for remembering.
+	 * @param string $title       The heading.
+	 * @param string $description The line under it.
+	 * @param bool   $open        Whether it starts open.
+	 */
+	public static function open_fold( string $id, string $title, string $description, bool $open = false ): void {
+		?>
+		<details class="iftp-btn-fold" data-iftp-fold="<?php echo esc_attr( $id ); ?>"<?php echo $open ? ' open' : ''; ?>>
+			<summary class="iftp-btn-fold__summary">
+				<span class="iftp-btn-fold__title"><?php echo esc_html( $title ); ?></span>
+				<span class="iftp-btn-fold__hint"><?php echo esc_html( $description ); ?></span>
+			</summary>
+			<div class="iftp-btn-fold__body">
+		<?php
+	}
+
+	/**
+	 * Closes a group.
+	 */
+	public static function close_fold(): void {
+		?>
+			</div>
+		</details>
 		<?php
 	}
 

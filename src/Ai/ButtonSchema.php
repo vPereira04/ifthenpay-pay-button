@@ -31,7 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ButtonSchema {
 
 	// Look keys the chat may set; the rest (images, video, CSS, popup colours) stay as they are.
-	private const LOOK_KEYS = array( 'accent', 'surface', 'ink', 'radius', 'field_radius', 'fields', 'font', 'width', 'backdrop', 'steps', 'dark', 'pay_bg', 'pay_color', 'pay_grad', 'pay_color2', 'pay_fx', 'pay_fx_size', 'pay_fx_strength', 'card_opacity', 'card_blur', 'scene', 'pay_logo' );
+	private const LOOK_KEYS = array( 'accent', 'surface', 'ink', 'radius', 'field_radius', 'fields', 'font', 'width', 'backdrop', 'steps', 'dark', 'pay_bg', 'pay_color', 'pay_grad', 'pay_color2', 'pay_fx', 'pay_fx_size', 'pay_fx_strength', 'pay_fx_still', 'card_opacity', 'card_blur', 'scene', 'pay_logo' );
 
 	private const DESIGN_KEYS = array( 'source', 'variant', 'color', 'color2', 'text', 'radius', 'border_width', 'border_style', 'border_color', 'size', 'full', 'icon', 'shadow', 'effect', 'attention', 'upper', 'logos' );
 
@@ -112,7 +112,7 @@ class ButtonSchema {
 				'button'      => self::shape(
 					array(
 						'source'       => self::choice( ButtonDesign::SOURCES, 'custom: use the style below; pick it whenever you design the button, always for a new one. site: the site\'s default button design, and everything below is ignored; only when the merchant asks for the site\'s default. theme: look like the site theme\'s own buttons, also ignoring the style below.' ),
-						'variant'      => self::choice( ButtonDesign::VARIANTS, 'filled, outline, soft (tinted), gradient (color into color2), aurora (color and color2 slowly drifting, alive without being loud), split (label on color, an end block in color2 holding the icon, very clear call to action), halo (a lit pill with a soft coloured ring and glow), glass (frosted), 3d (raised with a darker edge), neon (glowing outline, best on dark pages), brutal (thick ink border, hard offset shadow) or ghost (text only).' ),
+						'variant'      => self::choice( ButtonDesign::VARIANTS, 'filled, outline, soft (tinted), gradient (color into color2), aurora (color and color2 slowly drifting, alive without being loud), split (label on color, an end block in color2 holding the icon, very clear call to action), halo (a lit pill with a soft coloured ring and glow), glass (frosted), 3d (raised with a darker edge), neon (glowing outline, best on dark pages), brutal (thick ink border, hard offset shadow) ghost (text only) luxe (sharp metallic gold-style plate with a fine inner frame, color into color2; premium, jewellery, fashion, high-end services), beam (dark plate with a light of color and color2 endlessly circling its edge; tech, SaaS, gaming, night looks), clay (soft inflated pillow with gentle highlights, no hard edges; friendly, kids, wellness, food) ticket (a coupon with notched sides and a dashed tear line; events, tickets, vouchers, offers), gloss (a glassy jelly with a bright highlight band; playful, shops, apps), ring (a solid button with a thin ring floating round it; clean, modern, SaaS), stripe (candy stripes that slide on hover; sales, food, fun) or cut (chamfered corners with an accent edge in color2; tech, gaming, sport).' ),
 						'color'        => $hex,
 						'color2'       => $maybe,
 						'text'         => $maybe,
@@ -122,9 +122,9 @@ class ButtonSchema {
 						'border_color' => self::text( 'The border colour as #rrggbb, or "" for the style\'s own.' ),
 						'size'         => self::choice( ButtonDesign::SIZES, '' ),
 						'full'         => self::flag( 'Full width.' ),
-						'icon'         => self::choice( ButtonDesign::ICONS, 'Pick by subject: cart for shops, gift for gifts and vouchers, ticket for events, calendar for bookings and classes, star for premium, sparkles for beauty and anything special, paw for pets, leaf for plants, food and eco, heart for donations, lock or card for trust, arrow to go on.' ),
+						'icon'         => self::choice( ButtonDesign::ICONS, 'Pick by subject: cart for shops, gift for gifts and vouchers, ticket for events, calendar for bookings and classes, star for premium, sparkles for beauty and anything special, paw for pets, leaf for plants, food and eco, heart for donations, lock or card for trust, bolt for fast or instant, arrow to go on.' ),
 						'shadow'       => self::flag( '' ),
-						'effect'       => self::choice( ButtonDesign::EFFECTS, 'On hover: lift, grow, shine (a light sweep), glow, fill (colour sweeps in) or nudge (the icon moves; needs an icon).' ),
+						'effect'       => self::choice( ButtonDesign::EFFECTS, 'On hover: lift, grow, shine (a light sweep), glow, fill (colour sweeps in) nudge (the icon moves; needs an icon) gild (a fine frame draws in and light sweeps across; pairs with luxe) or tilt (a playful springy tilt and swell).' ),
 						'attention'    => self::choice( ButtonDesign::ATTENTIONS, 'A looping effect that draws the eye until hovered: pulse, ripple, heartbeat, wiggle, bounce, shimmer, breathe or orbit (light running round the edge). Use none unless the button should stand out, e.g. donations or a sale.' ),
 						'upper'        => self::flag( 'Capital letters.' ),
 						'logos'        => self::flag( 'Show the payment method logos under the button.' ),
@@ -140,18 +140,20 @@ class ButtonSchema {
 						'radius'          => self::integer( 'Card corner radius in px, 0 to 32.' ),
 						'field_radius'    => self::integer( 'Field corner radius in px, 0 to 24.' ),
 						'fields'          => self::choice( CheckoutLook::FIELD_STYLES, '' ),
+						'frame'           => self::choice( CheckoutLook::FRAMES, 'The checkout card\'s edge: none, a fine hairline in the accent, or gilded (hairline, a glint along the top and a glow round it; premium and luxury looks).' ),
 						'font'            => self::choice( CheckoutLook::FONTS, 'system: a clean system font. theme: the site theme\'s font.' ),
 						'width'           => self::choice( array_keys( CheckoutLook::WIDTHS ), '' ),
 						'backdrop'        => self::choice( CheckoutLook::BACKDROPS, 'Behind the checkout popup on a page: blur, dim or light.' ),
-						'steps'           => self::choice( CheckoutLook::STEP_STYLES, 'How a form with pages shows where the payer is: bars (a segment per page), labels (segments with page names), line (one bar with a %), numbers (numbered circles), dots, ring (a round meter) or text (just the words).' ),
+						'steps'           => self::choice( CheckoutLook::STEP_STYLES, 'How a form with pages shows where the payer is: bars (a segment per page), labels (segments with page names), line (one bar with a %), numbers (numbered circles), dots, ring (a round meter), text (just the words), chevrons (arrow-shaped breadcrumb blocks), stairs (bars rising like steps), pills (numbered chips, the current one showing its title), counter (a big % with a hairline) or gauge (a half-dial, a slice a page).' ),
 						'dark'            => self::choice( CheckoutLook::DARK_MODES, 'auto follows the payer\'s device dark mode.' ),
 						'pay_bg'          => self::choice( CheckoutLook::PAY_BGS, 'The pay page background: glow (soft accent light), plain (pay_color), gradient (pay_color into pay_color2). image and video only when the button already has one; you can\'t add media.' ),
 						'pay_color'       => $maybe,
 						'pay_grad'        => self::choice( CheckoutLook::PAY_GRADS, 'Gradient style: soft, aurora or diagonal.' ),
 						'pay_color2'      => $maybe,
-						'pay_fx'          => self::choice( CheckoutLook::PAY_FX, 'A pattern over the background: crystals (low-poly facets), waves (flowing lines), bokeh (soft out-of-focus lights), grain (film noise) or none.' ),
+						'pay_fx'          => self::choice( CheckoutLook::PAY_FX, 'A pattern over the background: crystals (low-poly facets), waves (flowing lines), bokeh (soft out-of-focus lights), grain (film noise), dots (a halftone dot grid), grid (blueprint lines), stripes (fine diagonal pinstripes), rings (ripples that spread out from the card), gilt (fine accent crosshatch with a slow sheen; luxury looks), liquid (glossy blobs in the accent and second colour that flow and merge), mesh (soft clouds of the accent, second colour and white that drift and blend), tide (layered waves rolling past), rays (beams of the second colour fanning from the top; premium, events), spotlight (a soft light behind the card; minimal, dark looks), starlight (tiny twinkling stars; night, luxury, tech) satin (a silky sheen sliding across; fashion, beauty), confetti (colourful flecks drifting down in layers; celebrations, events, kids, fundraising) or none.' ),
 						'pay_fx_size'     => self::integer( 'Pattern size, 40 to 400.' ),
 						'pay_fx_strength' => self::integer( 'Pattern strength, 0 to 100.' ),
+						'pay_fx_still'    => self::flag( 'Hold the pattern still. true keeps it frozen (lighter on older phones); false lets it move (liquid, mesh, tide, rings, bokeh, waves, rays, spotlight, starlight, satin and confetti come alive). Payers who ask their device for less motion always get it still.' ),
 						'card_opacity'    => self::integer( 'Card opacity, 0 to 100. Below 100 the card turns to frosted glass over the background; 70 to 92 reads best.' ),
 						'card_blur'       => self::integer( 'How much the glass card blurs what is behind it, 0 to 40 px; 14 to 20 is usual. Only matters below 100 opacity.' ),
 						'scene'           => self::flag( 'Open the checkout full screen on the pay page background, instead of a popup over the page.' ),
@@ -203,11 +205,16 @@ class ButtonSchema {
 	 * @param array<string, mixed> $base   The sanitized config it changes.
 	 * @phpstan-param ButtonConfig $base
 	 * @param string               $title  The current title, kept when the answer has none.
+	 * @param bool                 $prices Whether the AI may set prices; when not, every price stays as it was.
 	 * @return array{title: string, config: ButtonConfig}
 	 */
-	public static function to_config( array $answer, array $base, string $title ): array {
+	public static function to_config( array $answer, array $base, string $title, bool $prices = true ): array {
 		$config = $base;
 		$pick   = static fn( string $key, array $from ): array => is_array( $from[ $key ] ?? null ) ? $from[ $key ] : array();
+
+		if ( ! $prices ) {
+			$answer = self::without_prices( $answer, $base );
+		}
 
 		foreach ( array( 'summary', 'label', 'amount_mode', 'amount', 'show_amount', 'min', 'max', 'presets', 'note_label', 'first_step' ) as $key ) {
 			if ( array_key_exists( $key, $answer ) ) {
@@ -323,6 +330,36 @@ class ButtonSchema {
 		}
 
 		return $lines;
+	}
+
+	/**
+	 * The answer with the merchant's own prices put back: the amount and its range, and each option's price,
+	 * matched by its text. A new option costs the button's amount.
+	 *
+	 * @param array<string, mixed> $answer What the AI gave.
+	 * @param array<string, mixed> $base   The button before this answer.
+	 * @phpstan-param ButtonConfig $base
+	 * @return array<string, mixed>
+	 */
+	private static function without_prices( array $answer, array $base ): array {
+		foreach ( array( 'amount_mode', 'amount', 'min', 'max', 'presets' ) as $key ) {
+			unset( $answer[ $key ] );
+		}
+
+		if ( ! is_array( $answer['spots']['options'] ?? null ) ) {
+			return $answer;
+		}
+
+		$kept = array_column( $base['spots']['options'], 'price', 'label' );
+
+		foreach ( $answer['spots']['options'] as $index => $option ) {
+			if ( is_array( $option ) ) {
+				$label = is_scalar( $option['label'] ?? null ) ? (string) $option['label'] : '';
+				$answer['spots']['options'][ $index ]['price'] = $kept[ $label ] ?? 0;
+			}
+		}
+
+		return $answer;
 	}
 
 	/**

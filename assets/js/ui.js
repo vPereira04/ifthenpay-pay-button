@@ -1,4 +1,4 @@
-// Shared UI for Gateway Configuration and Entries: our own dropdowns over the native <select>s.
+// Shared UI for Configuration and Entries: our own dropdowns over the native <select>s.
 // The <select> stays in the form (name, value, change events, no-JS), hidden; a button + listbox replace its look.
 ( function () {
 	'use strict';

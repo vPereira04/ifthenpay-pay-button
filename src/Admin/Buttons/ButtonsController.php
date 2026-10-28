@@ -108,7 +108,7 @@ class ButtonsController {
 		}
 
 		// Back to the tab they saved from.
-		$fragment = in_array( $tab, array( 'look', 'design', 'after', 'connect' ), true ) ? '#' . $tab : '';
+		$fragment = in_array( $tab, array( 'form', 'design', 'after', 'connect' ), true ) ? '#' . $tab : '';
 
 		$this->back( add_query_arg( 'iftp_notice', $make_default ? 'default' : ( $id > 0 ? 'saved' : 'created' ), ButtonsPage::edit_url( $saved ) ) . $fragment );
 	}

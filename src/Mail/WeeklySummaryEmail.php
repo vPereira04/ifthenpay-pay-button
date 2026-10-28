@@ -93,7 +93,7 @@ class WeeklySummaryEmail {
 			. '</td></tr></table>'
 			. '</td></tr>'
 			. '<tr><td style="padding:22px 8px 0;font-size:12px;line-height:1.8;color:#98a1b5;text-align:center">'
-			. esc_html__( 'You get this every Monday because the weekly summary is on in ifthenpay → Gateway Configuration.', 'ifthenpay-pay-button' )
+			. esc_html__( 'You get this every Monday because the weekly summary is on in Pay Button › Configuration › Emails.', 'ifthenpay-pay-button' )
 			. '</td></tr>'
 			. '</table></div>';
 

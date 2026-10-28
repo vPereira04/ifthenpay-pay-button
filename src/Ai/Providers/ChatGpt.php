@@ -127,9 +127,16 @@ class ChatGpt extends Provider {
 			'max_completion_tokens' => static::MAX_TOKENS,
 		);
 
-		// Reasoning models think less, so the merchant isn't left waiting; older ones don't take the setting.
+		// Reasoning models take the thinking setting but no temperature; older ones the other way round.
 		if ( 1 === preg_match( '/^(o\d|gpt-([5-9]|\d{2}))/', $model ) ) {
-			$body['reasoning_effort'] = 'low';
+			$efforts                  = array(
+				'quick'    => 'low',
+				'balanced' => 'medium',
+				'deep'     => 'high',
+			);
+			$body['reasoning_effort'] = $efforts[ $this->thinking ] ?? 'low';
+		} else {
+			$body['temperature'] = $this->temperature;
 		}
 
 		$response = $this->request( 'POST', self::BASE . 'chat/completions', $this->headers( $key ), $body );

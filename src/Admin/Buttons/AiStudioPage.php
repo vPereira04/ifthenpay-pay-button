@@ -204,6 +204,7 @@ class AiStudioPage {
 									<span class="iftp-btn-studio__ghost-button"></span>
 								</div>
 								<p class="iftp-btn-studio__building-text" aria-hidden="true" data-iftp-studio-building-text></p>
+								<span class="iftp-btn-studio__progress" aria-hidden="true" data-iftp-studio-progress></span>
 							</div>
 						</div>
 

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Admin;
 
+use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
@@ -23,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Default Design › Checkout and a button's Checkout design tab draw the same cards and preview; only where the fields
+ * Default Design › Checkout and a button's Design › Checkout & pay page draw the same cards and preview; only where the fields
  * post to differs (`look[…]` or `config[look][…]`). buttons.js reads them by their data-iftp-look keys.
  *
  * @phpstan-import-type Look from CheckoutLook
@@ -55,24 +56,31 @@ class LookControls {
 		$css = '';
 
 		foreach ( self::swatch_looks() as $key => $look ) {
-			$vars = CheckoutLook::variables( $look );
-			$rule = '';
-
-			foreach ( array( '--iftp-page-bg', '--iftp-page-glow', '--iftp-page-glow2', '--iftp-page-orb', '--iftp-page-orb2', '--iftp-page-crystal', '--iftp-page-pattern', '--iftp-page-pattern-tile', '--iftp-page-fx-opacity', '--iftp-card-bg', '--iftp-card-filter' ) as $name ) {
-				$rule .= $name . ':' . $vars[ $name ] . ';';
-			}
-
 			$css .= sprintf(
-				'.iftp-btn-looksets__item[data-iftp-look-preset="%1$s"] .iftp-btn-looksets__swatch{%2$s--i:%3$s;--a:%4$s;--r:%5$dpx}',
+				'.iftp-btn-looksets__item[data-iftp-look-preset="%1$s"] .iftp-btn-looksets__swatch{%2$s}',
 				sanitize_key( $key ),
-				$rule,
-				$look['ink'],
-				$look['accent'],
-				min( 10, $look['radius'] )
+				self::swatch_style( $look )
 			);
 		}
 
 		return $css;
+	}
+
+	/**
+	 * A look's swatch as CSS declarations: the page variables CheckoutLook prints, plus the swatch's own.
+	 *
+	 * @param array<string, mixed> $look A sanitized look.
+	 * @phpstan-param Look $look
+	 */
+	private static function swatch_style( array $look ): string {
+		$vars  = CheckoutLook::variables( $look );
+		$style = '';
+
+		foreach ( array( '--iftp-page-bg', '--iftp-page-glow', '--iftp-page-glow2', '--iftp-page-orb', '--iftp-page-orb2', '--iftp-page-crystal', '--iftp-page-pattern', '--iftp-page-pattern-tile', '--iftp-page-fx-opacity', '--iftp-card-bg', '--iftp-card-filter' ) as $name ) {
+			$style .= $name . ':' . $vars[ $name ] . ';';
+		}
+
+		return $style . sprintf( '--iftp-brand:%2$s;--i:%1$s;--a:%2$s;--r:%3$dpx;', $look['ink'], $look['accent'], min( 10, $look['radius'] ) );
 	}
 
 	/**
@@ -95,6 +103,36 @@ class LookControls {
 	}
 
 	/**
+	 * A start-from tile for a saved look, drawn with its own background (image included), so one click brings
+	 * the controls back to it.
+	 *
+	 * @param array<string, mixed> $saved The saved look.
+	 * @param string               $name  The tile's name.
+	 * @phpstan-param Look $saved
+	 */
+	private function render_saved_tile( array $saved, string $name ): void {
+		$image = $saved['pay_image'] > 0 ? wp_get_attachment_image_url( $saved['pay_image'], 'medium' ) : false;
+
+		// Same shrink as the other looks' swatches.
+		$saved['pay_fx_size'] = max( 16, (int) round( $saved['pay_fx_size'] / 4 ) );
+		$style                = self::swatch_style( $saved );
+		$style               .= '--iftp-page-image:' . ( is_string( $image ) ? 'url("' . str_replace( array( '"', '\\' ), '', $image ) . '")' : 'none' ) . ';';
+		?>
+							<button type="button" class="iftp-btn-looksets__item" data-iftp-look-saved="<?php echo esc_attr( (string) wp_json_encode( ButtonsPage::look_for_js( $saved ) ) ); ?>">
+								<span class="iftp-btn-looksets__swatch" aria-hidden="true" style="<?php echo esc_attr( $style ); ?>">
+									<span class="iftp-btn-looksets__bg <?php echo esc_attr( CheckoutLook::page_classes( $saved ) ); ?>"></span>
+									<span class="iftp-btn-looksets__card">
+										<span class="iftp-btn-looksets__line"></span>
+										<span class="iftp-btn-looksets__line iftp-btn-looksets__line--short"></span>
+										<span class="iftp-btn-looksets__cta"></span>
+									</span>
+								</span>
+								<span class="iftp-btn-looksets__name"><?php echo esc_html( $name ); ?></span>
+							</button>
+		<?php
+	}
+
+	/**
 	 * A field's name.
 	 *
 	 * @param string $key The look key.
@@ -109,9 +147,13 @@ class LookControls {
 	 *
 	 * @param array<string, mixed> $look     The look to show.
 	 * @param bool                 $with_css Whether to offer the Custom CSS box.
+	 * @param array<string, mixed> $saved    The look saved for the site, offered first as the default to come back to.
+	 * @param array<string, mixed> $own      The look saved on the button being edited, offered next; empty when it has none yet.
 	 * @phpstan-param Look $look
+	 * @phpstan-param Look $saved
+	 * @phpstan-param Look|array{} $own
 	 */
-	public function render_cards( array $look, bool $with_css ): void {
+	public function render_cards( array $look, bool $with_css, array $saved, array $own = array() ): void {
 		$on     = ButtonDesign::on_color( $look['accent'] );
 		$colors = array(
 			'surface' => array( __( 'Background', 'ifthenpay-pay-button' ), __( 'The sheet, the pay page card and the popups.', 'ifthenpay-pay-button' ) ),
@@ -130,7 +172,19 @@ class LookControls {
 					</div>
 					<div class="iftp-btn-ecard__body">
 						<div class="iftp-btn-looksets" role="group" aria-labelledby="iftp-btn-look-start">
+							<?php $this->render_saved_tile( $saved, __( 'Default look', 'ifthenpay-pay-button' ) ); ?>
+							<?php
+							if ( array() !== $own ) {
+								$this->render_saved_tile( $own, __( 'This button\'s look', 'ifthenpay-pay-button' ) );
+							}
+							?>
 							<?php foreach ( CheckoutLook::presets() as $key => $preset ) : ?>
+								<?php
+								// A button's own look isn't the ifthenpay one; that stays the site's.
+								if ( ! $with_css && 'ifthenpay' === $key ) {
+									continue;
+								}
+								?>
 								<button type="button" class="iftp-btn-looksets__item" data-iftp-look-preset="<?php echo esc_attr( $key ); ?>">
 									<span class="iftp-btn-looksets__swatch" aria-hidden="true">
 										<span class="iftp-btn-looksets__bg <?php echo esc_attr( CheckoutLook::page_classes( CheckoutLook::sanitize( $preset ) ) ); ?>"></span>
@@ -147,11 +201,11 @@ class LookControls {
 					</div>
 				</section>
 
-				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-colors">
-					<div class="iftp-btn-ecard__intro">
+				<details class="iftp-btn-ecard iftp-btn-ecard--fold" data-iftp-fold="look-colors" open>
+					<summary class="iftp-btn-ecard__intro">
 						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-colors"><?php esc_html_e( 'Colours', 'ifthenpay-pay-button' ); ?></h2>
 						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'A dark background with light text works too; every shade follows.', 'ifthenpay-pay-button' ); ?></p>
-					</div>
+					</summary>
 					<div class="iftp-btn-ecard__body">
 						<div class="iftp-btn-design__grid">
 							<div class="iftp-btn-field">
@@ -197,13 +251,13 @@ class LookControls {
 						</div>
 						<p class="iftp-btn-field__help"><?php esc_html_e( 'Under 100%, the card turns to frosted glass and the background shows through. Lovely over an image, a video, Aurora or Bokeh.', 'ifthenpay-pay-button' ); ?></p>
 					</div>
-				</section>
+				</details>
 
-				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-dark" data-iftp-look-section="dark">
-					<div class="iftp-btn-ecard__intro">
+				<details class="iftp-btn-ecard iftp-btn-ecard--fold" data-iftp-fold="look-dark" data-iftp-look-section="dark">
+					<summary class="iftp-btn-ecard__intro">
 						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-dark"><?php esc_html_e( 'Dark mode', 'ifthenpay-pay-button' ); ?></h2>
 						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'Payers whose phone or computer is set to dark get these colours instead. Try both with the sun and moon above the preview.', 'ifthenpay-pay-button' ); ?></p>
-					</div>
+					</summary>
 					<div class="iftp-btn-ecard__body">
 						<?php
 						$this->print_choice(
@@ -239,13 +293,13 @@ class LookControls {
 						</div>
 						<p class="iftp-btn-field__help" data-iftp-when-dark="auto"><?php esc_html_e( 'The lighter shades, the lines and the pay page\'s background are mixed from these, as in the light look.', 'ifthenpay-pay-button' ); ?></p>
 					</div>
-				</section>
+				</details>
 
-				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-shape">
-					<div class="iftp-btn-ecard__intro">
+				<details class="iftp-btn-ecard iftp-btn-ecard--fold" data-iftp-fold="look-shape">
+					<summary class="iftp-btn-ecard__intro">
 						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-shape"><?php esc_html_e( 'Shape and type', 'ifthenpay-pay-button' ); ?></h2>
 						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'Long forms scroll inside the checkout, so it never grows past the screen.', 'ifthenpay-pay-button' ); ?></p>
-					</div>
+					</summary>
 					<div class="iftp-btn-ecard__body">
 						<div class="iftp-btn-design__grid">
 							<?php $this->print_range( 'radius', __( 'Checkout corners', 'ifthenpay-pay-button' ), $look['radius'], CheckoutLook::MAX_RADIUS ); ?>
@@ -259,6 +313,16 @@ class LookControls {
 									'outline'   => __( 'Outlined', 'ifthenpay-pay-button' ),
 									'soft'      => __( 'Filled', 'ifthenpay-pay-button' ),
 									'underline' => __( 'Underlined', 'ifthenpay-pay-button' ),
+								)
+							);
+							$this->print_choice(
+								'frame',
+								__( 'Card edge', 'ifthenpay-pay-button' ),
+								$look['frame'],
+								array(
+									'none'     => __( 'Plain', 'ifthenpay-pay-button' ),
+									'hairline' => __( 'Hairline', 'ifthenpay-pay-button' ),
+									'gilded'   => __( 'Gilded', 'ifthenpay-pay-button' ),
 								)
 							);
 							$this->print_choice(
@@ -297,23 +361,23 @@ class LookControls {
 							</div>
 						</div>
 					</div>
-				</section>
+				</details>
 
-				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-steps">
-					<div class="iftp-btn-ecard__intro">
+				<details class="iftp-btn-ecard iftp-btn-ecard--fold" data-iftp-fold="look-steps">
+					<summary class="iftp-btn-ecard__intro">
 						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-steps"><?php esc_html_e( 'Page progress', 'ifthenpay-pay-button' ); ?></h2>
 						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'When a form has pages: how payers see how many there are, and how much of this one they\'ve answered.', 'ifthenpay-pay-button' ); ?></p>
-					</div>
+					</summary>
 					<div class="iftp-btn-ecard__body">
 						<?php $this->print_step_styles( $look['steps'] ); ?>
 					</div>
-				</section>
+				</details>
 
-				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-page" data-iftp-look-section="page">
-					<div class="iftp-btn-ecard__intro">
+				<details class="iftp-btn-ecard iftp-btn-ecard--fold" data-iftp-fold="look-page" data-iftp-look-section="page">
+					<summary class="iftp-btn-ecard__intro">
 						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-page"><?php esc_html_e( 'Pay page', 'ifthenpay-pay-button' ); ?></h2>
 						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'The page every pay link opens: what sits behind the checkout card, and around it.', 'ifthenpay-pay-button' ); ?></p>
-					</div>
+					</summary>
 					<div class="iftp-btn-ecard__body">
 						<?php
 						$this->print_toggle( 'scene', __( 'Open the checkout on this background', 'ifthenpay-pay-button' ), __( 'A click on the pay button opens the checkout, and the popups after paying, over this background instead of the dimmed page.', 'ifthenpay-pay-button' ), $look['scene'] );
@@ -461,41 +525,30 @@ class LookControls {
 						</div>
 
 						<div class="iftp-btn-design__grid" data-iftp-when-bg="glow gradient plain">
-							<?php
-							$this->print_choice(
-								'pay_fx',
-								__( 'Effect', 'ifthenpay-pay-button' ),
-								$look['pay_fx'],
-								array(
-									'none'     => __( 'None', 'ifthenpay-pay-button' ),
-									'crystals' => __( 'Crystals', 'ifthenpay-pay-button' ),
-									'waves'    => __( 'Waves', 'ifthenpay-pay-button' ),
-									'bokeh'    => __( 'Bokeh', 'ifthenpay-pay-button' ),
-									'grain'    => __( 'Grain', 'ifthenpay-pay-button' ),
-								),
-								true
-							);
-							?>
-							<div data-iftp-when-fx="crystals waves bokeh grain">
+							<?php $this->print_fx_styles( $look ); ?>
+							<div data-iftp-when-fx="crystals waves bokeh grain dots grid stripes rings liquid mesh tide gilt rays spotlight starlight satin confetti">
 								<?php $this->print_range( 'pay_fx_size', __( 'Size', 'ifthenpay-pay-button' ), $look['pay_fx_size'], 400, 'px', 40 ); ?>
 							</div>
-							<div data-iftp-when-fx="crystals waves bokeh grain">
+							<div data-iftp-when-fx="crystals waves bokeh grain dots grid stripes rings liquid mesh tide gilt rays spotlight starlight satin confetti">
 								<?php $this->print_range( 'pay_fx_strength', __( 'Strength', 'ifthenpay-pay-button' ), $look['pay_fx_strength'], 100, '%' ); ?>
 							</div>
-							<p class="iftp-btn-field__help iftp-btn-design__wide" data-iftp-when-fx="bokeh"><?php esc_html_e( 'The lights take the accent and the second colour from Gradient.', 'ifthenpay-pay-button' ); ?></p>
+							<div class="iftp-btn-design__wide" data-iftp-when-fx="crystals waves bokeh grain dots grid stripes rings liquid mesh tide gilt rays spotlight starlight satin confetti">
+								<?php $this->print_toggle( 'pay_fx_still', __( 'Pause the animation', 'ifthenpay-pay-button' ), __( 'Every effect can move. Moving backgrounds are heavier on older phones, so this starts on; turn it off to bring the effect to life. Payers whose device asks for less motion always get it still.', 'ifthenpay-pay-button' ), $look['pay_fx_still'] ); ?>
+							</div>
+							<p class="iftp-btn-field__help iftp-btn-design__wide" data-iftp-when-fx="bokeh liquid mesh tide gilt rays spotlight starlight satin confetti"><?php esc_html_e( 'This effect takes the accent and the second colour from Gradient.', 'ifthenpay-pay-button' ); ?></p>
 						</div>
 						<?php
 						$this->print_toggle( 'pay_logo', __( 'Your logo above the card', 'ifthenpay-pay-button' ), __( 'The theme\'s logo, else the site icon, else the site name. It links home.', 'ifthenpay-pay-button' ), $look['pay_logo'] );
 						$this->print_toggle( 'pay_back', __( 'A link back to your site under the card', 'ifthenpay-pay-button' ), __( 'For payers who opened the link and want to look around.', 'ifthenpay-pay-button' ), $look['pay_back'] );
 						?>
 					</div>
-				</section>
+				</details>
 
-				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-popups">
-					<div class="iftp-btn-ecard__intro">
+				<details class="iftp-btn-ecard iftp-btn-ecard--fold" data-iftp-fold="look-popups">
+					<summary class="iftp-btn-ecard__intro">
 						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-popups"><?php esc_html_e( 'Popups and footer', 'ifthenpay-pay-button' ); ?></h2>
-						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'The paid, pending, failed and cancelled popups use the colours above. Their words are in Messages.', 'ifthenpay-pay-button' ); ?></p>
-					</div>
+						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'The paid, pending, failed and cancelled popups use the colours above. Their words are in Configuration › Messages.', 'ifthenpay-pay-button' ); ?></p>
+					</summary>
 					<div class="iftp-btn-ecard__body">
 						<div class="iftp-btn-design__grid">
 							<?php
@@ -524,7 +577,7 @@ class LookControls {
 						$this->print_toggle( 'secure', __( '"Secure payment by ifthenpay"', 'ifthenpay-pay-button' ), __( 'A small line that tells payers who handles the money.', 'ifthenpay-pay-button' ), $look['secure'] );
 						?>
 					</div>
-				</section>
+				</details>
 
 		<?php
 
@@ -541,11 +594,11 @@ class LookControls {
 	 */
 	private function render_css( array $look ): void {
 		?>
-				<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-look-css">
-					<div class="iftp-btn-ecard__intro">
+				<details class="iftp-btn-ecard iftp-btn-ecard--fold" data-iftp-fold="look-css">
+					<summary class="iftp-btn-ecard__intro">
 						<h2 class="iftp-btn-ecard__title" id="iftp-btn-look-css"><?php esc_html_e( 'Custom CSS', 'ifthenpay-pay-button' ); ?></h2>
 						<p class="iftp-btn-ecard__description"><?php esc_html_e( 'Loaded after everything above, on every page with a button. The preview shows it once you save.', 'ifthenpay-pay-button' ); ?></p>
-					</div>
+					</summary>
 					<div class="iftp-btn-ecard__body">
 						<label class="screen-reader-text" for="iftp-btn-look-css-input"><?php esc_html_e( 'Custom CSS', 'ifthenpay-pay-button' ); ?></label>
 						<textarea class="iftp-btn-field__control iftp-btn-code-input" id="iftp-btn-look-css-input" name="<?php echo esc_attr( $this->name( 'css' ) ); ?>" rows="8" spellcheck="false" placeholder=".iftp-btn-form__submit { letter-spacing: 0.04em; text-transform: uppercase; }"<?php echo current_user_can( 'unfiltered_html' ) ? '' : ' readonly'; ?>><?php echo esc_textarea( $look['css'] ); ?></textarea>
@@ -575,7 +628,7 @@ class LookControls {
 							</dl>
 						</details>
 					</div>
-				</section>
+				</details>
 		<?php
 	}
 
@@ -705,7 +758,7 @@ class LookControls {
 	}
 
 	/**
-	 * The preview's method logos: the ones switched on in Gateway Configuration, as the checkout shows them.
+	 * The preview's method logos: the ones switched on in Configuration › Gateway, as the checkout shows them.
 	 */
 	private function print_preview_logos(): void {
 		$methods = array_filter(
@@ -803,13 +856,18 @@ class LookControls {
 	 */
 	private function print_step_styles( string $value ): void {
 		$styles = array(
-			'bars'    => array( __( 'Bars', 'ifthenpay-pay-button' ), __( 'A bar per page', 'ifthenpay-pay-button' ) ),
-			'labels'  => array( __( 'Named bars', 'ifthenpay-pay-button' ), __( 'Each page\'s title under it', 'ifthenpay-pay-button' ) ),
-			'line'    => array( __( 'One line', 'ifthenpay-pay-button' ), __( 'The whole form, with a %', 'ifthenpay-pay-button' ) ),
-			'numbers' => array( __( 'Numbers', 'ifthenpay-pay-button' ), __( 'Numbered circles that tick off', 'ifthenpay-pay-button' ) ),
-			'dots'    => array( __( 'Dots', 'ifthenpay-pay-button' ), __( 'This page stretches and fills', 'ifthenpay-pay-button' ) ),
-			'ring'    => array( __( 'Ring', 'ifthenpay-pay-button' ), __( 'A round meter, a slice a page', 'ifthenpay-pay-button' ) ),
-			'text'    => array( __( 'Just words', 'ifthenpay-pay-button' ), __( 'The title and the step, no bar', 'ifthenpay-pay-button' ) ),
+			'bars'     => array( __( 'Bars', 'ifthenpay-pay-button' ), __( 'A bar per page', 'ifthenpay-pay-button' ) ),
+			'labels'   => array( __( 'Named bars', 'ifthenpay-pay-button' ), __( 'Each page\'s title under it', 'ifthenpay-pay-button' ) ),
+			'line'     => array( __( 'One line', 'ifthenpay-pay-button' ), __( 'The whole form, with a %', 'ifthenpay-pay-button' ) ),
+			'numbers'  => array( __( 'Numbers', 'ifthenpay-pay-button' ), __( 'Numbered circles that tick off', 'ifthenpay-pay-button' ) ),
+			'dots'     => array( __( 'Dots', 'ifthenpay-pay-button' ), __( 'This page stretches and fills', 'ifthenpay-pay-button' ) ),
+			'ring'     => array( __( 'Ring', 'ifthenpay-pay-button' ), __( 'A round meter, a slice a page', 'ifthenpay-pay-button' ) ),
+			'text'     => array( __( 'Just words', 'ifthenpay-pay-button' ), __( 'The title and the step, no bar', 'ifthenpay-pay-button' ) ),
+			'chevrons' => array( __( 'Chevrons', 'ifthenpay-pay-button' ), __( 'Arrow blocks, like a breadcrumb', 'ifthenpay-pay-button' ) ),
+			'stairs'   => array( __( 'Stairs', 'ifthenpay-pay-button' ), __( 'Bars that climb a step per page', 'ifthenpay-pay-button' ) ),
+			'pills'    => array( __( 'Pills', 'ifthenpay-pay-button' ), __( 'Chips; this page opens up with its title', 'ifthenpay-pay-button' ) ),
+			'counter'  => array( __( 'Counter', 'ifthenpay-pay-button' ), __( 'A big % over a hairline', 'ifthenpay-pay-button' ) ),
+			'gauge'    => array( __( 'Gauge', 'ifthenpay-pay-button' ), __( 'A half dial, a slice a page', 'ifthenpay-pay-button' ) ),
 		);
 		$titles = array(
 			__( 'Plan', 'ifthenpay-pay-button' ),
@@ -833,6 +891,56 @@ class LookControls {
 							)
 						);
 						?>
+					</span>
+					<span class="iftp-btn-stepstyles__name"><?php echo esc_html( $text[0] ); ?></span>
+					<span class="iftp-btn-stepstyles__hint"><?php echo esc_html( $text[1] ); ?></span>
+				</label>
+			<?php endforeach; ?>
+		</fieldset>
+		<?php
+	}
+
+	/**
+	 * The pay page effects as cards, each drawn over the look's own background and colours. buttons.js fills in
+	 * each card's pattern and keeps the background in step with the form.
+	 *
+	 * @param array<string, mixed> $look The current look.
+	 * @phpstan-param Look $look
+	 */
+	private function print_fx_styles( array $look ): void {
+		$styles     = array(
+			'none'      => array( __( 'None', 'ifthenpay-pay-button' ), __( 'Just the background', 'ifthenpay-pay-button' ) ),
+			'crystals'  => array( __( 'Crystals', 'ifthenpay-pay-button' ), __( 'Low-poly facets of light', 'ifthenpay-pay-button' ) ),
+			'waves'     => array( __( 'Waves', 'ifthenpay-pay-button' ), __( 'Flowing bands, like silk', 'ifthenpay-pay-button' ) ),
+			'bokeh'     => array( __( 'Bokeh', 'ifthenpay-pay-button' ), __( 'Soft out-of-focus lights', 'ifthenpay-pay-button' ) ),
+			'grain'     => array( __( 'Grain', 'ifthenpay-pay-button' ), __( 'Fine film noise', 'ifthenpay-pay-button' ) ),
+			'dots'      => array( __( 'Dots', 'ifthenpay-pay-button' ), __( 'A halftone dot grid', 'ifthenpay-pay-button' ) ),
+			'grid'      => array( __( 'Grid', 'ifthenpay-pay-button' ), __( 'Blueprint lines', 'ifthenpay-pay-button' ) ),
+			'stripes'   => array( __( 'Stripes', 'ifthenpay-pay-button' ), __( 'Fine diagonal pinstripes', 'ifthenpay-pay-button' ) ),
+			'rings'     => array( __( 'Rings', 'ifthenpay-pay-button' ), __( 'Ripples that spread from the card', 'ifthenpay-pay-button' ) ),
+			'liquid'    => array( __( 'Liquid', 'ifthenpay-pay-button' ), __( 'Glossy blobs that flow and merge', 'ifthenpay-pay-button' ) ),
+			'mesh'      => array( __( 'Mesh', 'ifthenpay-pay-button' ), __( 'Soft colour clouds that drift and blend', 'ifthenpay-pay-button' ) ),
+			'tide'      => array( __( 'Tide', 'ifthenpay-pay-button' ), __( 'Layered waves rolling past', 'ifthenpay-pay-button' ) ),
+			'gilt'      => array( __( 'Gilt', 'ifthenpay-pay-button' ), __( 'Fine gold crosshatch with a slow sheen', 'ifthenpay-pay-button' ) ),
+			'rays'      => array( __( 'Rays', 'ifthenpay-pay-button' ), __( 'Beams of light fanning from the top', 'ifthenpay-pay-button' ) ),
+			'spotlight' => array( __( 'Spotlight', 'ifthenpay-pay-button' ), __( 'A soft light lifting the card out', 'ifthenpay-pay-button' ) ),
+			'starlight' => array( __( 'Starlight', 'ifthenpay-pay-button' ), __( 'Tiny stars that twinkle', 'ifthenpay-pay-button' ) ),
+			'satin'     => array( __( 'Satin', 'ifthenpay-pay-button' ), __( 'A silky sheen sliding across', 'ifthenpay-pay-button' ) ),
+			'confetti'  => array( __( 'Confetti', 'ifthenpay-pay-button' ), __( 'Colourful flecks drifting down', 'ifthenpay-pay-button' ) ),
+		);
+		$background = in_array( $look['pay_bg'], array( 'glow', 'plain', 'gradient' ), true ) ? $look['pay_bg'] : 'glow';
+		?>
+		<fieldset class="iftp-btn-stepstyles iftp-btn-fxstyles iftp-btn-design__wide">
+			<legend class="iftp-btn-field__label"><?php esc_html_e( 'Effect', 'ifthenpay-pay-button' ); ?></legend>
+			<?php foreach ( $styles as $fx => $text ) : ?>
+				<label class="iftp-btn-stepstyles__item">
+					<input type="radio" class="iftp-btn-stepstyles__input" name="<?php echo esc_attr( $this->name( 'pay_fx' ) ); ?>" value="<?php echo esc_attr( $fx ); ?>" <?php checked( $look['pay_fx'], $fx ); ?> data-iftp-look="pay_fx" />
+					<span class="iftp-btn-fxstyles__sample <?php echo esc_attr( sprintf( 'iftp-btn-pagebg--%1$s iftp-btn-pagegrad--%2$s iftp-btn-pagefx--%3$s', $background, $look['pay_grad'], $fx ) . ( $look['pay_fx_still'] ? ' iftp-btn-pagestill' : '' ) ); ?>" aria-hidden="true" data-iftp-look-sample data-iftp-fx-sample="<?php echo esc_attr( $fx ); ?>">
+						<span class="iftp-btn-fxstyles__card">
+							<span class="iftp-btn-fxstyles__line"></span>
+							<span class="iftp-btn-fxstyles__line iftp-btn-fxstyles__line--short"></span>
+							<span class="iftp-btn-fxstyles__line iftp-btn-fxstyles__line--brand"></span>
+						</span>
 					</span>
 					<span class="iftp-btn-stepstyles__name"><?php echo esc_html( $text[0] ); ?></span>
 					<span class="iftp-btn-stepstyles__hint"><?php echo esc_html( $text[1] ); ?></span>

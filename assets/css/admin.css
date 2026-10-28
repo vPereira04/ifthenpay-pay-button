@@ -1,6 +1,6 @@
 /* ==========================================================================
    ifthenpay — unified admin design
-   One stylesheet for Gateway Configuration, Entries and the single entry page.
+   One stylesheet for Configuration, Entries and the single entry page.
    Everything is scoped to body.iftp-btn-screen (Menu::body_class()), so nothing leaks into the rest of wp-admin.
    Layers: tokens → base → primitives (buttons, fields, badges, dialogs) → screens → responsive → a11y.
    ========================================================================== */
@@ -113,7 +113,6 @@ body.iftp-btn-screen [hidden]:not(dialog, #iftp-btn-unhidden) {
 .iftp-btn-settings,
 .iftp-btn-entries,
 .iftp-btn-entry {
-	max-width: 1360px;
 	margin: 20px 24px 40px 4px;
 	color: var(--iftp-ink-2);
 	font-family: var(--iftp-font);
@@ -657,7 +656,7 @@ body.iftp-btn-screen .iftp-btn-entry__title {
 }
 
 /* --------------------------------------------------------------------------
-   Gateway Configuration
+   Configuration › Gateway
    -------------------------------------------------------------------------- */
 .iftp-btn-panel {
 	display: grid;

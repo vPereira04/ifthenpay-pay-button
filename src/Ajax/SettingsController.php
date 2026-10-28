@@ -1,6 +1,6 @@
 <?php
 /**
- * Gateway Configuration AJAX router.
+ * Configuration › Gateway AJAX router.
  *
  * @package Ifthenpay\PayButton
  */
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Admin AJAX for the Gateway Configuration screen.
+ * Admin AJAX for the Configuration screen's Gateway tab.
  */
 class SettingsController {
 
@@ -148,7 +148,7 @@ class SettingsController {
 	}
 
 	/**
-	 * Saves the whole screen in one call. The default can only be a method that's enabled.
+	 * Saves the Gateway tab in one call. The default can only be a method that's enabled.
 	 */
 	public function save_settings(): void {
 		$this->guard_connected();
@@ -177,15 +177,6 @@ class SettingsController {
 		$this->settings->set_default_method( in_array( $default_method, $enabled_now, true ) ? $default_method : '' );
 		$this->settings->set_description( $this->post_text( 'description' ) );
 		$this->settings->set_expiry_days( absint( $this->post_text( 'expiry_days', '3' ) ) );
-		$this->settings->set_summary_enabled( '' !== $this->post_text( 'summary_enabled' ) );
-
-		$summary_email = $this->post_text( 'summary_email' );
-
-		if ( '' !== $summary_email && false === is_email( $summary_email ) ) {
-			wp_send_json_error( array( 'message' => __( 'Enter a valid email for the weekly summary, or leave it blank for the site\'s admin email.', 'ifthenpay-pay-button' ) ), 400 );
-		}
-
-		$this->settings->set_summary_email( $summary_email );
 
 		$this->webhooks->register_webhook( $this->settings->get_gateway_key() );
 

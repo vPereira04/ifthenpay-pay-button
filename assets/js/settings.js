@@ -1,5 +1,5 @@
 /* global iftpBtnSettings */
-// Gateway Configuration: the Connect / Disconnect dialogs, the Gateway Key switch, the methods table and the save.
+// Configuration › Gateway: the Connect / Disconnect dialogs, the Gateway Key switch, the methods table and the save.
 ( function () {
 	'use strict';
 
@@ -45,6 +45,7 @@
 		bindConnect( wrap );
 		bindDisconnect( wrap );
 		bindSettingsForm( wrap );
+		bindSummaryTest( wrap );
 	} );
 
 	// Every Cancel button closes its own dialog; Escape and the backdrop come with <dialog> for free.
@@ -165,6 +166,39 @@
 		} );
 	}
 
+	// Configuration › Emails: sends the summary now, to whatever address is in the field, saved or not.
+	function bindSummaryTest( wrap ) {
+		var testBtn = wrap.querySelector( '[data-iftp-summary-test]' );
+		var status = wrap.querySelector( '[data-iftp-summary-status]' );
+
+		if ( ! testBtn || ! status ) {
+			return;
+		}
+
+		testBtn.addEventListener( 'click', function () {
+			var label = testBtn.textContent;
+
+			testBtn.disabled = true;
+			testBtn.textContent = i18n.sending;
+			status.textContent = '';
+
+			post( 'iftp_btn_send_summary_test', { summary_email: wrap.querySelector( '[data-iftp-summary-email]' ).value.trim() } )
+				.then( function ( response ) {
+					// Both ways the server says what happened, e.g. "Summary sent to …".
+					status.textContent = errorMessage( response );
+					status.classList.toggle( 'iftp-btn-field__error', ! ( response && response.success ) );
+				} )
+				.catch( function () {
+					status.textContent = i18n.error;
+					status.classList.add( 'iftp-btn-field__error' );
+				} )
+				.then( function () {
+					testBtn.disabled = false;
+					testBtn.textContent = label;
+				} );
+		} );
+	}
+
 	function bindSettingsForm( wrap ) {
 		var form = wrap.querySelector( '[data-iftp-settings-form]' );
 
@@ -231,30 +265,6 @@
 				syncStars( methods );
 			}
 		} );
-
-		// Sends the summary now, to whatever address is in the field, saved or not.
-		var testBtn = form.querySelector( '[data-iftp-summary-test]' );
-
-		if ( testBtn ) {
-			testBtn.addEventListener( 'click', function () {
-				var label = testBtn.textContent;
-
-				testBtn.disabled = true;
-				testBtn.textContent = i18n.sending;
-
-				post( 'iftp_btn_send_summary_test', { summary_email: form.querySelector( '[data-iftp-summary-email]' ).value.trim() } )
-					.then( function ( response ) {
-						showStatus( errorMessage( response ), ! ( response && response.success ) );
-					} )
-					.catch( function () {
-						showStatus( i18n.error, true );
-					} )
-					.then( function () {
-						testBtn.disabled = false;
-						testBtn.textContent = label;
-					} );
-			} );
-		}
 
 		methods.addEventListener( 'click', function ( event ) {
 			var button = event.target.closest( '[data-iftp-request-activation]' );

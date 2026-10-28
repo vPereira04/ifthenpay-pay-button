@@ -12,10 +12,10 @@ namespace Ifthenpay\PayButton;
 use Ifthenpay\PayButton\Admin\Buttons\ButtonsController;
 use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
 use Ifthenpay\PayButton\Admin\CheckoutSettingsPage;
+use Ifthenpay\PayButton\Admin\ConfigurationPage;
 use Ifthenpay\PayButton\Admin\DashboardWidget;
 use Ifthenpay\PayButton\Admin\Entries\EntriesController;
 use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
-use Ifthenpay\PayButton\Admin\GatewaySettingsPage;
 use Ifthenpay\PayButton\Admin\Menu;
 use Ifthenpay\PayButton\Ai\AiController;
 use Ifthenpay\PayButton\Ajax\SettingsController;
@@ -107,7 +107,7 @@ class Plugin {
 		if ( is_admin() ) {
 			$entries = new EntriesPage( $transactions, $settings );
 
-			( new Menu( $settings, new ButtonsPage( $buttons, $settings, $transactions ), $entries, new GatewaySettingsPage( $settings ), new CheckoutSettingsPage( new CheckoutSettings() ) ) )->register();
+			( new Menu( $settings, new ButtonsPage( $buttons, $settings, $transactions ), $entries, new ConfigurationPage( $settings ), new CheckoutSettingsPage( new CheckoutSettings() ) ) )->register();
 			( new SettingsController( $settings ) )->register();
 			( new EntriesController( $entries, null, $settings ) )->register();
 			( new ButtonsController( $buttons ) )->register();
@@ -145,7 +145,7 @@ class Plugin {
 	public function action_links( array $links ): array {
 		return array(
 			'buttons'  => '<a href="' . esc_url( ButtonsPage::list_url() ) . '">' . esc_html__( 'Buttons', 'ifthenpay-pay-button' ) . '</a>',
-			'settings' => '<a href="' . esc_url( GatewaySettingsPage::url() ) . '">' . esc_html__( 'Settings', 'ifthenpay-pay-button' ) . '</a>',
+			'settings' => '<a href="' . esc_url( ConfigurationPage::url() ) . '">' . esc_html__( 'Settings', 'ifthenpay-pay-button' ) . '</a>',
 		) + $links;
 	}
 

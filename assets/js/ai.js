@@ -1,5 +1,5 @@
 /* global iftpBtnAi */
-// The AI assistant: the connect form and model picker (Gateway Configuration and the studio), and the studio's
+// The AI assistant: the connect form and model picker (Configuration › AI and the studio), and the studio's
 // chat, live pay page preview, undo and start over. The key goes to the server once and never comes back.
 ( function () {
 	'use strict';
@@ -219,6 +219,7 @@
 		const url = root.querySelector( '[data-iftp-studio-url]' );
 		const open = root.querySelector( '[data-iftp-studio-open]' );
 		const buildingText = root.querySelector( '[data-iftp-studio-building-text]' );
+		const progress = root.querySelector( '[data-iftp-studio-progress]' );
 		const empty = root.querySelector( '[data-iftp-studio-empty]' );
 		const building = root.querySelector( '[data-iftp-studio-building]' );
 		const buttonSlot = root.querySelector( '[data-iftp-studio-button]' );
@@ -231,6 +232,7 @@
 		let busy = false;
 		let lastMessage = '';
 		let thinkingTimer = 0;
+		let thinkingStage = '';
 
 		/* ---- Messages */
 
@@ -429,10 +431,13 @@
 			holder.appendChild( next );
 		}
 
+		// While the answer is on its way: the chat walks through what it's doing, then, if it runs long, says so
+		// honestly, with the seconds ticking, so a slow answer never looks like a stuck one.
 		function thinking( on ) {
 			const existing = log.querySelector( '.iftp-btn-studio__msg--thinking' );
 
 			window.clearInterval( thinkingTimer );
+			thinkingStage = '';
 
 			if ( existing ) {
 				existing.remove();
@@ -442,34 +447,67 @@
 			frame.classList.toggle( 'is-building', on );
 			buildingText.textContent = '';
 
+			if ( progress ) {
+				progress.style.setProperty( '--iftp-progress', '0' );
+			}
+
 			if ( ! on ) {
 				return;
 			}
 
 			const lines = i18n.thinking || [ '…' ];
+			const slow = i18n.thinkingSlow || [];
 			const row = bubble( 'assistant', '', 'iftp-btn-studio__msg--thinking' );
 			const text = el( 'span', 'iftp-btn-studio__thinking' );
 			const dots = el( 'span', 'iftp-btn-studio__dots' );
-			let step = 0;
+			const clock = el( 'span', 'iftp-btn-studio__clock', '0s' );
+			const started = Date.now();
+			let shown = lines[ 0 ];
 
 			dots.setAttribute( 'aria-hidden', 'true' );
 			dots.innerHTML = '<i></i><i></i><i></i>';
-			row.querySelector( '.iftp-btn-studio__bubble' ).append( dots, text );
+			clock.setAttribute( 'aria-hidden', 'true' );
+			row.querySelector( '.iftp-btn-studio__bubble' ).append( dots, text, clock );
 			log.appendChild( row );
-			say( text, lines[ 0 ] );
-			say( buildingText, lines[ 0 ] );
+			say( text, shown );
+			say( buildingText, shown );
 			scrollDown();
 
-			// The last line stays once it's reached; a long answer just keeps thinking on it.
 			thinkingTimer = window.setInterval( function () {
-				if ( step >= lines.length - 1 ) {
-					return;
+				const seconds = Math.floor( ( Date.now() - started ) / 1000 );
+				let line = lines[ Math.min( Math.floor( seconds / 3 ), lines.length - 1 ) ];
+
+				// Past the usual lines, one that fits how long it's been: [ after seconds, text ].
+				slow.forEach( function ( pair ) {
+					if ( seconds >= pair[ 0 ] ) {
+						line = pair[ 1 ];
+					}
+				} );
+
+				// What the server says it's doing beats a guess.
+				line = thinkingStage || line;
+
+				clock.textContent = seconds < 60 ? seconds + 's' : Math.floor( seconds / 60 ) + ':' + String( seconds % 60 ).padStart( 2, '0' );
+
+				// Fills fast, then ever slower: always moving, never full before the answer is.
+				if ( progress ) {
+					progress.style.setProperty( '--iftp-progress', ( 0.94 * ( 1 - Math.exp( -seconds / 28 ) ) ).toFixed( 3 ) );
 				}
 
-				step++;
-				say( text, lines[ step ] );
-				say( buildingText, lines[ step ] );
-			}, 2800 );
+				if ( line !== shown ) {
+					shown = line;
+					say( text, line );
+					say( buildingText, line );
+				}
+			}, 1000 );
+		}
+
+		function setStage( status ) {
+			if ( ! status || ! status.stage ) {
+				return;
+			}
+
+			thinkingStage = ( ( 'retry' === status.stage ? i18n.stageRetry : i18n.stageFallback ) || '' ).replace( '%s', status.model || '' );
 		}
 
 		function setBusy( on ) {
@@ -515,12 +553,32 @@
 
 			input.value = '';
 			autosize();
+
+			const job = Date.now().toString( 36 ) + Math.random().toString( 36 ).slice( 2, 10 );
+			const waiting = wait( job );
+
+			post( 'iftp_btn_ai_send', { target: studio.target, message, job } )
+				.then( function ( response ) {
+					return response && response.lost ? waiting.poll() : waiting.done( response );
+				} )
+				.catch( waiting.poll );
+		}
+
+		// Waits on a message the server is answering, and asks every few seconds how it's going: the stage
+		// lines while the send is open, and the answer itself if the send got cut off (or the page was reloaded).
+		function wait( job ) {
+			let settled = false;
+			let tries = 80;
+
 			setBusy( true );
 			thinking( true );
 
-			const job = Date.now().toString( 36 ) + Math.random().toString( 36 ).slice( 2, 10 );
-
 			function done( response ) {
+				if ( settled ) {
+					return;
+				}
+
+				settled = true;
 				thinking( false );
 				setBusy( false );
 
@@ -537,36 +595,87 @@
 				input.focus();
 			}
 
-			// The request was cut off on the way back, but PHP carries on: ask how it went until it says.
-			function poll( tries ) {
-				window.setTimeout( function () {
-					post( 'iftp_btn_ai_poll', { target: studio.target, job } )
-						.then( function ( response ) {
-							const state = response && response.success ? response.data.state : 'lost';
+			function check( finish ) {
+				return post( 'iftp_btn_ai_poll', { target: studio.target, job } ).then( function ( response ) {
+					const state = response && response.success ? response.data.state : 'lost';
 
-							if ( 'done' === state ) {
-								done( response );
-							} else if ( 'error' === state ) {
-								done( { success: false, data: { message: response.data.message } } );
-							} else if ( tries > 0 && 'unknown' !== state ) {
-								poll( tries - 1 );
-							} else {
-								done( { success: false } );
-							}
-						} )
-						.catch( function () {
-							return tries > 0 ? poll( tries - 1 ) : done( { success: false } );
-						} );
+					if ( 'done' === state ) {
+						done( response );
+					} else if ( 'error' === state ) {
+						done( { success: false, data: { message: response.data.message } } );
+					} else if ( 'working' === state ) {
+						setStage( response.data );
+					} else if ( finish || 'unknown' === state ) {
+						done( { success: false } );
+					}
+				} );
+			}
+
+			// The request was cut off on the way back, but PHP carries on: ask how it went until it says.
+			function poll() {
+				if ( settled ) {
+					return;
+				}
+
+				window.setTimeout( function () {
+					check( tries <= 0 ).catch( function () {} ).then( function () {
+						tries--;
+						poll();
+					} );
 				}, 3000 );
 			}
 
-			post( 'iftp_btn_ai_send', { target: studio.target, message, job } )
-				.then( function ( response ) {
-					return response && response.lost ? poll( 80 ) : done( response );
-				} )
-				.catch( function () {
-					poll( 80 );
-				} );
+			// Just the stage lines while the send is still open; its own answer settles it.
+			( function peek() {
+				window.setTimeout( function () {
+					if ( settled ) {
+						return;
+					}
+
+					post( 'iftp_btn_ai_poll', { target: studio.target, job } )
+						.then( function ( response ) {
+							if ( response && response.success && 'working' === response.data.state ) {
+								setStage( response.data );
+							}
+						} )
+						.catch( function () {} )
+						.then( peek );
+				}, 3000 );
+			}() );
+
+			return { done, poll };
+		}
+
+		// A message that was on its way when the page loaded: pick the wait back up, or offer to send it again.
+		function resume() {
+			const pending = view.pending;
+
+			if ( ! pending || ! pending.text ) {
+				return;
+			}
+
+			lastMessage = pending.text;
+			ideas.hidden = true;
+			addMessage( { role: 'user', text: pending.text } );
+
+			if ( pending.error || ! pending.job ) {
+				showError( pending.error || i18n.error );
+				return;
+			}
+
+			post( 'iftp_btn_ai_poll', { target: studio.target, job: pending.job } ).then( function ( response ) {
+				const status = response && response.success ? response.data : {};
+
+				if ( 'working' === status.state ) {
+					wait( pending.job ).poll();
+				} else if ( 'done' === status.state ) {
+					view = status;
+					renderLog();
+					loadPreview();
+				} else {
+					showError( status.message || i18n.error );
+				}
+			} );
 		}
 
 		function autosize() {
@@ -643,6 +752,7 @@
 		renderLog();
 		renderIdeas();
 		loadPreview();
+		resume();
 		input.focus();
 	}
 

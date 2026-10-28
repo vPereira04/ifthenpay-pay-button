@@ -13,7 +13,6 @@ use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
-use Ifthenpay\PayButton\Checkout\MergeTags;
 use Ifthenpay\PayButton\Dates;
 use Ifthenpay\PayButton\Frontend\ButtonRenderer;
 use Ifthenpay\PayButton\Plugin;
@@ -25,9 +24,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Everything around a payment that isn't the gateway, in five tabs: how the checkout and popups look and how the
- * default button looks (each with a live preview), what the popups say (with merge tags), every other word the
- * payer reads, and pay links and emails.
+ * The site's design, in two tabs, each with a live preview: how the checkout, the pay page and the popups look,
+ * and how the default button looks. What they say lives in Configuration.
  */
 class CheckoutSettingsPage {
 
@@ -79,7 +77,7 @@ class CheckoutSettingsPage {
 	/**
 	 * The screen's URL, open on a tab if one is given.
 	 *
-	 * @param string $tab A tab key, e.g. `button` or `messages`.
+	 * @param string $tab A tab key: `look` or `button`.
 	 */
 	public static function url( string $tab = '' ): string {
 		return add_query_arg( array( 'page' => self::PAGE_SLUG ), admin_url( 'admin.php' ) ) . ( '' !== $tab ? '#' . $tab : '' );
@@ -120,7 +118,6 @@ class CheckoutSettingsPage {
 				'i18n'         => array(
 					'copied'     => __( 'Copied.', 'ifthenpay-pay-button' ),
 					'copyFailed' => __( 'Could not copy. Select the text and copy it yourself.', 'ifthenpay-pay-button' ),
-					'linkPrompt' => __( 'Link address', 'ifthenpay-pay-button' ),
 					'pill'       => __( 'Pill', 'ifthenpay-pay-button' ),
 					/* translators: %d: corner radius in pixels */
 					'px'         => __( '%d px', 'ifthenpay-pay-button' ),
@@ -168,32 +165,7 @@ class CheckoutSettingsPage {
 		}
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked by check_admin_referer() above.
-		$text     = static fn( string $key ): string => isset( $_POST[ $key ] ) && is_string( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : '';
-		$type     = $text( 'paid_type' );
-		$messages = array();
-		$titles   = array();
-
-		foreach ( CheckoutSettings::OUTCOMES as $outcome ) {
-			$messages[ $outcome ] = isset( $_POST['message'][ $outcome ] ) && is_string( $_POST['message'][ $outcome ] ) ? wp_kses_post( wp_unslash( $_POST['message'][ $outcome ] ) ) : '';
-			$titles[ $outcome ]   = isset( $_POST['title'][ $outcome ] ) && is_string( $_POST['title'][ $outcome ] ) ? mb_substr( sanitize_text_field( wp_unslash( $_POST['title'][ $outcome ] ) ), 0, 120 ) : '';
-		}
-
-		/**
-		 * The loop above fills every outcome.
-		 *
-		 * @var array{paid: string, pending: string, failed: string, cancelled: string} $messages
-		 * @var array{paid: string, pending: string, failed: string, cancelled: string} $titles
-		 */
-		$this->settings->set_confirmation(
-			array(
-				'paid_type'    => in_array( $type, CheckoutSettings::PAID_TYPES, true ) ? $type : 'popup',
-				'paid_page'    => absint( $text( 'paid_page' ) ),
-				'paid_url'     => esc_url_raw( $text( 'paid_url' ), array( 'http', 'https' ) ),
-				'show_details' => isset( $_POST['show_details'] ),
-				'messages'     => $messages,
-				'titles'       => $titles,
-			)
-		);
+		$tab = isset( $_POST['tab'] ) && is_string( $_POST['tab'] ) ? sanitize_key( wp_unslash( $_POST['tab'] ) ) : '';
 
 		// CheckoutLook::sanitize() cleans every key by its own rules, so here it's only unslashed.
 		$look = isset( $_POST['look'] ) && is_array( $_POST['look'] ) ? map_deep( wp_unslash( $_POST['look'] ), static fn( $value ) => is_string( $value ) ? $value : '' ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -208,31 +180,10 @@ class CheckoutSettingsPage {
 		// ButtonDesign::sanitize() cleans every key by its own rules, so here it's only unslashed.
 		$this->settings->set_button_design( ButtonDesign::sanitize( isset( $_POST['button_design'] ) && is_array( $_POST['button_design'] ) ? map_deep( wp_unslash( $_POST['button_design'] ), static fn( $value ) => is_string( $value ) ? $value : '' ) : array() ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-		// CheckoutTexts::sanitize() cleans each text, so here it's only unslashed.
-		$this->settings->set_texts( CheckoutTexts::sanitize( isset( $_POST['texts'] ) && is_array( $_POST['texts'] ) ? wp_unslash( $_POST['texts'] ) : array() ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-
-		$this->settings->set_receipt_payer( isset( $_POST['receipt_payer'] ) );
-		$this->settings->set_notify_admin( isset( $_POST['notify_admin'] ) );
-
-		$notify = sanitize_email( $text( 'notify_email' ) );
-		$this->settings->set_notify_email( is_email( $notify ) ? $notify : '' );
-
-		$base = sanitize_title( $text( 'pay_base' ) );
-		$base = '' !== $base ? $base : CheckoutSettings::DEFAULT_PAY_BASE;
-		$tab  = sanitize_key( $text( 'tab' ) );
-
-		if ( isset( $_POST['rotate_signing'] ) ) {
-			$this->settings->rotate_signing_secret();
-		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		if ( $base !== $this->settings->get_pay_base() ) {
-			$this->settings->set_pay_base( $base );
-			Plugin::flush_rewrites();
-		}
-
 		// Back to the tab they saved from.
-		wp_safe_redirect( add_query_arg( 'iftp_notice', 'saved', self::url() ) . ( in_array( $tab, array( 'button', 'messages', 'texts', 'links' ), true ) ? '#' . $tab : '' ) );
+		wp_safe_redirect( add_query_arg( 'iftp_notice', 'saved', self::url() ) . ( 'button' === $tab ? '#button' : '' ) );
 		exit;
 	}
 
@@ -245,11 +196,8 @@ class CheckoutSettingsPage {
 		}
 
 		$tabs = array(
-			'look'     => __( 'Checkout', 'ifthenpay-pay-button' ),
-			'button'   => __( 'Button', 'ifthenpay-pay-button' ),
-			'messages' => __( 'Messages', 'ifthenpay-pay-button' ),
-			'texts'    => __( 'Texts', 'ifthenpay-pay-button' ),
-			'links'    => __( 'Links & emails', 'ifthenpay-pay-button' ),
+			'look'   => __( 'Checkout & pay page', 'ifthenpay-pay-button' ),
+			'button' => __( 'Button', 'ifthenpay-pay-button' ),
 		);
 		?>
 		<div class="wrap iftp-btn-buttons iftp-btn-checkout-settings">
@@ -285,19 +233,10 @@ class CheckoutSettingsPage {
 				<div class="iftp-btn-lookpage">
 					<div class="iftp-btn-lookpage__controls">
 						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-look" aria-labelledby="iftp-btn-tab-look" data-iftp-panel="look">
-							<?php ( new LookControls( 'look' ) )->render_cards( $this->settings->get_look(), true ); ?>
+							<?php ( new LookControls( 'look' ) )->render_cards( $this->settings->get_look(), true, $this->settings->get_look() ); ?>
 						</div>
 						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-button" aria-labelledby="iftp-btn-tab-button" data-iftp-panel="button">
 							<?php $this->render_button(); ?>
-						</div>
-						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-messages" aria-labelledby="iftp-btn-tab-messages" data-iftp-panel="messages">
-							<?php $this->render_messages(); ?>
-						</div>
-						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-texts" aria-labelledby="iftp-btn-tab-texts" data-iftp-panel="texts">
-							<?php $this->render_texts(); ?>
-						</div>
-						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-links" aria-labelledby="iftp-btn-tab-links" data-iftp-panel="links">
-							<?php $this->render_links(); ?>
 						</div>
 					</div>
 					<aside class="iftp-btn-lookpage__aside">
@@ -324,17 +263,17 @@ class CheckoutSettingsPage {
 		<section class="iftp-btn-ecard" aria-labelledby="iftp-btn-default-design">
 			<div class="iftp-btn-ecard__intro">
 				<h2 class="iftp-btn-ecard__title" id="iftp-btn-default-design"><?php esc_html_e( 'Default button design', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-ecard__description"><?php esc_html_e( 'Every button set to Default design wears this, so many buttons across your site look the same and change together. A button can still have its own in its Button design tab.', 'ifthenpay-pay-button' ); ?></p>
+				<p class="iftp-btn-ecard__description"><?php esc_html_e( 'Every button set to Default design wears this, so many buttons across your site look the same and change together. A button can still have its own in its editor, under Design.', 'ifthenpay-pay-button' ); ?></p>
 			</div>
 			<div class="iftp-btn-ecard__body">
-				<?php ( new DesignControls( 'button_design', false ) )->render( $this->settings->get_button_design() ); ?>
+				<?php ( new DesignControls( 'button_design', false, $this->settings->get_button_design() ) )->render( $this->settings->get_button_design() ); ?>
 			</div>
 		</section>
 		<?php
 	}
 
 	/**
-	 * The payment logos under the Button tab's preview: the methods switched on in Gateway Configuration.
+	 * The payment logos under the Button tab's preview: the methods switched on in Configuration › Gateway.
 	 */
 	private static function preview_logos(): string {
 		$html = '';
@@ -346,201 +285,5 @@ class CheckoutSettingsPage {
 		}
 
 		return $html;
-	}
-
-	/**
-	 * The Messages tab: a title and a message per outcome, with merge tags.
-	 */
-	private function render_messages(): void {
-		$confirmation = $this->settings->get_confirmation();
-		$titles       = array(
-			'paid'      => __( 'Paid', 'ifthenpay-pay-button' ),
-			'pending'   => __( 'Pending', 'ifthenpay-pay-button' ),
-			'failed'    => __( 'Failed', 'ifthenpay-pay-button' ),
-			'cancelled' => __( 'Cancelled', 'ifthenpay-pay-button' ),
-		);
-		$hints        = array(
-			'paid'      => __( 'ifthenpay confirmed the payment.', 'ifthenpay-pay-button' ),
-			'pending'   => __( 'Back from ifthenpay, but not confirmed yet: a Multibanco or Payshop reference waiting to be paid.', 'ifthenpay-pay-button' ),
-			'failed'    => __( 'Declined, or the link expired.', 'ifthenpay-pay-button' ),
-			'cancelled' => __( 'The payer cancelled on the ifthenpay page.', 'ifthenpay-pay-button' ),
-		);
-		?>
-		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-confirm-title">
-			<div class="iftp-btn-panel__intro">
-				<h2 id="iftp-btn-confirm-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Confirmation type', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Back from ifthenpay, the payer lands on the page they paid from and sees one of these. If it changes later (pending turns paid), the popup comes back even if they closed it. Click a tag to drop in that payment\'s detail.', 'ifthenpay-pay-button' ); ?></p>
-			</div>
-			<div class="iftp-btn-panel__body iftp-btn-outcomes">
-				<?php foreach ( $titles as $outcome => $outcome_title ) : ?>
-					<fieldset class="iftp-btn-outcome iftp-btn-outcome--<?php echo esc_attr( $outcome ); ?>" data-iftp-tag-scope>
-						<legend class="iftp-btn-outcome__title"><?php echo esc_html( $outcome_title ); ?></legend>
-						<p class="iftp-btn-field__help"><?php echo esc_html( $hints[ $outcome ] ); ?></p>
-
-						<?php if ( 'paid' === $outcome ) : ?>
-							<div class="iftp-btn-segment iftp-btn-segment--compact" data-iftp-paid-segment>
-								<?php
-								foreach (
-									array(
-										'popup' => __( 'Popup message', 'ifthenpay-pay-button' ),
-										'page'  => __( 'WordPress page', 'ifthenpay-pay-button' ),
-										'url'   => __( 'Custom URL', 'ifthenpay-pay-button' ),
-									) as $type => $type_label
-								) :
-									?>
-									<label class="iftp-btn-segment__option">
-										<input type="radio" name="paid_type" value="<?php echo esc_attr( $type ); ?>" <?php checked( $confirmation['paid_type'], $type ); ?> data-iftp-paid-type />
-										<span class="iftp-btn-segment__title"><?php echo esc_html( $type_label ); ?></span>
-									</label>
-								<?php endforeach; ?>
-							</div>
-							<div class="iftp-btn-field" data-iftp-when-paid="page">
-								<label class="iftp-btn-field__label" for="iftp-btn-paid-page"><?php esc_html_e( 'Page', 'ifthenpay-pay-button' ); ?></label>
-								<?php
-								wp_dropdown_pages(
-									array(
-										'name'             => 'paid_page',
-										'id'               => 'iftp-btn-paid-page',
-										'class'            => 'iftp-btn-field__control',
-										'selected'         => (int) $confirmation['paid_page'],
-										'show_option_none' => esc_html__( 'Choose a page…', 'ifthenpay-pay-button' ),
-										'option_none_value' => '0',
-									)
-								);
-								?>
-							</div>
-							<div class="iftp-btn-field" data-iftp-when-paid="url">
-								<label class="iftp-btn-field__label" for="iftp-btn-paid-url"><?php esc_html_e( 'Address', 'ifthenpay-pay-button' ); ?></label>
-								<input type="url" class="iftp-btn-field__control" id="iftp-btn-paid-url" name="paid_url" value="<?php echo esc_attr( $confirmation['paid_url'] ); ?>" placeholder="https://" />
-							</div>
-						<?php endif; ?>
-
-						<div class="iftp-btn-outcome__words" <?php echo 'paid' === $outcome ? 'data-iftp-when-paid="popup"' : ''; ?>>
-							<div class="iftp-btn-field">
-								<label class="iftp-btn-field__label" for="iftp-btn-title-<?php echo esc_attr( $outcome ); ?>"><?php esc_html_e( 'Title', 'ifthenpay-pay-button' ); ?></label>
-								<input type="text" class="iftp-btn-field__control" id="iftp-btn-title-<?php echo esc_attr( $outcome ); ?>" name="title[<?php echo esc_attr( $outcome ); ?>]" maxlength="120" value="<?php echo esc_attr( $confirmation['titles'][ $outcome ] ); ?>" placeholder="<?php echo esc_attr( CheckoutSettings::default_titles()[ $outcome ] ); ?>" data-iftp-tag-target data-iftp-outcome-title="<?php echo esc_attr( $outcome ); ?>" />
-							</div>
-
-							<div class="iftp-btn-msg" data-iftp-msg data-iftp-outcome-message="<?php echo esc_attr( $outcome ); ?>">
-								<div class="iftp-btn-msg__bar" role="toolbar" aria-label="<?php esc_attr_e( 'Formatting', 'ifthenpay-pay-button' ); ?>">
-									<button type="button" class="iftp-btn-msg__tool" data-iftp-msg-cmd="bold" aria-label="<?php esc_attr_e( 'Bold', 'ifthenpay-pay-button' ); ?>"><strong>B</strong></button>
-									<button type="button" class="iftp-btn-msg__tool" data-iftp-msg-cmd="italic" aria-label="<?php esc_attr_e( 'Italic', 'ifthenpay-pay-button' ); ?>"><em>I</em></button>
-									<button type="button" class="iftp-btn-msg__tool" data-iftp-msg-cmd="createLink" aria-label="<?php esc_attr_e( 'Link', 'ifthenpay-pay-button' ); ?>">
-										<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.7.7M9.5 6.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.7-.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-									</button>
-									<span class="iftp-btn-msg__views" role="group" aria-label="<?php esc_attr_e( 'Editor view', 'ifthenpay-pay-button' ); ?>">
-										<button type="button" class="iftp-btn-msg__view" data-iftp-msg-view="normal" aria-pressed="true"><?php esc_html_e( 'Normal', 'ifthenpay-pay-button' ); ?></button>
-										<button type="button" class="iftp-btn-msg__view" data-iftp-msg-view="raw" aria-pressed="false"><?php esc_html_e( 'Raw', 'ifthenpay-pay-button' ); ?></button>
-									</span>
-								</div>
-								<div class="iftp-btn-msg__normal" contenteditable="true" role="textbox" aria-multiline="true" aria-label="<?php echo esc_attr( $outcome_title ); ?>" data-iftp-msg-normal data-iftp-tag-target hidden></div>
-								<label class="screen-reader-text" for="iftp-btn-msg-<?php echo esc_attr( $outcome ); ?>"><?php echo esc_html( $outcome_title ); ?></label>
-								<textarea class="iftp-btn-field__control iftp-btn-msg__raw" id="iftp-btn-msg-<?php echo esc_attr( $outcome ); ?>" name="message[<?php echo esc_attr( $outcome ); ?>]" rows="3" data-iftp-msg-raw data-iftp-tag-target><?php echo esc_textarea( $confirmation['messages'][ $outcome ] ); ?></textarea>
-							</div>
-
-							<?php ButtonsPage::print_tags( MergeTags::available( true ) ); ?>
-						</div>
-					</fieldset>
-				<?php endforeach; ?>
-
-				<label class="iftp-btn-check">
-					<input type="checkbox" name="show_details" value="1" <?php checked( $confirmation['show_details'] ); ?> data-iftp-show-details />
-					<?php esc_html_e( 'Show the payment details (amount, reference, method) under the message', 'ifthenpay-pay-button' ); ?>
-				</label>
-			</div>
-		</section>
-		<?php
-	}
-
-	/**
-	 * The Texts tab: the original next to a box for the merchant's own, one card per place the payer reads them.
-	 */
-	private function render_texts(): void {
-		$own      = $this->settings->get_texts();
-		$defaults = CheckoutTexts::defaults();
-		?>
-		<p class="iftp-btn-texts__intro"><?php esc_html_e( 'Write any of these in your own words or language. Blank keeps the original, which follows the site\'s language. Keep words in {braces}: the payer sees the number, price or name there.', 'ifthenpay-pay-button' ); ?></p>
-		<?php
-		foreach ( CheckoutTexts::groups() as $group => $info ) :
-			?>
-			<section class="iftp-btn-panel" aria-labelledby="iftp-btn-texts-<?php echo esc_attr( $group ); ?>" data-iftp-text-view="<?php echo esc_attr( $info['view'] ); ?>">
-				<div class="iftp-btn-panel__intro">
-					<h2 id="iftp-btn-texts-<?php echo esc_attr( $group ); ?>" class="iftp-btn-panel__title"><?php echo esc_html( $info['title'] ); ?></h2>
-					<p class="iftp-btn-panel__description"><?php echo esc_html( $info['description'] ); ?></p>
-				</div>
-				<div class="iftp-btn-panel__body iftp-btn-texts">
-					<?php
-					foreach ( $info['items'] as $key => $hint ) :
-						$field_id = 'iftp-btn-text-' . str_replace( '_', '-', $key );
-						?>
-						<div class="iftp-btn-texts__row">
-							<label class="iftp-btn-texts__original" for="<?php echo esc_attr( $field_id ); ?>">
-								<span class="iftp-btn-texts__default"><?php echo esc_html( $defaults[ $key ] ); ?></span>
-								<?php if ( '' !== $hint ) : ?>
-									<span class="iftp-btn-texts__hint"><?php echo esc_html( $hint ); ?></span>
-								<?php endif; ?>
-							</label>
-							<input type="text" class="iftp-btn-field__control" id="<?php echo esc_attr( $field_id ); ?>" name="texts[<?php echo esc_attr( $key ); ?>]" maxlength="<?php echo esc_attr( (string) CheckoutTexts::MAX_LENGTH ); ?>" value="<?php echo esc_attr( $own[ $key ] ?? '' ); ?>" placeholder="<?php echo esc_attr( $defaults[ $key ] ); ?>" data-iftp-text-input="<?php echo esc_attr( $key ); ?>" />
-						</div>
-					<?php endforeach; ?>
-				</div>
-			</section>
-			<?php
-		endforeach;
-	}
-
-	/**
-	 * The Links & emails tab.
-	 */
-	private function render_links(): void {
-		?>
-		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-links-title">
-			<div class="iftp-btn-panel__intro">
-				<h2 id="iftp-btn-links-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Pay links', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Every button has its own pay page. Changing the base breaks links you already shared.', 'ifthenpay-pay-button' ); ?></p>
-			</div>
-			<div class="iftp-btn-panel__body">
-				<div class="iftp-btn-field">
-					<label class="iftp-btn-field__label" for="iftp-btn-pay-base"><?php esc_html_e( 'Link base', 'ifthenpay-pay-button' ); ?></label>
-					<span class="iftp-btn-affix">
-						<span class="iftp-btn-affix__text"><?php echo esc_html( (string) preg_replace( '#^https?://#', '', home_url( '/' ) ) ); ?></span>
-						<input type="text" class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-pay-base" name="pay_base" maxlength="40" pattern="[a-z0-9\-]+" value="<?php echo esc_attr( $this->settings->get_pay_base() ); ?>" />
-						<span class="iftp-btn-affix__text">/<?php esc_html_e( 'button', 'ifthenpay-pay-button' ); ?>/</span>
-					</span>
-				</div>
-				<label class="iftp-btn-check">
-					<input type="checkbox" name="rotate_signing" value="1" />
-					<?php esc_html_e( 'Make a new signing secret (every signed link made so far stops working)', 'ifthenpay-pay-button' ); ?>
-				</label>
-			</div>
-		</section>
-
-		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-emails-title">
-			<div class="iftp-btn-panel__intro">
-				<h2 id="iftp-btn-emails-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Emails', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Sent once ifthenpay confirms a payment, never before.', 'ifthenpay-pay-button' ); ?></p>
-			</div>
-			<div class="iftp-btn-panel__body iftp-btn-stack">
-				<label class="iftp-btn-np__toggle">
-					<input type="checkbox" class="iftp-btn-switch" name="receipt_payer" value="1" <?php checked( $this->settings->get_receipt_payer() ); ?> />
-					<span class="iftp-btn-np__toggle-text">
-						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Receipt to the payer', 'ifthenpay-pay-button' ); ?></span>
-						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Only when the button asks for an email.', 'ifthenpay-pay-button' ); ?></span>
-					</span>
-				</label>
-				<label class="iftp-btn-np__toggle">
-					<input type="checkbox" class="iftp-btn-switch" name="notify_admin" value="1" <?php checked( $this->settings->get_notify_admin() ); ?> />
-					<span class="iftp-btn-np__toggle-text">
-						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Tell me about every payment', 'ifthenpay-pay-button' ); ?></span>
-						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'With the amount, the payer and a link to it.', 'ifthenpay-pay-button' ); ?></span>
-					</span>
-				</label>
-				<div class="iftp-btn-field">
-					<label class="iftp-btn-field__label" for="iftp-btn-notify-email"><?php esc_html_e( 'Send it to', 'ifthenpay-pay-button' ); ?></label>
-					<input type="email" class="iftp-btn-field__control" id="iftp-btn-notify-email" name="notify_email" value="<?php echo esc_attr( $this->settings->get_notify_email_raw() ); ?>" placeholder="<?php echo esc_attr( (string) get_option( 'admin_email' ) ); ?>" />
-				</div>
-			</div>
-		</section>
-		<?php
 	}
 }

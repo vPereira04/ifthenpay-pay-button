@@ -20,37 +20,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * One conversation per admin per button (or per "new button"), kept for two days. Each answer stacks a version
+ * One conversation per admin per button (or per "new button"), kept for the days set in Configuration › AI. Each answer stacks a version
  * of the button, so Undo steps back one at a time. Nothing touches the saved button: the editor opens the
  * latest version unsaved, and the merchant's own Save is what keeps it.
  *
  * If the saved button changes in the meantime, its old conversation would undo that work, so it starts again.
  *
+ * The message being answered is kept as "pending" until the answer lands, so a reload or a failure never loses it:
+ * the screen picks the wait back up, or offers to send it again.
+ *
+ * @phpstan-import-type Settings from AiSettings
  * @phpstan-import-type ButtonConfig from Button
  * @phpstan-type Version array{title: string, config: ButtonConfig}
  * @phpstan-type Message array{role: string, text: string, changes?: array<int, array{text: string, money: bool}>, note?: string}
- * @phpstan-type Thread array{base: string, messages: array<int, Message>, versions: array<int, Version>}
+ * @phpstan-type Pending array{text: string, job: string, error: string}
+ * @phpstan-type Thread array{base: string, messages: array<int, Message>, versions: array<int, Version>, pending?: Pending}
  */
 class Studio {
 
 	public const NEW_TARGET  = 'new';
 	public const MAX_MESSAGE = 2000;
 
-	// How much of the chat goes back to the AI each time; the button itself always goes in full.
-	private const HISTORY = 12;
-
 	// How many steps Undo can take back.
 	private const UNDO = 10;
-
-	// A ceiling on calls per admin, so a stuck key or a held-down Enter can't run up a bill.
-	private const HOURLY = 60;
-
-	private const TTL = 2 * DAY_IN_SECONDS;
 
 	// Seconds one message may take, every retry and fallback included.
 	private const BUDGET = 170;
 
-	// How many other models to try when the picked one fails.
+	// How many other models to try when the picked one fails, if the merchant allows it.
 	private const FALLBACKS = 2;
 
 	// Failures another try, or another model, can get past.
@@ -64,12 +61,21 @@ class Studio {
 	private Connection $connection;
 
 	/**
+	 * The merchant's limits and preferences.
+	 *
+	 * @var array<string, mixed>
+	 * @phpstan-var Settings
+	 */
+	private array $settings;
+
+	/**
 	 * Sets up the studio.
 	 *
 	 * @param Connection|null $connection The AI connection.
 	 */
 	public function __construct( ?Connection $connection = null ) {
 		$this->connection = $connection ?? new Connection();
+		$this->settings   = AiSettings::get();
 	}
 
 	/**
@@ -143,6 +149,14 @@ class Studio {
 
 		$this->set_job( $job, array( 'state' => 'working' ) );
 
+		$thread            = $this->thread( $saved );
+		$thread['pending'] = array(
+			'text'  => $message,
+			'job'   => $job,
+			'error' => '',
+		);
+		$this->save( $saved, $thread );
+
 		// Whatever ends this request, even a fatal error or the time limit, the next message gets through.
 		register_shutdown_function( array( $this, 'finish' ), $job );
 		ignore_user_abort( true );
@@ -151,7 +165,6 @@ class Studio {
 			set_time_limit( self::BUDGET + 30 );
 		}
 
-		$thread  = $this->thread( $saved );
 		$current = self::latest( $thread );
 		$state   = ButtonSchema::from_config( $current['config'], $current['title'] );
 		$chat    = array_map(
@@ -159,7 +172,7 @@ class Studio {
 				'role' => $turn['role'],
 				'text' => $turn['text'],
 			),
-			array_slice( $thread['messages'], -self::HISTORY )
+			array_slice( $thread['messages'], -$this->settings['memory'] )
 		);
 
 		$chat[] = array(
@@ -167,9 +180,12 @@ class Studio {
 			'text' => Prompt::turn( $state, $message ),
 		);
 
-		$result = $this->ask( $provider, $stored, Prompt::instructions( null === $saved ), $chat );
+		$provider->set_style( $this->settings['thinking'], AiSettings::temperature( $this->settings['creativity'] ) );
+		$result = $this->ask( $provider, $stored, Prompt::instructions( null === $saved, $this->settings['prices'] ), $chat, $job );
 
 		if ( is_wp_error( $result['answer'] ) ) {
+			$thread['pending']['error'] = $result['answer']->get_error_message();
+			$this->save( $saved, $thread );
 			$this->set_job(
 				$job,
 				array(
@@ -182,7 +198,7 @@ class Studio {
 		}
 
 		$answer  = $result['answer'];
-		$version = ButtonSchema::to_config( $answer, $current['config'], '' !== $current['title'] ? $current['title'] : __( 'Pay button', 'ifthenpay-pay-button' ) );
+		$version = ButtonSchema::to_config( $answer, $current['config'], '' !== $current['title'] ? $current['title'] : __( 'Pay button', 'ifthenpay-pay-button' ), $this->settings['prices'] );
 		$reply   = is_scalar( $answer['reply'] ?? null ) ? mb_substr( trim( sanitize_textarea_field( (string) $answer['reply'] ) ), 0, 1000 ) : '';
 		$said    = array(
 			'role'    => 'assistant',
@@ -206,6 +222,7 @@ class Studio {
 		$thread['messages'][] = $said;
 		$thread['versions'][] = $version;
 		$thread['versions']   = array_slice( $thread['versions'], -( self::UNDO + 1 ) );
+		unset( $thread['pending'] );
 
 		$this->save( $saved, $thread );
 		$this->set_job( $job, array( 'state' => 'done' ) );
@@ -217,7 +234,7 @@ class Studio {
 	 * How a message the browser stopped waiting for went: working, done or error (with why).
 	 *
 	 * @param string $job The browser's id for the message.
-	 * @return array{state: string, message?: string}
+	 * @return array{state: string, message?: string, stage?: string, model?: string}
 	 */
 	public function job( string $job ): array {
 		$status = '' !== $job ? get_transient( $this->job_key( $job ) ) : false;
@@ -226,7 +243,7 @@ class Studio {
 			return array( 'state' => 'unknown' );
 		}
 
-		return array( 'state' => $status['state'] ) + ( is_string( $status['message'] ?? null ) ? array( 'message' => $status['message'] ) : array() );
+		return array_intersect_key( $status, array_flip( array( 'state', 'message', 'stage', 'model' ) ) );
 	}
 
 	/**
@@ -258,11 +275,12 @@ class Studio {
 	 * @param string                            $system   The instructions.
 	 * @param array<int, array<string, string>> $chat     The chat.
 	 * @phpstan-param array<int, array{role: string, text: string}> $chat
+	 * @param string                            $job      The browser's id for the message, to tell it what's going on.
 	 * @return array{answer: array<string, mixed>|WP_Error, model: string}
 	 */
-	private function ask( Provider $provider, array $stored, string $system, array $chat ): array {
+	private function ask( Provider $provider, array $stored, string $system, array $chat, string $job ): array {
 		$started  = time();
-		$fallback = array_slice( array_values( array_diff( array_keys( $stored['models'] ), array( $stored['model'] ) ) ), 0, self::FALLBACKS );
+		$fallback = $this->settings['fallback'] ? array_slice( array_values( array_diff( array_keys( $stored['models'] ), array( $stored['model'] ) ) ), 0, self::FALLBACKS ) : array();
 		$tries    = array_merge( array( $stored['model'], $stored['model'] ), $fallback );
 		$answer   = new WP_Error( 'iftp_btn_ai_off', __( 'Connect an AI first.', 'ifthenpay-pay-button' ) );
 		$model    = $stored['model'];
@@ -279,6 +297,18 @@ class Studio {
 
 			if ( 1 === $index ) {
 				sleep( 2 );
+			}
+
+			// So the screen can say it's retrying or switching, instead of looking stuck.
+			if ( $index > 0 ) {
+				$this->set_job(
+					$job,
+					array(
+						'state' => 'working',
+						'stage' => 1 === $index ? 'retry' : 'fallback',
+						'model' => $stored['models'][ $model ] ?? $model,
+					)
+				);
 			}
 
 			$provider->set_timeout( $left );
@@ -311,6 +341,8 @@ class Studio {
 	public function undo( ?Button $saved ): array {
 		$thread = $this->thread( $saved );
 
+		unset( $thread['pending'] );
+
 		if ( count( $thread['versions'] ) > 1 ) {
 			array_pop( $thread['versions'] );
 
@@ -320,8 +352,9 @@ class Studio {
 			}
 
 			array_pop( $thread['messages'] );
-			$this->save( $saved, $thread );
 		}
+
+		$this->save( $saved, $thread );
 
 		return $thread;
 	}
@@ -374,6 +407,7 @@ class Studio {
 			'built'    => count( $thread['versions'] ) > 1,
 			'button'   => ButtonDesign::preview_markup( ButtonDesign::for_button( $button, new CheckoutSettings() ), $button->display_label() ),
 			'prices'   => ButtonSchema::prices( $button->config ),
+			'pending'  => $thread['pending'] ?? null,
 			// Keyed on the version itself: a count repeats after "Start over" or Undo, and the frame would keep the old page.
 			'preview'  => add_query_arg( 'v', substr( md5( (string) wp_json_encode( $latest ) ), 0, 12 ), $preview_url ),
 		);
@@ -391,7 +425,7 @@ class Studio {
 	}
 
 	/**
-	 * Lets one call through at a time per admin, and no more than HOURLY an hour.
+	 * Lets one call through at a time per admin, within the hourly cap per admin and the daily cap for the site.
 	 *
 	 * @return true|WP_Error
 	 */
@@ -399,6 +433,7 @@ class Studio {
 		$user = get_current_user_id();
 		$busy = 'iftp_btn_ai_busy_' . $user;
 		$rate = 'iftp_btn_ai_rate_' . $user;
+		$day  = 'iftp_btn_ai_day_' . gmdate( 'Ymd' );
 
 		if ( false !== get_transient( $busy ) ) {
 			return new WP_Error( 'iftp_btn_ai_busy', __( 'Still working on your last message. Give it a moment.', 'ifthenpay-pay-button' ) );
@@ -410,9 +445,17 @@ class Studio {
 			'until' => time() + HOUR_IN_SECONDS,
 		);
 
-		if ( (int) $window['count'] >= self::HOURLY ) {
+		if ( (int) $window['count'] >= $this->settings['hourly'] ) {
 			return new WP_Error( 'iftp_btn_ai_rate', __( 'That\'s a lot of messages in one hour. Take a short break, then carry on.', 'ifthenpay-pay-button' ) );
 		}
+
+		$today = (int) get_transient( $day );
+
+		if ( $this->settings['daily'] > 0 && $today >= $this->settings['daily'] ) {
+			return new WP_Error( 'iftp_btn_ai_daily', __( 'This site reached its AI messages for today. It opens again tomorrow, or an administrator can raise the limit in Configuration › AI.', 'ifthenpay-pay-button' ) );
+		}
+
+		set_transient( $day, $today + 1, DAY_IN_SECONDS );
 
 		// The window runs from the first message; later ones keep its end, so it can't stretch forever.
 		$window['count'] = (int) $window['count'] + 1;
@@ -453,7 +496,7 @@ class Studio {
 	 * @phpstan-param Thread $thread
 	 */
 	private function save( ?Button $saved, array $thread ): void {
-		set_transient( $this->key( $saved ), $thread, self::TTL );
+		set_transient( $this->key( $saved ), $thread, $this->settings['keep_days'] * DAY_IN_SECONDS );
 	}
 
 	/**

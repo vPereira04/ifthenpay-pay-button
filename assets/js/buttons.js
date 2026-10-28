@@ -193,7 +193,9 @@
 	const typeSelect = document.querySelector( '[data-iftp-btype]' );
 	const sortSelect = document.querySelector( '[data-iftp-bsort]' );
 	const listKey = 'iftpBtnList';
+	const perPage = 19; // plus the new-button tile makes 20 cards a page.
 	let filter = 'all';
+	let page = 1;
 
 	// The sort and the layout are only this browser's preference, so storage failing just means the defaults.
 	function remembered() {
@@ -212,29 +214,50 @@
 		} catch ( e ) {}
 	}
 
-	function applyFilter() {
+	function applyFilter( keepPage ) {
 		const term = search ? search.value.trim().toLowerCase().normalize( 'NFD' ).replace( /[̀-ͯ]/g, '' ) : '';
 		const type = typeSelect ? typeSelect.value : '';
-		let shown = 0;
+		const matches = [];
 
-		cards.forEach( function ( card ) {
+		// The DOM order is the sorted order, so the pages follow it.
+		Array.prototype.forEach.call( grid.querySelectorAll( '[data-iftp-bcard]' ), function ( card ) {
 			const on = card.dataset.active === '1';
 			const status = filter === 'all' || ( filter === 'sold' ? card.dataset.sold === '1' : ( filter === 'on' ) === on );
 			const visible = status && ( ! type || card.dataset.mode === type ) && ( ! term || card.dataset.title.indexOf( term ) !== -1 );
 
-			card.hidden = ! visible;
-			shown += visible ? 1 : 0;
+			card.hidden = true;
+
+			if ( visible ) {
+				matches.push( card );
+			}
+		} );
+
+		const pages = Math.max( 1, Math.ceil( matches.length / perPage ) );
+
+		page = keepPage === true ? Math.min( page, pages ) : 1;
+		matches.slice( ( page - 1 ) * perPage, page * perPage ).forEach( function ( card ) {
+			card.hidden = false;
 		} );
 
 		const none = document.querySelector( '[data-iftp-bnone]' );
 		if ( none ) {
-			none.hidden = shown > 0;
+			none.hidden = matches.length > 0;
 		}
 
-		// The "New button" and "Build with AI" tiles only belong to the unfiltered list.
+		// The new-button tile only belongs to the unfiltered list.
 		document.querySelectorAll( '[data-iftp-bcard-new]' ).forEach( function ( tile ) {
 			tile.hidden = filter !== 'all' || !! term || !! type;
 		} );
+
+		const pager = document.querySelector( '[data-iftp-bpager]' );
+		if ( pager ) {
+			const status = pager.querySelector( '[data-iftp-bpager-status]' );
+
+			pager.hidden = pages < 2;
+			status.textContent = status.dataset.template.replace( '%1$s', page ).replace( '%2$s', pages );
+			pager.querySelector( '[data-iftp-bpage="prev"]' ).disabled = page <= 1;
+			pager.querySelector( '[data-iftp-bpage="next"]' ).disabled = page >= pages;
+		}
 	}
 
 	function applySort( key ) {
@@ -248,6 +271,9 @@
 			},
 			newest: function ( a, b ) {
 				return parseInt( a.dataset.order, 10 ) - parseInt( b.dataset.order, 10 );
+			},
+			edited: function ( a, b ) {
+				return parseInt( b.dataset.edited, 10 ) - parseInt( a.dataset.edited, 10 );
 			},
 			oldest: function ( a, b ) {
 				return parseInt( b.dataset.order, 10 ) - parseInt( a.dataset.order, 10 );
@@ -297,11 +323,24 @@
 
 		toolbar.hidden = false;
 
-		search.addEventListener( 'input', applyFilter );
-		typeSelect.addEventListener( 'change', applyFilter );
+		search.addEventListener( 'input', function () {
+			applyFilter();
+		} );
+		typeSelect.addEventListener( 'change', function () {
+			applyFilter();
+		} );
+
+		toolbar.parentNode.querySelectorAll( '[data-iftp-bpage]' ).forEach( function ( step ) {
+			step.addEventListener( 'click', function () {
+				page += step.dataset.iftpBpage === 'next' ? 1 : -1;
+				applyFilter( true );
+				grid.scrollIntoView( { block: 'start', behavior: 'smooth' } );
+			} );
+		} );
 
 		sortSelect.addEventListener( 'change', function () {
 			applySort( sortSelect.value );
+			applyFilter();
 			remember( 'sort', sortSelect.value );
 		} );
 
@@ -324,7 +363,7 @@
 			} );
 		} );
 
-		// The page arrives sorted by Most collected in the grid; a remembered choice replaces either.
+		// The page arrives sorted by Newest in the grid; a remembered choice replaces either.
 		if ( saved.sort && saved.sort !== sortSelect.value && sortSelect.querySelector( 'option[value="' + saved.sort + '"]' ) ) {
 			sortSelect.value = saved.sort;
 			applySort( saved.sort );
@@ -333,6 +372,8 @@
 				sortSelect.iftpDropdown.sync();
 			}
 		}
+
+		applyFilter();
 
 		if ( saved.view === 'list' ) {
 			applyView( 'list' );
@@ -403,6 +444,48 @@
 
 		apply();
 	}
+
+	/* ---------------------------------------------------------------- Folds */
+
+	// Which folds are open, per fold, so a save or a reload comes back the same way.
+	const foldKey = 'iftpBtnFolds';
+	let folds = {};
+
+	try {
+		folds = JSON.parse( window.localStorage.getItem( foldKey ) || '{}' ) || {};
+	} catch ( e ) {
+		folds = {};
+	}
+
+	document.querySelectorAll( 'details[data-iftp-fold]' ).forEach( function ( fold ) {
+		const id = fold.dataset.iftpFold;
+
+		if ( Object.prototype.hasOwnProperty.call( folds, id ) ) {
+			fold.open = !! folds[ id ];
+		}
+
+		fold.addEventListener( 'toggle', function () {
+			folds[ id ] = fold.open;
+
+			try {
+				window.localStorage.setItem( foldKey, JSON.stringify( folds ) );
+			} catch ( e ) {}
+		} );
+	} );
+
+	// A field in a closed fold can't show its message, so I open the fold first.
+	document.addEventListener(
+		'invalid',
+		function ( event ) {
+			let fold = event.target.closest( 'details[data-iftp-fold]' );
+
+			while ( fold ) {
+				fold.open = true;
+				fold = fold.parentElement.closest( 'details[data-iftp-fold]' );
+			}
+		},
+		true
+	);
 
 	/* ---------------------------------------------------------------- Editor tabs */
 
@@ -484,6 +567,23 @@
 
 	/* ---------------------------------------------------------------- Button design */
 
+	// A colour drag fires input many times a second; redraw once per frame with the latest values.
+	function perFrame( draw ) {
+		let queued = false;
+
+		return function () {
+			if ( queued ) {
+				return;
+			}
+
+			queued = true;
+			window.requestAnimationFrame( function () {
+				queued = false;
+				draw();
+			} );
+		};
+	}
+
 	function hex( raw ) {
 		let color = String( raw || '' ).trim().toLowerCase();
 		const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/.exec( color );
@@ -514,11 +614,15 @@
 
 	// Same as ButtonDesign::text_color() without a picked colour.
 	function autoText( design ) {
-		if ( design.variant === 'gradient' || design.variant === 'aurora' ) {
+		if ( design.variant === 'gradient' || design.variant === 'aurora' || design.variant === 'luxe' ) {
 			return onColor( mix( design.color, design.color2 ) );
 		}
 
-		return [ 'filled', 'split', 'halo', 'glass', '3d', 'brutal' ].indexOf( design.variant ) === -1 ? design.color : onColor( design.color );
+		if ( design.variant === 'beam' ) {
+			return '#ffffff';
+		}
+
+		return [ 'filled', 'split', 'halo', 'glass', '3d', 'brutal', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut' ].indexOf( design.variant ) === -1 ? design.color : onColor( design.color );
 	}
 
 	function toHex( parts ) {
@@ -819,12 +923,26 @@
 		return button;
 	}
 
+	// Same classes means the same animation: update the button already there so a colour drag doesn't restart it.
+	function showButton( holder, next ) {
+		const current = holder.firstElementChild;
+
+		if ( current && current.className === next.className ) {
+			current.setAttribute( 'style', next.getAttribute( 'style' ) || '' );
+			current.replaceChildren.apply( current, Array.prototype.slice.call( next.childNodes ) );
+
+			return;
+		}
+
+		holder.textContent = '';
+		holder.appendChild( next );
+	}
+
 	function renderButton( form, label ) {
 		const wrap = form.querySelector( '[data-iftp-preview-button]' );
 		const shown = shownDesign( form );
 
-		wrap.textContent = '';
-		wrap.appendChild( buildButton( form, shown, label ) );
+		showButton( wrap, buildButton( form, shown, label ) );
 
 		const note = form.querySelector( '[data-iftp-theme-note]' );
 
@@ -849,16 +967,24 @@
 			}
 
 			sample.text = design.ownText || autoText( sample );
-			pay.className = 'iftp-btn-pay';
-			pay.appendChild( buildButton( form, sample, label ? label.textContent : '' ) );
+			const built = buildButton( form, sample, label ? label.textContent : '' );
 
 			// A hover sample being pointed at keeps showing its hover.
 			if ( stage.parentElement.matches( ':hover, :focus-within' ) && stage.dataset.iftpFxSample === 'effect' ) {
-				pay.firstChild.classList.add( 'is-hover' );
+				built.classList.add( 'is-hover' );
 			}
 
-			stage.textContent = '';
-			stage.appendChild( pay );
+			pay.className = 'iftp-btn-pay';
+			pay.appendChild( built );
+
+			const shown = stage.firstElementChild;
+
+			if ( shown && shown.className === pay.className ) {
+				showButton( shown, built );
+			} else {
+				stage.textContent = '';
+				stage.appendChild( pay );
+			}
 		} );
 	}
 
@@ -989,7 +1115,7 @@
 			}
 		};
 
-		form.addEventListener( 'input', sync );
+		form.addEventListener( 'input', perFrame( sync ) );
 		form.addEventListener( 'change', sync );
 		sync();
 
@@ -1047,6 +1173,64 @@
 						swatch.value = color;
 					}
 				} );
+
+				fire( form.querySelector( '[data-iftp-design="color"]' ) );
+			} );
+		} );
+
+		// "Default look": the design saved as the site's default, all of it.
+		form.querySelectorAll( '[data-iftp-preset-saved]' ).forEach( function ( item ) {
+			let saved = null;
+
+			try {
+				saved = JSON.parse( item.dataset.iftpPresetSaved );
+			} catch ( e ) {}
+
+			if ( ! saved ) {
+				return;
+			}
+
+			item.addEventListener( 'click', function () {
+				const set = function ( key, value ) {
+					form.querySelectorAll( '[data-iftp-design="' + key + '"]' ).forEach( function ( input ) {
+						if ( input.type === 'radio' ) {
+							input.checked = input.value === String( value );
+						} else if ( input.type === 'checkbox' ) {
+							input.checked = !! value;
+						} else {
+							input.value = value;
+						}
+					} );
+				};
+
+				[ 'variant', 'color', 'radius', 'border_width', 'border_style', 'size', 'full', 'icon', 'shadow', 'effect', 'attention', 'upper', 'logos' ].forEach( function ( key ) {
+					set( key, saved[ key ] );
+				} );
+
+				// Blank colours mean "auto", like the boxes' own checkboxes.
+				[ 'text', 'color2', 'border_color' ].forEach( function ( key ) {
+					set( key + '_auto', ! saved[ key ] );
+
+					if ( saved[ key ] ) {
+						set( key, saved[ key ] );
+					}
+				} );
+
+				form.querySelectorAll( '[data-iftp-color-for]' ).forEach( function ( swatch ) {
+					const color = hex( form.querySelector( '#' + swatch.dataset.iftpColorFor ).value );
+
+					if ( color ) {
+						swatch.value = color;
+					}
+				} );
+
+				// The saved design may be "match my theme"; the source radios show or hide the custom controls.
+				set( 'source', saved.source );
+				const picked = form.querySelector( '[data-iftp-design="source"]:checked' );
+
+				if ( picked ) {
+					fire( picked );
+				}
 
 				fire( form.querySelector( '[data-iftp-design="color"]' ) );
 			} );
@@ -2196,8 +2380,8 @@
 		}
 
 		const mark = function ( event ) {
-			// Tabs, the stage background and the link builder don't change what's saved.
-			if ( dirty || ! event.target.name || event.target.closest( '[data-iftp-builder]' ) ) {
+			// Tabs, the stage background, the link builder, popups and parts that save themselves don't change what's saved here.
+			if ( dirty || ! event.target.name || event.target.closest( '[data-iftp-builder], [data-iftp-no-dirty], dialog' ) ) {
 				return;
 			}
 
@@ -2211,8 +2395,11 @@
 		form.addEventListener( 'input', mark );
 		form.addEventListener( 'change', mark );
 
-		form.addEventListener( 'submit', function () {
-			leaving = true;
+		// A form that saves over AJAX stops its own submit, so only a real one leaves the page.
+		form.addEventListener( 'submit', function ( event ) {
+			if ( ! event.defaultPrevented ) {
+				leaving = true;
+			}
 		} );
 
 		window.addEventListener( 'beforeunload', function ( event ) {
@@ -2236,6 +2423,58 @@
 		bindReveal( editor, 'input[name="config[spots][quantity]"]', 'data-iftp-when-quantity' );
 		bindReveal( editor, 'input[name="config[spots][show_left]"]', 'data-iftp-when-left' );
 		bindReveal( editor, 'input[name="config[invoice_hook][enabled]"]', 'data-iftp-when-invoice' );
+
+		// The Design tab shows the button or its checkout, one at a time, and remembers which.
+		const designViewKey = 'iftpBtnDesignView';
+		const showDesign = function ( view ) {
+			editor.dataset.designView = view;
+
+			editor.querySelectorAll( '[data-iftp-design-view]' ).forEach( function ( group ) {
+				group.hidden = group.dataset.iftpDesignView !== view;
+			} );
+
+			editor.querySelectorAll( '[data-iftp-design-view-pick]' ).forEach( function ( pick ) {
+				pick.setAttribute( 'aria-pressed', pick.dataset.iftpDesignViewPick === view ? 'true' : 'false' );
+			} );
+
+			try {
+				window.localStorage.setItem( designViewKey, view );
+			} catch ( e ) {}
+		};
+
+		editor.querySelectorAll( '[data-iftp-design-view-pick]' ).forEach( function ( pick ) {
+			pick.addEventListener( 'click', function () {
+				showDesign( pick.dataset.iftpDesignViewPick );
+			} );
+		} );
+
+		// Links from before the tabs were regrouped: #look was the checkout design, #checkout the first tab.
+		if ( window.location.hash === '#look' ) {
+			showDesign( 'checkout' );
+			window.history.replaceState( null, '', '#design' );
+		} else {
+			let lastView = 'button';
+
+			try {
+				lastView = window.localStorage.getItem( designViewKey ) || 'button';
+			} catch ( e ) {}
+
+			showDesign( lastView === 'checkout' ? 'checkout' : 'button' );
+		}
+
+		// A required field in the hidden design opens it first.
+		editor.addEventListener(
+			'invalid',
+			function ( event ) {
+				const group = event.target.closest( '[data-iftp-design-view]' );
+
+				if ( group && group.hidden ) {
+					showDesign( group.dataset.iftpDesignView );
+				}
+			},
+			true
+		);
+
 		bindTabs( editor );
 		bindDesignControls( editor );
 		bindFormBuilder( editor );
@@ -2385,7 +2624,7 @@
 			} );
 		}
 
-		editor.addEventListener( 'input', renderPreview );
+		editor.addEventListener( 'input', perFrame( renderPreview ) );
 		editor.addEventListener( 'change', renderPreview );
 		renderPreview();
 
@@ -2583,6 +2822,129 @@
 		} );
 
 		return all;
+	}
+
+	// Same liquid as CheckoutLook::liquid(), blob for blob.
+	function liquid( size, color, color2, still ) {
+		const blobs = [
+			[ 180, 220, 90, 140, 90, 19, 0 ],
+			[ 420, 140, 68, -110, 120, 23, 1 ],
+			[ 760, 260, 105, -130, 100, 21, 0 ],
+			[ 860, 640, 83, -90, -140, 25, 1 ],
+			[ 560, 820, 113, 120, -90, 17, 0 ],
+			[ 200, 700, 98, 110, -120, 24, 1 ],
+			[ 500, 480, 60, -160, -60, 15, 0 ],
+			[ 680, 520, 53, 140, 110, 20, 1 ],
+			[ 320, 460, 45, 80, 140, 18, 0 ],
+		];
+		const scale = Math.min( 1.8, Math.max( 0.5, size / 140 ) );
+		const spline = "calcMode='spline' keyTimes='0;.5;1' keySplines='.45 0 .55 1;.45 0 .55 1' repeatCount='indefinite'";
+		let shapes = '';
+
+		const animate = function ( name, from, to, dur ) {
+			return "<animate attributeName='" + name + "' values='" + from + ';' + to + ';' + from + "' dur='" + dur + "s' " + spline + '/>';
+		};
+
+		blobs.forEach( function ( blob ) {
+			const radius = Math.round( blob[ 2 ] * scale );
+			const motion = still ? '' : animate( 'cx', blob[ 0 ], blob[ 0 ] + blob[ 3 ], blob[ 5 ] ) + animate( 'cy', blob[ 1 ], blob[ 1 ] + blob[ 4 ], blob[ 5 ] + 4 ) + animate( 'r', radius, Math.round( radius * 1.25 ), blob[ 5 ] + 7 );
+
+			shapes += "<circle cx='" + blob[ 0 ] + "' cy='" + blob[ 1 ] + "' r='" + radius + "' fill='" + ( blob[ 6 ] ? color2 : color ) + "'>" + motion + '</circle>';
+		} );
+
+		return svgUrl(
+			"<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='1000' viewBox='0 0 1000 1000' preserveAspectRatio='xMidYMid slice'>" +
+			"<filter id='g' filterUnits='userSpaceOnUse' x='-200' y='-200' width='1400' height='1400' color-interpolation-filters='sRGB'>" +
+			"<feGaussianBlur in='SourceGraphic' stdDeviation='30' result='b'/>" +
+			"<feColorMatrix in='b' values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 28 -11' result='goo'/>" +
+			"<feGaussianBlur in='goo' stdDeviation='9' result='soft'/>" +
+			"<feSpecularLighting in='soft' surfaceScale='7' specularConstant='.95' specularExponent='26' lighting-color='#fff' result='light'><feDistantLight azimuth='225' elevation='52'/></feSpecularLighting>" +
+			"<feComposite in='light' in2='goo' operator='in' result='shine'/>" +
+			"<feComposite in='shine' in2='goo' operator='arithmetic' k2='.85' k3='1'/>" +
+			"</filter><g filter='url(#g)'>" + shapes + '</g></svg>'
+		);
+	}
+
+	// Same mesh as CheckoutLook::mesh(), cloud for cloud.
+	function mesh( size, color, color2, still ) {
+		const clouds = [
+			[ 200, 250, 320, 260, 180, 26, 0 ],
+			[ 800, 200, 300, -240, 220, 31, 1 ],
+			[ 700, 800, 340, -200, -240, 29, 0 ],
+			[ 250, 780, 280, 240, -200, 34, 1 ],
+			[ 520, 480, 220, -180, 160, 23, 2 ],
+		];
+		const scale = Math.min( 1.8, Math.max( 0.5, size / 140 ) );
+		const spline = "calcMode='spline' keyTimes='0;.5;1' keySplines='.45 0 .55 1;.45 0 .55 1' repeatCount='indefinite'";
+		const tones = [ color, color2, '#ffffff' ];
+		let shapes = '';
+
+		const animate = function ( name, from, to, dur ) {
+			return "<animate attributeName='" + name + "' values='" + from + ';' + to + ';' + from + "' dur='" + dur + "s' " + spline + '/>';
+		};
+
+		clouds.forEach( function ( cloud ) {
+			const motion = still ? '' : animate( 'cx', cloud[ 0 ], cloud[ 0 ] + cloud[ 3 ], cloud[ 5 ] ) + animate( 'cy', cloud[ 1 ], cloud[ 1 ] + cloud[ 4 ], cloud[ 5 ] + 6 );
+
+			shapes += "<circle cx='" + cloud[ 0 ] + "' cy='" + cloud[ 1 ] + "' r='" + Math.round( cloud[ 2 ] * scale ) + "' fill='" + tones[ cloud[ 6 ] ] + "'>" + motion + '</circle>';
+		} );
+
+		return svgUrl(
+			"<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='1000' viewBox='0 0 1000 1000' preserveAspectRatio='xMidYMid slice'>" +
+			"<filter id='m' filterUnits='userSpaceOnUse' x='-300' y='-300' width='1600' height='1600'><feGaussianBlur stdDeviation='90'/></filter>" +
+			"<g filter='url(#m)' fill-opacity='.85'>" + shapes + '</g></svg>'
+		);
+	}
+
+	// Same tide as CheckoutLook::tide(), wave for wave.
+	function tide( size, color, color2, still ) {
+		const layers = [
+			[ 620, 40, 500, 16, 1, 30 ],
+			[ 700, 50, 640, 12, 0, 38 ],
+			[ 780, 36, 420, 10, 1, 48 ],
+			[ 860, 46, 520, 8, 0, 60 ],
+		];
+		const scale = Math.min( 1.8, Math.max( 0.5, size / 140 ) );
+		let waves = '';
+
+		layers.forEach( function ( layer, at ) {
+			const base = layer[ 0 ];
+			const amp = Math.round( layer[ 1 ] * scale );
+			const quarter = Math.round( layer[ 2 ] * scale / 4 );
+			const start = -4 * quarter * Math.ceil( 1000 / ( 4 * quarter ) ) - 4 * quarter;
+			let end = start + 2 * quarter;
+			let path = 'M' + start + ' ' + base + 'Q' + ( start + quarter ) + ' ' + ( base - amp ) + ' ' + end + ' ' + base;
+
+			while ( end < 2000 + 4 * quarter ) {
+				end += 2 * quarter;
+				path += 'T' + end + ' ' + base;
+			}
+
+			path += 'L' + end + ' 1200L' + start + ' 1200Z';
+
+			const roll = still ? '' : "<animateTransform attributeName='transform' type='translate' values='0 0;" + ( at % 2 ? -4 : 4 ) * quarter + " 0' dur='" + layer[ 3 ] + "s' repeatCount='indefinite'/>";
+
+			waves += "<path d='" + path + "' fill='" + ( layer[ 4 ] ? color2 : color ) + "' fill-opacity='" + layer[ 5 ] / 100 + "' stroke='#fff' stroke-opacity='.35' stroke-width='2' vector-effect='non-scaling-stroke'>" + roll + '</path>';
+		} );
+
+		return svgUrl( "<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='1000' viewBox='0 0 1000 1000' preserveAspectRatio='none'>" + waves + '</svg>' );
+	}
+
+	// Same as CheckoutLook::moving(): the effects that move, or their still versions.
+	function moving( fx, size, color, color2, still ) {
+		if ( fx === 'liquid' ) {
+			return liquid( size, color, color2, still );
+		}
+
+		if ( fx === 'mesh' ) {
+			return mesh( size, color, color2, still );
+		}
+
+		if ( fx === 'tide' ) {
+			return tide( size, color, color2, still );
+		}
+
+		return 'none';
 	}
 
 	function svgUrl( svg ) {
@@ -2806,8 +3168,13 @@
 		bindSwatches( form );
 
 		// A button set to the site's look previews the site's look, whatever its own controls hold.
+		// Configuration has no look controls at all, so it always shows the site's.
 		const siteMode = function () {
 			const mode = form.querySelector( '[data-iftp-look-mode]:checked' );
+
+			if ( ! mode && ! form.querySelector( '[data-iftp-look]' ) ) {
+				return !! config.siteLook;
+			}
 
 			return !! mode && mode.value === 'site' && !! config.siteLook;
 		};
@@ -2954,7 +3321,7 @@
 				} else if ( fx === 'bokeh' ) {
 					patterns[ key ] = bokeh( size, strength, accent, second );
 				} else {
-					patterns[ key ] = 'none';
+					patterns[ key ] = moving( fx, size, accent, second, false );
 				}
 			}
 
@@ -3056,6 +3423,22 @@
 			const opacity = parseInt( read( 'card_opacity' ), 10 );
 			const card = isNaN( opacity ) ? 100 : Math.min( 100, opacity );
 			const glassBlur = parseInt( read( 'card_blur' ), 10 ) || 0;
+
+			// Same as CheckoutLook::variables(): the card's edge, then the glass ring.
+			const cardRing = function ( opacity ) {
+				const edges = {
+					hairline: [ 'inset 0 0 0 1px color-mix(in srgb, var(--iftp-second) 65%, transparent)' ],
+					gilded: [
+						'inset 0 0 0 1px color-mix(in srgb, var(--iftp-second) 70%, transparent)',
+						'inset 0 1px 0 0 rgb(255 255 255 / 28%)',
+						'0 0 0 1px color-mix(in srgb, var(--iftp-second) 28%, transparent)',
+						'0 22px 60px -22px color-mix(in srgb, var(--iftp-second) 55%, transparent)',
+					],
+				};
+				const ring = edges[ read( 'frame' ) ] || ( opacity < 100 ? [ 'inset 0 0 0 1px rgb(255 255 255 / 22%)' ] : [] );
+
+				return ring.length ? ring.join( ', ' ) : '0 0 #0000';
+			};
 			const darkOn = read( 'dark' ) === 'auto';
 			const darkAccentAuto = !! read( 'dark_accent_auto' );
 			const darkAccent = darkAccentAuto ? accent : hex( read( 'dark_accent' ) ) || accent;
@@ -3075,6 +3458,7 @@
 					'--iftp-page-glow2': alpha( c.second, 16 ),
 					'--iftp-page-orb': alpha( c.accent, 45 ),
 					'--iftp-page-orb2': alpha( c.second, 45 ),
+					'--iftp-second': c.second,
 				};
 			};
 
@@ -3109,7 +3493,7 @@
 				'--iftp-sheet-w': ( ( config.lookWidths || {} )[ read( 'width' ) ] || 440 ) + 'px',
 				'--iftp-result-align': read( 'popup_align' ) === 'left' ? 'start' : 'center',
 				'--iftp-card-filter': card < 100 && glassBlur > 0 ? 'blur(' + glassBlur + 'px) saturate(1.6)' : 'none',
-				'--iftp-card-ring': card < 100 ? 'inset 0 0 0 1px rgb(255 255 255 / 22%)' : '0 0 #0000',
+				'--iftp-card-ring': cardRing( card ),
 				'--iftp-body-bg': card < 100 ? 'transparent' : 'initial',
 				'--iftp-page-video-blur': ( parseInt( read( 'pay_video_blur' ), 10 ) || 0 ) + 'px',
 			} );
@@ -3139,6 +3523,7 @@
 
 			vars[ '--iftp-page-crystal' ] = crystalSize + 'px';
 			vars[ '--iftp-page-pattern' ] = pattern( read( 'pay_fx' ), crystalSize, strength, accent, second );
+			vars[ '--iftp-page-pattern-still' ] = moving( read( 'pay_fx' ), crystalSize, accent, second, true );
 			vars[ '--iftp-page-pattern-tile' ] = crystalSize * 6 + 'px';
 			vars[ '--iftp-page-fx-light' ] = 'rgb(255 255 255 / ' + Math.round( strength * 0.5 ) + '%)';
 			vars[ '--iftp-page-fx-dark' ] = 'rgb(0 0 0 / ' + Math.round( strength * 0.28 ) + '%)';
@@ -3148,7 +3533,7 @@
 			vars[ '--iftp-page-blur-mask' ] = masks[ blurType ] || 'none';
 			vars[ '--iftp-page-frost' ] = blurType === 'frosted' ? 'rgb(255 255 255 / 16%)' : 'transparent';
 
-			// The step style cards wear the look too.
+			// The step style and effect cards wear the look too.
 			const samples = form.querySelectorAll( '[data-iftp-look-sample]' );
 
 			Object.keys( vars ).forEach( function ( name ) {
@@ -3200,10 +3585,26 @@
 				pageLayer.style.setProperty( '--iftp-page-crystal', Math.round( crystalSize * zoom ) + 'px' );
 				pageLayer.style.setProperty( '--iftp-page-blur', Math.round( ( parseInt( read( 'pay_blur' ), 10 ) || 0 ) * zoom ) + 'px' );
 				pageLayer.style.setProperty( '--iftp-page-blur-filter', vars[ '--iftp-page-blur-filter' ].replace( /blur\(\d+px\)/, 'blur(' + Math.round( ( parseInt( read( 'pay_blur' ), 10 ) || 0 ) * zoom ) + 'px)' ) );
-				pageLayer.className = 'iftp-btn-look-preview__pagebg iftp-btn-pagebg--' + background + ' iftp-btn-pagegrad--' + ( read( 'pay_grad' ) || 'soft' ) + ' iftp-btn-pagefx--' + ( read( 'pay_fx' ) || 'none' ) + ' iftp-btn-pageblur--' + blurType;
+				pageLayer.className = 'iftp-btn-look-preview__pagebg iftp-btn-pagebg--' + background + ' iftp-btn-pagegrad--' + ( read( 'pay_grad' ) || 'soft' ) + ' iftp-btn-pagefx--' + ( read( 'pay_fx' ) || 'none' ) + ' iftp-btn-pageblur--' + blurType + ( read( 'pay_fx_still' ) ? ' iftp-btn-pagestill' : '' );
 				// Only while the background is on show, so a hidden preview doesn't keep a video playing.
 				showVideo( pageLayer, background === 'video' && ( view === 'page' || read( 'scene' ) ) ? video : null );
 			}
+
+			// The effect cards: each its own pattern, scaled to the card, over the background the look has now.
+			const fxBackground = [ 'glow', 'plain', 'gradient' ].indexOf( background ) > -1 ? background : 'glow';
+			const fxSize = Math.max( 16, Math.round( crystalSize * 0.4 ) );
+
+			form.querySelectorAll( '[data-iftp-fx-sample]' ).forEach( function ( sample ) {
+				const fx = sample.dataset.iftpFxSample;
+				// The moving ones cover the card rather than tiling, so they keep their full size.
+				const size = [ 'liquid', 'mesh', 'tide' ].indexOf( fx ) > -1 ? crystalSize : fxSize;
+
+				sample.style.setProperty( '--iftp-page-crystal', fxSize + 'px' );
+				sample.style.setProperty( '--iftp-page-pattern-tile', fxSize * 6 + 'px' );
+				sample.style.setProperty( '--iftp-page-pattern', pattern( fx, size, strength, accent, second ) );
+				sample.style.setProperty( '--iftp-page-pattern-still', moving( fx, size, accent, second, true ) );
+				sample.className = 'iftp-btn-fxstyles__sample iftp-btn-pagebg--' + fxBackground + ' iftp-btn-pagegrad--' + ( read( 'pay_grad' ) || 'soft' ) + ' iftp-btn-pagefx--' + fx + ( read( 'pay_fx_still' ) ? ' iftp-btn-pagestill' : '' );
+			} );
 
 			const secondBox = form.querySelector( '[data-iftp-second-color]' );
 
@@ -3281,7 +3682,7 @@
 					return;
 				}
 
-				[ 'accent', 'surface', 'ink', 'radius', 'field_radius', 'fields', 'pay_grad', 'pay_fx', 'pay_fx_size', 'pay_fx_strength', 'card_opacity', 'card_blur' ].forEach( function ( key ) {
+				[ 'accent', 'surface', 'ink', 'radius', 'field_radius', 'fields', 'frame', 'pay_grad', 'pay_fx', 'pay_fx_size', 'pay_fx_strength', 'pay_fx_still', 'card_opacity', 'card_blur' ].forEach( function ( key ) {
 					set( key, preset[ key ] );
 				} );
 				set( 'accent_text_auto', true );
@@ -3464,6 +3865,79 @@
 			} );
 		}
 
+		// "Default look": the look saved for the site, all of it, image and video included.
+		form.querySelectorAll( '[data-iftp-look-saved]' ).forEach( function ( item ) {
+			let saved = null;
+
+			try {
+				saved = JSON.parse( item.dataset.iftpLookSaved );
+			} catch ( e ) {}
+
+			if ( ! saved ) {
+				return;
+			}
+
+			const clock = function ( seconds ) {
+				const total = parseInt( seconds, 10 ) || 0;
+
+				return total > 0 ? Math.floor( total / 60 ) + ':' + String( total % 60 ).padStart( 2, '0' ) : '';
+			};
+
+			item.addEventListener( 'click', function () {
+				const skip = [ 'css', 'pay_image', 'pay_image_url', 'pay_video', 'pay_video_file_url' ];
+
+				Object.keys( saved ).forEach( function ( key ) {
+					if ( skip.indexOf( key ) !== -1 ) {
+						return;
+					}
+
+					let value = saved[ key ];
+
+					if ( key === 'pay_video_start' || key === 'pay_video_end' ) {
+						value = clock( value );
+					}
+
+					// Blank colours mean "auto", like the boxes' own checkboxes.
+					set( key + '_auto', value === '' );
+
+					if ( value !== '' || ! form.querySelector( '[data-iftp-look="' + key + '_auto"]' ) ) {
+						set( key, value );
+					}
+				} );
+
+				if ( imageField ) {
+					setImage( String( saved.pay_image || 0 ), saved.pay_image_url || '', saved.pay_image_url || '' );
+				}
+
+				if ( videoField ) {
+					const file = saved.pay_video_file_url || '';
+
+					setVideo( String( saved.pay_video || 0 ), file, file.split( '/' ).pop() );
+				}
+
+				form.querySelectorAll( 'input[data-iftp-look][type="radio"]:checked' ).forEach( function ( picked ) {
+					picked.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+				} );
+
+				const accent = form.querySelector( '[data-iftp-look="accent"]' );
+
+				if ( accent ) {
+					accent.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+				}
+
+				form.querySelectorAll( '[data-iftp-color-for]' ).forEach( function ( swatch ) {
+					const field = form.querySelector( '#' + swatch.dataset.iftpColorFor );
+					const color = field && field.matches( '[data-iftp-look]' ) ? hex( field.value ) : '';
+
+					if ( color ) {
+						swatch.value = color;
+					}
+				} );
+
+				show( 'checkout' );
+			} );
+		} );
+
 		// Editing an outcome's words shows that popup.
 		form.querySelectorAll( '.iftp-btn-outcome' ).forEach( function ( fieldset ) {
 			fieldset.addEventListener( 'focusin', function () {
@@ -3499,7 +3973,7 @@
 			} );
 		} );
 
-		form.addEventListener( 'input', apply );
+		form.addEventListener( 'input', perFrame( apply ) );
 		form.addEventListener( 'change', apply );
 
 		let saved = '';
@@ -3517,45 +3991,11 @@
 		}
 	}
 
-	/* ---------------------------------------------------------------- Checkout settings */
+	/* ---------------------------------------------------------------- Configuration and Default Design */
 
-	const checkout = document.querySelector( '.iftp-btn-checkout-settings' );
-
-	if ( checkout ) {
-		bindReveal( checkout, '[data-iftp-paid-type]', 'data-iftp-when-paid' );
-
-		const settingsForm = checkout.querySelector( '[data-iftp-csettings]' );
-
-		if ( settingsForm ) {
-			bindTabs( settingsForm );
-			bindDirty( settingsForm );
-			bindLook( settingsForm );
-			bindReveal( settingsForm, 'input[data-iftp-design="source"]', 'data-iftp-when-source' );
-			bindReveal( settingsForm, 'input[data-iftp-design="variant"]', 'data-iftp-when-variant' );
-			bindDesignControls( settingsForm );
-
-			// The Button tab's preview: the default design on the site's own pay text, with the enabled logos.
-			const strip = settingsForm.querySelector( '[data-iftp-preview-logos]' );
-			const label = settingsForm.querySelector( '[data-iftp-preview-button] .iftp-btn-pay__label' );
-			const payText = label ? label.textContent : '';
-			const drawButton = function ( event ) {
-				if ( ! event.target.closest( '[data-iftp-panel="button"]' ) ) {
-					return;
-				}
-
-				renderButton( settingsForm, payText );
-
-				if ( strip ) {
-					strip.hidden = ! readDesign( settingsForm ).logos || ! strip.children.length;
-				}
-			};
-
-			settingsForm.addEventListener( 'input', drawButton );
-			settingsForm.addEventListener( 'change', drawButton );
-		}
-
-		// Two views of one message: the textarea is what's submitted, the contenteditable mirrors it.
-		checkout.querySelectorAll( '[data-iftp-msg]' ).forEach( function ( box ) {
+	// Two views of one message: the textarea is what's submitted, the contenteditable mirrors it.
+	function bindMessages( root ) {
+		root.querySelectorAll( '[data-iftp-msg]' ).forEach( function ( box ) {
 			const normal = box.querySelector( '[data-iftp-msg-normal]' );
 			const raw = box.querySelector( '[data-iftp-msg-raw]' );
 			const tools = box.querySelectorAll( '[data-iftp-msg-cmd]' );
@@ -3618,5 +4058,87 @@
 
 			show( 'normal' );
 		} );
+	}
+
+	const configPage = document.querySelector( '[data-iftp-config]' );
+
+	if ( configPage ) {
+		bindTabs( configPage );
+		bindLook( configPage );
+		bindReveal( configPage, '[data-iftp-paid-type]', 'data-iftp-when-paid' );
+		bindMessages( configPage );
+
+		// Messages: one outcome at a time, shown in the preview too.
+		const outcomePicks = configPage.querySelectorAll( '[data-iftp-outcome-pick]' );
+
+		outcomePicks.forEach( function ( pick ) {
+			pick.addEventListener( 'click', function () {
+				const outcome = pick.dataset.iftpOutcomePick;
+				const view = configPage.querySelector( '[data-iftp-look-view-pick="' + outcome + '"]' );
+
+				outcomePicks.forEach( function ( other ) {
+					other.setAttribute( 'aria-pressed', other === pick ? 'true' : 'false' );
+				} );
+
+				configPage.querySelectorAll( '[data-iftp-outcome]' ).forEach( function ( fieldset ) {
+					fieldset.hidden = fieldset.dataset.iftpOutcome !== outcome;
+				} );
+
+				if ( view ) {
+					view.click();
+				}
+			} );
+		} );
+
+		// Opening Messages shows the picked outcome's popup.
+		const showPickedOutcome = function () {
+			const picked = configPage.querySelector( '[data-iftp-outcome-pick][aria-pressed="true"]' );
+
+			if ( picked && configPage.dataset.tab === 'messages' ) {
+				picked.click();
+			}
+		};
+
+		configPage.querySelectorAll( '[data-iftp-tab="messages"]' ).forEach( function ( tab ) {
+			tab.addEventListener( 'click', showPickedOutcome );
+		} );
+
+		showPickedOutcome();
+		// The Gateway tab saves over AJAX, so it's marked out of the unsaved-changes flag.
+		bindDirty( configPage );
+	}
+
+	const checkout = document.querySelector( '.iftp-btn-checkout-settings' );
+
+	if ( checkout ) {
+		const settingsForm = checkout.querySelector( '[data-iftp-csettings]' );
+
+		if ( settingsForm ) {
+			bindTabs( settingsForm );
+			bindDirty( settingsForm );
+			bindLook( settingsForm );
+			bindReveal( settingsForm, 'input[data-iftp-design="source"]', 'data-iftp-when-source' );
+			bindReveal( settingsForm, 'input[data-iftp-design="variant"]', 'data-iftp-when-variant' );
+			bindDesignControls( settingsForm );
+
+			// The Button tab's preview: the default design on the site's own pay text, with the enabled logos.
+			const strip = settingsForm.querySelector( '[data-iftp-preview-logos]' );
+			const label = settingsForm.querySelector( '[data-iftp-preview-button] .iftp-btn-pay__label' );
+			const payText = label ? label.textContent : '';
+			const drawButton = function ( event ) {
+				if ( ! event.target.closest( '[data-iftp-panel="button"]' ) ) {
+					return;
+				}
+
+				renderButton( settingsForm, payText );
+
+				if ( strip ) {
+					strip.hidden = ! readDesign( settingsForm ).logos || ! strip.children.length;
+				}
+			};
+
+			settingsForm.addEventListener( 'input', perFrame( drawButton ) );
+			settingsForm.addEventListener( 'change', drawButton );
+		}
 	}
 } )();

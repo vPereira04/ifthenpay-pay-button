@@ -58,25 +58,6 @@ body.iftp-btn-screen .iftp-btn-btn--ai:hover {
 	gap: 10px;
 }
 
-.iftp-btn-bcard--ai {
-	border: 1.5px solid transparent;
-	background:
-		linear-gradient(var(--iftp-canvas), var(--iftp-canvas)) padding-box,
-		var(--iftp-ai-grad) border-box;
-}
-
-.iftp-btn-bcard--ai:hover {
-	border-color: transparent;
-	background:
-		linear-gradient(#f4f2ff, #f4f2ff) padding-box,
-		var(--iftp-ai-grad) border-box;
-}
-
-.iftp-btn-bcard--ai .iftp-btn-bcard__new-icon {
-	background: var(--iftp-ai-grad);
-	color: #fff;
-}
-
 /* --------------------------------------------------------------------------
    Studio layout
    -------------------------------------------------------------------------- */
@@ -272,6 +253,15 @@ body.iftp-btn-screen .iftp-btn-btn--ai:hover {
 .iftp-btn-studio__thinking .iftp-btn-studio__line.is-out,
 .iftp-btn-studio__building-text .iftp-btn-studio__line.is-out {
 	animation: iftp-ai-line-out 380ms var(--iftp-ease) both;
+}
+
+/* The seconds a long answer has taken, so it reads as working, not stuck */
+.iftp-btn-studio__clock {
+	margin-left: auto;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
 }
 
 /* Ideas to start from */
@@ -746,6 +736,27 @@ body.iftp-btn-screen .iftp-btn-studio__composer textarea.iftp-btn-studio__input:
 	text-align: center;
 }
 
+/* Under the line: a bar that fills fast, then ever slower, and only completes with the answer */
+.iftp-btn-studio__progress {
+	position: relative;
+	width: 220px;
+	height: 4px;
+	overflow: hidden;
+	border-radius: var(--iftp-r-pill);
+	background: rgb(109 74 224 / 14%);
+}
+
+.iftp-btn-studio__progress::after {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: var(--iftp-ai-grad);
+	content: "";
+	transform: scaleX(var(--iftp-progress, 0));
+	transform-origin: left;
+	transition: transform 1s linear;
+}
+
 /* A line slides up into place, the one before slides up and away */
 .iftp-btn-studio__line {
 	grid-area: 1 / 1;
@@ -849,7 +860,7 @@ body.iftp-btn-screen .iftp-btn-studio__composer textarea.iftp-btn-studio__input:
 }
 
 /* --------------------------------------------------------------------------
-   Connect: inline in the studio, or in a popup on Gateway Configuration
+   Connect: inline in the studio, or in a popup on Configuration › AI
    -------------------------------------------------------------------------- */
 .iftp-btn-studio__connect {
 	display: grid;
@@ -979,7 +990,7 @@ body.iftp-btn-screen .iftp-btn-studio__composer textarea.iftp-btn-studio__input:
 	width: min(560px, calc(100vw - 32px));
 }
 
-/* The panel on Gateway Configuration */
+/* The panel on Configuration › AI */
 .iftp-btn-ai-panel .iftp-btn-panel__title {
 	display: flex;
 	align-items: center;

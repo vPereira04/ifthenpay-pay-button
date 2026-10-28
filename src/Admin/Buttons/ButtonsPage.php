@@ -10,9 +10,9 @@ declare(strict_types=1);
 namespace Ifthenpay\PayButton\Admin\Buttons;
 
 use Ifthenpay\PayButton\Admin\AiPanel;
-use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
 use Ifthenpay\PayButton\Admin\CheckoutSettingsPage;
-use Ifthenpay\PayButton\Admin\GatewaySettingsPage;
+use Ifthenpay\PayButton\Admin\ConfigurationPage;
+use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
 use Ifthenpay\PayButton\Admin\LookControls;
 use Ifthenpay\PayButton\Ai\Studio;
 use Ifthenpay\PayButton\Bridge\PayLinks;
@@ -273,12 +273,21 @@ class ButtonsPage {
 	}
 
 	/**
-	 * The site's look for the editor's preview, when a button goes back to using it.
+	 * The site's look for the previews: the editor's, when a button goes back to using it, and Configuration's.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private static function site_look_for_js(): array {
-		$look  = ( new CheckoutSettings() )->get_look();
+	public static function site_look_for_js(): array {
+		return self::look_for_js( ( new CheckoutSettings() )->get_look() );
+	}
+
+	/**
+	 * A look for the previews, with its image and video as URLs.
+	 *
+	 * @param array<string, mixed> $look The look.
+	 * @return array<string, mixed>
+	 */
+	public static function look_for_js( array $look ): array {
 		$url   = $look['pay_image'] > 0 ? wp_get_attachment_image_url( $look['pay_image'], 'full' ) : false;
 		$video = $look['pay_video'] > 0 ? wp_get_attachment_url( $look['pay_video'] ) : false;
 
@@ -440,9 +449,6 @@ class ButtonsPage {
 		$links     = new PayLinks();
 		$order     = array_flip( $ids );
 
-		// Most collected first, which is what the sort starts on; the date order stays on each card for Newest.
-		usort( $buttons, static fn( Button $a, Button $b ): int => ( $stats[ $b->id ]['paid_amount'] ?? 0.0 ) <=> ( $stats[ $a->id ]['paid_amount'] ?? 0.0 ) );
-
 		$new = $connected ? '<a class="iftp-btn-btn iftp-btn-btn--ai" href="' . esc_url( AiStudioPage::url( null ) ) . '">' . AiPanel::sparkle() . esc_html__( 'Build with AI', 'ifthenpay-pay-button' ) . '</a><a class="iftp-btn-btn iftp-btn-btn--primary" href="' . esc_url( self::edit_url( 0 ) ) . '">' . self::icon( 'plus' ) . esc_html__( 'New button', 'ifthenpay-pay-button' ) . '</a>' : '';
 		?>
 		<div class="wrap iftp-btn-buttons" data-iftp-buttons>
@@ -454,7 +460,7 @@ class ButtonsPage {
 					<span class="iftp-btn-mark iftp-btn-empty__mark" aria-hidden="true"><img class="iftp-btn-mark__logo" src="<?php echo esc_url( IFTP_BTN_URL . 'assets/img/icon-normal.svg' ); ?>" alt="" width="28" height="28" /></span>
 					<h2 class="iftp-btn-empty__title"><?php esc_html_e( 'Connect your ifthenpay account first', 'ifthenpay-pay-button' ); ?></h2>
 					<p class="iftp-btn-empty__text"><?php esc_html_e( 'Buttons take payments through your ifthenpay Gateway Key. Connect it once, pick the payment methods, and come back here.', 'ifthenpay-pay-button' ); ?></p>
-					<a class="iftp-btn-btn iftp-btn-btn--primary" href="<?php echo esc_url( GatewaySettingsPage::url() ); ?>"><?php esc_html_e( 'Connect ifthenpay', 'ifthenpay-pay-button' ); ?></a>
+					<a class="iftp-btn-btn iftp-btn-btn--primary" href="<?php echo esc_url( ConfigurationPage::url() ); ?>"><?php esc_html_e( 'Connect ifthenpay', 'ifthenpay-pay-button' ); ?></a>
 				</section>
 			<?php elseif ( array() === $buttons ) : ?>
 				<section class="iftp-btn-empty">
@@ -494,20 +500,24 @@ class ButtonsPage {
 						<?php $this->render_card( $button, $stats[ $button->id ] ?? null, $taken[ $button->id ]['total'] ?? 0, $opens[ $button->id ]['opens'] ?? 0, $opens[ $button->id ]['since'] ?? 0, $paid[ $button->id ] ?? 0, $links, $order[ $button->id ] ); ?>
 					<?php endforeach; ?>
 					<li class="iftp-btn-bcard iftp-btn-bcard--new" data-iftp-bcard-new>
-						<a class="iftp-btn-bcard__new" href="<?php echo esc_url( self::edit_url( 0 ) ); ?>">
+						<a class="iftp-btn-bcard__half iftp-btn-bcard__half--new" href="<?php echo esc_url( self::edit_url( 0 ) ); ?>">
 							<span class="iftp-btn-bcard__new-icon" aria-hidden="true"><?php echo self::icon( 'plus' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
 							<span class="iftp-btn-bcard__new-title"><?php esc_html_e( 'New button', 'ifthenpay-pay-button' ); ?></span>
 							<span class="iftp-btn-bcard__new-text"><?php esc_html_e( 'Set an amount, pick a look, place it anywhere.', 'ifthenpay-pay-button' ); ?></span>
 						</a>
-					</li>
-					<li class="iftp-btn-bcard iftp-btn-bcard--new iftp-btn-bcard--ai" data-iftp-bcard-new>
-						<a class="iftp-btn-bcard__new" href="<?php echo esc_url( AiStudioPage::url( null ) ); ?>">
+						<span class="iftp-btn-bcard__or" aria-hidden="true"><?php esc_html_e( 'or', 'ifthenpay-pay-button' ); ?></span>
+						<a class="iftp-btn-bcard__half iftp-btn-bcard__half--ai" href="<?php echo esc_url( AiStudioPage::url( null ) ); ?>">
 							<span class="iftp-btn-bcard__new-icon" aria-hidden="true"><?php echo AiPanel::sparkle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
 							<span class="iftp-btn-bcard__new-title"><?php esc_html_e( 'Build with AI', 'ifthenpay-pay-button' ); ?></span>
 							<span class="iftp-btn-bcard__new-text"><?php esc_html_e( 'Describe it in a sentence; watch the form and the look appear.', 'ifthenpay-pay-button' ); ?></span>
 						</a>
 					</li>
 				</ul>
+				<nav class="iftp-btn-bpager" data-iftp-bpager aria-label="<?php esc_attr_e( 'Pages', 'ifthenpay-pay-button' ); ?>" hidden>
+					<button type="button" class="iftp-btn-btn" data-iftp-bpage="prev"><?php esc_html_e( 'Previous', 'ifthenpay-pay-button' ); ?></button>
+					<span class="iftp-btn-bpager__status" data-iftp-bpager-status data-template="<?php echo esc_attr_x( 'Page %1$s of %2$s', 'pager', 'ifthenpay-pay-button' ); ?>"></span>
+					<button type="button" class="iftp-btn-btn" data-iftp-bpage="next"><?php esc_html_e( 'Next', 'ifthenpay-pay-button' ); ?></button>
+				</nav>
 				<p class="iftp-btn-bnone" data-iftp-bnone hidden><?php esc_html_e( 'No buttons match.', 'ifthenpay-pay-button' ); ?></p>
 			<?php endif; ?>
 			<?php self::print_shared_ui(); ?>
@@ -669,10 +679,11 @@ class ButtonsPage {
 			'sold' => array( __( 'Sold out', 'ifthenpay-pay-button' ), $sold ),
 		);
 		$sorts   = array(
+			'newest'    => __( 'Newest', 'ifthenpay-pay-button' ),
+			'edited'    => __( 'Recently edited', 'ifthenpay-pay-button' ),
+			'oldest'    => __( 'Oldest', 'ifthenpay-pay-button' ),
 			'collected' => __( 'Most collected', 'ifthenpay-pay-button' ),
 			'paid'      => __( 'Most paid', 'ifthenpay-pay-button' ),
-			'newest'    => __( 'Newest', 'ifthenpay-pay-button' ),
-			'oldest'    => __( 'Oldest', 'ifthenpay-pay-button' ),
 			'title'     => __( 'Name (A–Z)', 'ifthenpay-pay-button' ),
 		);
 		$views   = array(
@@ -766,7 +777,7 @@ class ButtonsPage {
 			admin_url( 'admin.php' )
 		);
 		?>
-		<li class="iftp-btn-bcard<?php echo $button->active ? '' : ' iftp-btn-bcard--off'; ?>" data-iftp-bcard data-title="<?php echo esc_attr( strtolower( remove_accents( $button->title ) ) ); ?>" data-active="<?php echo $button->active ? '1' : '0'; ?>" data-mode="<?php echo esc_attr( $button->mode() ); ?>" data-sold="<?php echo $sold_out ? '1' : '0'; ?>" data-collected="<?php echo esc_attr( (string) ( null !== $stats ? $stats['paid_amount'] : 0 ) ); ?>" data-paid="<?php echo esc_attr( (string) $paid_count ); ?>" data-order="<?php echo esc_attr( (string) $order ); ?>">
+		<li class="iftp-btn-bcard<?php echo $button->active ? '' : ' iftp-btn-bcard--off'; ?>" data-iftp-bcard data-title="<?php echo esc_attr( strtolower( remove_accents( $button->title ) ) ); ?>" data-active="<?php echo $button->active ? '1' : '0'; ?>" data-mode="<?php echo esc_attr( $button->mode() ); ?>" data-sold="<?php echo $sold_out ? '1' : '0'; ?>" data-collected="<?php echo esc_attr( (string) ( null !== $stats ? $stats['paid_amount'] : 0 ) ); ?>" data-paid="<?php echo esc_attr( (string) $paid_count ); ?>" data-order="<?php echo esc_attr( (string) $order ); ?>" data-edited="<?php echo esc_attr( (string) get_post_modified_time( 'U', true, $button->id ) ); ?>">
 			<a class="iftp-btn-bcard__stage" href="<?php echo esc_url( $edit ); ?>" tabindex="-1" aria-hidden="true">
 				<?php
 				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes.

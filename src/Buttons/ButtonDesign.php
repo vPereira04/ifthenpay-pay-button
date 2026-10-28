@@ -34,10 +34,10 @@ class ButtonDesign {
 	// What the site's default itself can be: it can't point at itself.
 	public const OWN_SOURCES = array( self::SOURCE_THEME, self::SOURCE_CUSTOM );
 
-	public const VARIANTS      = array( 'filled', 'outline', 'soft', 'gradient', 'aurora', 'split', 'halo', 'glass', '3d', 'neon', 'brutal', 'ghost' );
+	public const VARIANTS      = array( 'filled', 'outline', 'soft', 'gradient', 'aurora', 'split', 'halo', 'glass', '3d', 'neon', 'brutal', 'ghost', 'luxe', 'beam', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut' );
 	public const SIZES         = array( 'sm', 'md', 'lg' );
-	public const ICONS         = array( 'none', 'lock', 'card', 'arrow', 'heart', 'cart', 'gift', 'ticket', 'calendar', 'star', 'sparkles', 'paw', 'leaf' );
-	public const EFFECTS       = array( 'none', 'lift', 'grow', 'shine', 'glow', 'fill', 'nudge' );
+	public const ICONS         = array( 'none', 'lock', 'card', 'arrow', 'heart', 'cart', 'gift', 'ticket', 'calendar', 'star', 'sparkles', 'paw', 'leaf', 'bolt' );
+	public const EFFECTS       = array( 'none', 'lift', 'grow', 'shine', 'glow', 'fill', 'nudge', 'gild', 'tilt' );
 	public const ATTENTIONS    = array( 'none', 'pulse', 'ripple', 'heartbeat', 'wiggle', 'bounce', 'shimmer', 'breathe', 'orbit' );
 	public const BORDER_STYLES = array( 'solid', 'dashed', 'dotted', 'double' );
 
@@ -45,7 +45,7 @@ class ButtonDesign {
 	public const BORDER_MAX = 6;
 
 	// The styles drawn solid in the main colour, so their text goes black or white by contrast.
-	private const SOLID_VARIANTS = array( 'filled', 'split', 'halo', 'glass', '3d', 'brutal' );
+	private const SOLID_VARIANTS = array( 'filled', 'split', 'halo', 'glass', '3d', 'brutal', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut' );
 
 	// How far round the colour wheel a gradient's own second colour sits from the first.
 	public const GRADIENT_TURN = 40;
@@ -164,19 +164,6 @@ class ButtonDesign {
 				'attention' => 'pulse',
 				'upper'     => false,
 			),
-			'bold'      => array(
-				'label'   => __( 'Bold', 'ifthenpay-pay-button' ),
-				'variant' => 'filled',
-				'color'   => '#f0a500',
-				'color2'  => '',
-				'text'    => '',
-				'radius'  => 0,
-				'size'    => 'lg',
-				'icon'    => 'none',
-				'shadow'  => false,
-				'effect'  => 'none',
-				'upper'   => true,
-			),
 			'sunset'    => array(
 				'label'   => __( 'Sunset', 'ifthenpay-pay-button' ),
 				'variant' => 'gradient',
@@ -245,34 +232,6 @@ class ButtonDesign {
 				'effect'       => 'nudge',
 				'upper'        => true,
 			),
-			'dashed'    => array(
-				'label'        => __( 'Dashed', 'ifthenpay-pay-button' ),
-				'variant'      => 'ghost',
-				'color'        => '#00609c',
-				'color2'       => '',
-				'text'         => '',
-				'radius'       => 10,
-				'border_style' => 'dashed',
-				'border_color' => '#00609c',
-				'size'         => 'md',
-				'icon'         => 'card',
-				'shadow'       => false,
-				'effect'       => 'fill',
-				'upper'        => false,
-			),
-			'aurora'    => array(
-				'label'   => __( 'Aurora', 'ifthenpay-pay-button' ),
-				'variant' => 'aurora',
-				'color'   => '#7c3aed',
-				'color2'  => '#ec4899',
-				'text'    => '#ffffff',
-				'radius'  => self::PILL,
-				'size'    => 'lg',
-				'icon'    => 'sparkles',
-				'shadow'  => true,
-				'effect'  => 'grow',
-				'upper'   => false,
-			),
 			'split'     => array(
 				'label'   => __( 'Split', 'ifthenpay-pay-button' ),
 				'variant' => 'split',
@@ -299,6 +258,98 @@ class ButtonDesign {
 				'effect'    => 'glow',
 				'attention' => 'breathe',
 				'upper'     => false,
+			),
+			'premium'   => array(
+				'label'     => __( 'Premium', 'ifthenpay-pay-button' ),
+				'variant'   => 'luxe',
+				'color'     => '#a87a1c',
+				'color2'    => '#f1d78a',
+				'text'      => '#1a1405',
+				'radius'    => 0,
+				'size'      => 'lg',
+				'icon'      => 'none',
+				'shadow'    => true,
+				'effect'    => 'gild',
+				'attention' => 'none',
+				'upper'     => true,
+			),
+			'beam'      => array(
+				'label'   => __( 'Beam', 'ifthenpay-pay-button' ),
+				'variant' => 'beam',
+				'color'   => '#6366f1',
+				'color2'  => '#22d3ee',
+				'text'    => '',
+				'radius'  => 14,
+				'size'    => 'lg',
+				'icon'    => 'arrow',
+				'shadow'  => false,
+				'effect'  => 'nudge',
+				'upper'   => false,
+			),
+			'clay'      => array(
+				'label'   => __( 'Clay', 'ifthenpay-pay-button' ),
+				'variant' => 'clay',
+				'color'   => '#f59e8b',
+				'color2'  => '',
+				'text'    => '#4a1d12',
+				'radius'  => 22,
+				'size'    => 'lg',
+				'icon'    => 'heart',
+				'shadow'  => false,
+				'effect'  => 'none',
+				'upper'   => false,
+			),
+			'ticket'    => array(
+				'label'   => __( 'Ticket', 'ifthenpay-pay-button' ),
+				'variant' => 'ticket',
+				'color'   => '#e4505b',
+				'color2'  => '',
+				'text'    => '',
+				'radius'  => 8,
+				'size'    => 'lg',
+				'icon'    => 'ticket',
+				'shadow'  => false,
+				'effect'  => 'none',
+				'upper'   => true,
+			),
+			'offset'    => array(
+				'label'   => __( 'Offset', 'ifthenpay-pay-button' ),
+				'variant' => 'ring',
+				'color'   => '#2563eb',
+				'color2'  => '',
+				'text'    => '',
+				'radius'  => 12,
+				'size'    => 'md',
+				'icon'    => 'arrow',
+				'shadow'  => false,
+				'effect'  => 'nudge',
+				'upper'   => false,
+			),
+			'barber'    => array(
+				'label'   => __( 'Barber', 'ifthenpay-pay-button' ),
+				'variant' => 'stripe',
+				'color'   => '#f97316',
+				'color2'  => '',
+				'text'    => '',
+				'radius'  => 10,
+				'size'    => 'lg',
+				'icon'    => 'bolt',
+				'shadow'  => true,
+				'effect'  => 'grow',
+				'upper'   => true,
+			),
+			'chamfer'   => array(
+				'label'   => __( 'Chamfer', 'ifthenpay-pay-button' ),
+				'variant' => 'cut',
+				'color'   => '#0e7490',
+				'color2'  => '#f59e0b',
+				'text'    => '',
+				'radius'  => 0,
+				'size'    => 'lg',
+				'icon'    => 'bolt',
+				'shadow'  => false,
+				'effect'  => 'shine',
+				'upper'   => true,
 			),
 		);
 
@@ -466,6 +517,7 @@ class ButtonDesign {
 			'sparkles' => '<path d="m11 3 1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="m19 15 .8 2.2 2.2.8-2.2.8L19 21l-.8-2.2-2.2-.8 2.2-.8z"/>',
 			'paw'      => '<circle cx="6.5" cy="10.5" r="1.8"/><circle cx="10" cy="6" r="1.8"/><circle cx="14.5" cy="6" r="1.8"/><circle cx="18" cy="10.5" r="1.8"/><path d="M8 17.6c0-2.6 1.9-4.8 4.2-4.8s4.2 2.2 4.2 4.8c0 1.5-1.2 2.6-2.7 2.6-.6 0-1-.3-1.5-.3s-.9.3-1.5.3C9.2 20.2 8 19.1 8 17.6z"/>',
 			'leaf'     => '<path d="M5 20c0-9 5.5-15 15-15 0 10-6 15-14 15"/><path d="M5 20c2.5-4.5 6-7.5 10-9.5"/>',
+			'bolt'     => '<path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/>',
 		);
 
 		if ( ! isset( $paths[ $icon ] ) ) {
@@ -486,8 +538,13 @@ class ButtonDesign {
 			return (string) $design['text'];
 		}
 
-		if ( in_array( $design['variant'], array( 'gradient', 'aurora' ), true ) ) {
+		if ( in_array( $design['variant'], array( 'gradient', 'aurora', 'luxe' ), true ) ) {
 			return self::on_color( self::mix( (string) $design['color'], self::second_color( $design ) ) );
+		}
+
+		// The beam's plate is dark whatever the colour, which only lights its edge.
+		if ( 'beam' === $design['variant'] ) {
+			return '#ffffff';
 		}
 
 		if ( ! in_array( $design['variant'], self::SOLID_VARIANTS, true ) ) {

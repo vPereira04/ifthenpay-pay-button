@@ -107,6 +107,7 @@ class Claude extends Provider {
 			array(
 				'model'       => $model,
 				'max_tokens'  => static::MAX_TOKENS,
+				'temperature' => $this->temperature,
 				'system'      => $system,
 				'messages'    => array_map(
 					static fn( array $turn ): array => array(

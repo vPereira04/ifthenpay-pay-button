@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Admin;
 
-use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
 use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
+use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
 use Ifthenpay\PayButton\Plugin;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
 
@@ -48,11 +48,11 @@ class Menu {
 	private EntriesPage $entries_page;
 
 	/**
-	 * The Gateway Configuration screen.
+	 * The Configuration screen.
 	 *
-	 * @var GatewaySettingsPage
+	 * @var ConfigurationPage
 	 */
-	private GatewaySettingsPage $settings_page;
+	private ConfigurationPage $settings_page;
 
 	/**
 	 * The Checkout screen.
@@ -67,10 +67,10 @@ class Menu {
 	 * @param SettingsRepository   $settings      Settings storage.
 	 * @param ButtonsPage          $buttons_page  The Buttons screen.
 	 * @param EntriesPage          $entries_page  The Payments screen.
-	 * @param GatewaySettingsPage  $settings_page The Gateway Configuration screen.
+	 * @param ConfigurationPage    $settings_page The Configuration screen.
 	 * @param CheckoutSettingsPage $checkout_page The Checkout screen.
 	 */
-	public function __construct( SettingsRepository $settings, ButtonsPage $buttons_page, EntriesPage $entries_page, GatewaySettingsPage $settings_page, CheckoutSettingsPage $checkout_page ) {
+	public function __construct( SettingsRepository $settings, ButtonsPage $buttons_page, EntriesPage $entries_page, ConfigurationPage $settings_page, CheckoutSettingsPage $checkout_page ) {
 		$this->settings      = $settings;
 		$this->buttons_page  = $buttons_page;
 		$this->entries_page  = $entries_page;
@@ -117,10 +117,10 @@ class Menu {
 
 		$settings_hook = add_submenu_page(
 			self::SLUG,
-			__( 'Gateway Configuration', 'ifthenpay-pay-button' ),
-			__( 'Gateway Configuration', 'ifthenpay-pay-button' ),
+			__( 'Configuration', 'ifthenpay-pay-button' ),
+			__( 'Configuration', 'ifthenpay-pay-button' ),
 			Plugin::admin_cap(),
-			GatewaySettingsPage::PAGE_SLUG,
+			ConfigurationPage::PAGE_SLUG,
 			array( $this->settings_page, 'render' )
 		);
 
