@@ -270,8 +270,9 @@ class ButtonRenderer {
 		ob_start();
 		?>
 		<div <?php echo $wrapper; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- see above. ?>>
+			<?php echo '' !== $logos ? '<span class="iftp-btn-pay__group">' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed markup. ?>
 			<button type="button" class="<?php echo esc_attr( $classes ); ?>"<?php echo $style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built and escaped above. ?> aria-haspopup="dialog" data-iftp-btn-open="<?php echo esc_attr( $dialog_id ); ?>"><?php echo $inner; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- ButtonDesign::inner_html() escapes the text; the icon is a fixed SVG. ?></button>
-			<?php echo $logos; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in logo_strip(). ?>
+			<?php echo '' !== $logos ? $logos . '</span>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in logo_strip(); the span closes the group. ?>
 			<?php
 			$own   = CheckoutLook::inline_style( $button );
 			$look  = CheckoutLook::for_button( $button, $this->checkout_settings );
@@ -306,10 +307,13 @@ class ButtonRenderer {
 		$html = '';
 
 		foreach ( $logos as $method ) {
-			$html .= '<img src="' . esc_url( $method['logo'] ?? '' ) . '"' . self::dark_logo_attr( $method ) . ' alt="' . esc_attr( '' !== $method['alias'] ? $method['alias'] : $method['entity'] ) . '" height="16" loading="lazy" />';
+			$html .= '<img src="' . esc_url( $method['logo'] ?? '' ) . '"' . self::dark_logo_attr( $method ) . ' alt="' . esc_attr( '' !== $method['alias'] ? $method['alias'] : $method['entity'] ) . '" height="14" loading="lazy" />';
 		}
 
-		return '<span class="iftp-btn-pay__logos">' . $html . '</span>';
+		// The button's own colour, so the caption can take it on hover; a theme button has none and gets the checkout brand.
+		$accent = preg_match( '/--iftp-pb-color:(#[0-9a-f]{3,8})(?:;|$)/i', ButtonDesign::attributes( ButtonDesign::for_button( $button, $this->checkout_settings ) )['style'], $found ) ? ' style="--iftp-pb-color:' . esc_attr( $found[1] ) . '"' : '';
+
+		return '<span class="iftp-btn-pay__logos"' . $accent . '><span class="iftp-btn-pay__logos-label">' . esc_html( CheckoutTexts::get( 'pay_with' ) ) . '</span><span class="iftp-btn-pay__logos-list">' . $html . '</span></span>';
 	}
 
 	/**

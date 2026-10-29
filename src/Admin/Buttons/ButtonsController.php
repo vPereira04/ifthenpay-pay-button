@@ -13,7 +13,9 @@ use Ifthenpay\PayButton\Ai\Studio;
 use Ifthenpay\PayButton\Bridge\InvoiceHook;
 use Ifthenpay\PayButton\Bridge\OutgoingWebhook;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
+use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
+use Ifthenpay\PayButton\Buttons\Templates;
 use Ifthenpay\PayButton\Plugin;
 use Ifthenpay\PayButton\Repository\CheckoutSettings;
 
@@ -50,6 +52,10 @@ class ButtonsController {
 		add_action( 'admin_post_' . ButtonsPage::SAVE_ACTION, array( $this, 'save' ) );
 		add_action( 'admin_post_' . ButtonsPage::DUPLICATE_ACTION, array( $this, 'duplicate' ) );
 		add_action( 'admin_post_' . ButtonsPage::DELETE_ACTION, array( $this, 'delete' ) );
+		add_action( 'admin_post_' . ButtonsPage::RESTORE_ACTION, array( $this, 'restore' ) );
+		add_action( 'admin_post_' . ButtonsPage::TEMPLATE_ACTION, array( $this, 'start_template' ) );
+		add_action( 'admin_post_' . ButtonsPage::SKIP_ACTION, array( $this, 'skip_welcome' ) );
+		add_action( 'wp_ajax_iftp_btn_tour_seen', array( $this, 'tour_seen' ) );
 		add_action( 'wp_ajax_iftp_btn_toggle_button', array( $this, 'toggle' ) );
 		add_action( 'wp_ajax_iftp_btn_test_webhook', array( $this, 'test_webhook' ) );
 		add_action( 'wp_ajax_iftp_btn_test_invoice', array( $this, 'test_invoice' ) );
@@ -114,6 +120,43 @@ class ButtonsController {
 	}
 
 	/**
+	 * Makes a button from a starter and opens it in the editor. It starts off, so nothing half-set goes live.
+	 */
+	public function start_template(): void {
+		check_admin_referer( ButtonsPage::TEMPLATE_ACTION );
+		$this->guard();
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- checked by check_admin_referer() above.
+		$key      = isset( $_GET['template'] ) ? sanitize_key( wp_unslash( $_GET['template'] ) ) : '';
+		$template = Templates::get( $key );
+
+		if ( null === $template ) {
+			$this->back( ButtonsPage::list_url( array( 'iftp_notice' => 'error' ) ) );
+		}
+
+		$config = array_replace_recursive( Button::defaults(), $template['config'] );
+		$saved  = $this->buttons->save( 0, $template['title'], '', false, $config );
+
+		if ( 0 === $saved ) {
+			$this->back( ButtonsPage::list_url( array( 'iftp_notice' => 'error' ) ) );
+		}
+
+		$this->back( add_query_arg( 'iftp_notice', 'started', ButtonsPage::edit_url( $saved ) ) );
+	}
+
+	/**
+	 * Remembers that this user skipped the welcome screen.
+	 */
+	public function skip_welcome(): void {
+		check_admin_referer( ButtonsPage::SKIP_ACTION );
+		$this->guard();
+
+		update_user_meta( get_current_user_id(), ButtonsPage::WELCOME_SKIPPED_META, '1' );
+
+		$this->back( ButtonsPage::list_url() );
+	}
+
+	/**
 	 * Copies a button.
 	 */
 	public function duplicate(): void {
@@ -129,7 +172,7 @@ class ButtonsController {
 	}
 
 	/**
-	 * Deletes a button. Its payments stay.
+	 * Trashes a button, and the notice offers Undo. Its payments stay.
 	 */
 	public function delete(): void {
 		$id = $this->requested_id();
@@ -140,7 +183,26 @@ class ButtonsController {
 		$button  = $this->buttons->find( $id );
 		$deleted = null !== $button && $this->buttons->delete( $button );
 
-		$this->back( ButtonsPage::list_url( array( 'iftp_notice' => $deleted ? 'deleted' : 'error' ) ) );
+		$this->back(
+			ButtonsPage::list_url(
+				$deleted ? array(
+					'iftp_notice'  => 'deleted',
+					'iftp_restore' => (string) $id,
+				) : array( 'iftp_notice' => 'error' )
+			)
+		);
+	}
+
+	/**
+	 * Undo for a delete: brings the button back as it was.
+	 */
+	public function restore(): void {
+		$id = $this->requested_id();
+
+		check_admin_referer( ButtonsPage::RESTORE_ACTION . '_' . $id );
+		$this->guard();
+
+		$this->back( ButtonsPage::list_url( array( 'iftp_notice' => $this->buttons->restore( $id ) ? 'restored' : 'error' ) ) );
 	}
 
 	/**
@@ -159,6 +221,18 @@ class ButtonsController {
 		}
 
 		wp_send_json_success( array( 'active' => $active ) );
+	}
+
+	/**
+	 * AJAX: remembers that this user has seen the tour, so it doesn't start by itself again.
+	 */
+	public function tour_seen(): void {
+		check_ajax_referer( ButtonsPage::AJAX_NONCE );
+		$this->guard();
+
+		update_user_meta( get_current_user_id(), Tour::SEEN_META, '1' );
+
+		wp_send_json_success();
 	}
 
 	/**

@@ -48,7 +48,7 @@ $iftp_btn_uninstall_site = static function (): void {
 	foreach ( get_posts(
 		array(
 			'post_type'   => 'iftp_btn_button',
-			'post_status' => 'any',
+			'post_status' => array( 'any', 'trash' ),
 			'numberposts' => -1,
 			'fields'      => 'ids',
 		)

@@ -11,6 +11,7 @@ namespace Ifthenpay\PayButton\Admin\Entries;
 
 use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
+use Ifthenpay\PayButton\Mail\ReceiptEmail;
 use Ifthenpay\PayButton\Repository\TransactionStore;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -277,6 +278,19 @@ class SingleEntryView {
 					<?php
 					/* translators: %s: customer email address */
 					echo esc_html( sprintf( __( 'Sends the payment button to %s', 'ifthenpay-pay-button' ), $record['customer_email'] ) );
+					?>
+				</p>
+			<?php endif; ?>
+
+			<?php if ( ReceiptEmail::can_resend( $record ) ) : ?>
+				<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-entry-card__action" data-iftp-resend-receipt data-iftp-resend-to="<?php echo esc_attr( $record['customer_email'] ); ?>">
+					<svg class="iftp-btn-btn__icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="1.75" y="3.25" width="12.5" height="9.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m2.5 4.5 5.5 4 5.5-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+					<span data-iftp-resend-label><?php esc_html_e( 'Resend receipt', 'ifthenpay-pay-button' ); ?></span>
+				</button>
+				<p class="iftp-btn-entry-card__hint">
+					<?php
+					/* translators: %s: customer email address */
+					echo esc_html( sprintf( __( 'Sends the receipt again to %s', 'ifthenpay-pay-button' ), $record['customer_email'] ) );
 					?>
 				</p>
 			<?php endif; ?>

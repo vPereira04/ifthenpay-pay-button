@@ -20,6 +20,7 @@ use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
 use Ifthenpay\PayButton\Buttons\Spots;
+use Ifthenpay\PayButton\Buttons\Templates;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutService;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
@@ -49,7 +50,13 @@ class ButtonsPage {
 	public const SAVE_ACTION      = 'iftp_btn_save_button';
 	public const DUPLICATE_ACTION = 'iftp_btn_duplicate_button';
 	public const DELETE_ACTION    = 'iftp_btn_delete_button';
+	public const RESTORE_ACTION   = 'iftp_btn_restore_button';
+	public const TEMPLATE_ACTION  = 'iftp_btn_start_template';
+	public const SKIP_ACTION      = 'iftp_btn_skip_welcome';
 	public const AJAX_NONCE       = 'iftp_btn_buttons';
+
+	// User meta: set once they skip the welcome screen.
+	public const WELCOME_SKIPPED_META = 'iftp_btn_welcome_skipped';
 
 	// From this share of spots taken, a card reads "Almost full".
 	private const ALMOST_FULL = 0.8;
@@ -162,9 +169,13 @@ class ButtonsPage {
 		wp_add_inline_style( 'iftp-btn-buttons', self::theme_button_css() . LookControls::swatch_css() );
 		// A button's own pay page background image and video come from the Media Library.
 		wp_enqueue_media();
-		wp_enqueue_script( 'iftp-btn-buttons', IFTP_BTN_URL . $js, array( Plugin::UI_SCRIPT_HANDLE, Plugin::METHOD_LOGOS_HANDLE, Plugin::VIDEO_LOOP_HANDLE ), Plugin::asset_version( $js ), true );
+		// MIT-licensed QR encoder, bundled: the code is drawn in the browser, nothing is sent anywhere.
+		wp_enqueue_script( 'iftp-btn-qrcode', IFTP_BTN_URL . 'assets/js/vendor/qrcode.js', array(), '1.4.4', true );
+		wp_enqueue_script( 'iftp-btn-buttons', IFTP_BTN_URL . $js, array( Plugin::UI_SCRIPT_HANDLE, Plugin::METHOD_LOGOS_HANDLE, Plugin::VIDEO_LOOP_HANDLE, 'iftp-btn-qrcode' ), Plugin::asset_version( $js ), true );
 
 		$studio = $this->requested_studio();
+
+		Tour::enqueue( false !== $studio, $this->settings->is_connected() );
 
 		if ( false !== $studio ) {
 			( new AiStudioPage() )->enqueue( $studio );
@@ -192,6 +203,7 @@ class ButtonsPage {
 					'copyFailed'  => __( 'Could not copy. Select the text and copy it yourself.', 'ifthenpay-pay-button' ),
 					/* translators: %s: the button's title */
 					'deleteNamed' => __( 'Delete “%s”?', 'ifthenpay-pay-button' ),
+					'qrFailed'    => __( 'Could not make the QR code. Copy the pay link instead.', 'ifthenpay-pay-button' ),
 					'sending'     => __( 'Sending…', 'ifthenpay-pay-button' ),
 					'error'       => __( 'Something went wrong. Please try again.', 'ifthenpay-pay-button' ),
 					'payNow'      => CheckoutTexts::get( 'pay_now' ),
@@ -214,6 +226,8 @@ class ButtonsPage {
 					),
 					'turnedOn'    => __( 'Button turned on. It takes payments again.', 'ifthenpay-pay-button' ),
 					'turnedOff'   => __( 'Button turned off. It shows disabled and its pay page is gone.', 'ifthenpay-pay-button' ),
+					'active'      => __( 'Active', 'ifthenpay-pay-button' ),
+					'inactive'    => __( 'Inactive', 'ifthenpay-pay-button' ),
 					'pill'        => __( 'Pill', 'ifthenpay-pay-button' ),
 					/* translators: %d: corner radius in pixels */
 					'px'          => __( '%d px', 'ifthenpay-pay-button' ),
@@ -390,8 +404,9 @@ class ButtonsPage {
 	 *
 	 * @param string $title   The heading.
 	 * @param string $actions Markup for the right-hand actions, already escaped.
+	 * @param string $beside  Markup that sits next to the title, already escaped.
 	 */
-	public static function print_header( string $title, string $actions = '' ): void {
+	public static function print_header( string $title, string $actions = '', string $beside = '' ): void {
 		?>
 		<header class="iftp-btn-masthead">
 			<div class="iftp-btn-masthead__brand">
@@ -400,6 +415,7 @@ class ButtonsPage {
 				<div>
 					<h1 class="iftp-btn-masthead__title"><?php echo esc_html( $title ); ?></h1>
 				</div>
+				<?php echo $beside; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- callers escape it. ?>
 			</div>
 			<?php if ( '' !== $actions ) : ?>
 				<div class="iftp-btn-masthead__actions"><?php echo $actions; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- callers escape it. ?></div>
@@ -418,15 +434,27 @@ class ButtonsPage {
 		$messages = array(
 			'saved'      => array( 'success', __( 'Button saved.', 'ifthenpay-pay-button' ) ),
 			'default'    => array( 'success', __( 'Button saved, and its design is now the default for every button set to Default design.', 'ifthenpay-pay-button' ) ),
+			'started'    => array( 'success', __( 'Here is your starter button. Change anything, then turn it on and save.', 'ifthenpay-pay-button' ) ),
 			'created'    => array( 'success', __( 'Button created. Place it with the block, the shortcode or its link.', 'ifthenpay-pay-button' ) ),
 			'duplicated' => array( 'success', __( 'Button copied. The copy is off until you turn it on.', 'ifthenpay-pay-button' ) ),
-			'deleted'    => array( 'success', __( 'Button deleted. Its payments are still in Payments.', 'ifthenpay-pay-button' ) ),
+			'deleted'    => array( 'success', __( 'Button moved to the trash. Its payments are still in Payments.', 'ifthenpay-pay-button' ) ),
+			'restored'   => array( 'success', __( 'Button restored.', 'ifthenpay-pay-button' ) ),
 			'error'      => array( 'error', __( 'That did not work. Please try again.', 'ifthenpay-pay-button' ) ),
 		);
 
 		if ( isset( $messages[ $notice ] ) ) {
+			$text = esc_html( $messages[ $notice ][1] );
+
+			// A delete only trashed the button, so the notice offers Undo.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only, the restore link carries its own nonce.
+			$restore = 'deleted' === $notice && isset( $_GET['iftp_restore'] ) ? absint( wp_unslash( $_GET['iftp_restore'] ) ) : 0;
+
+			if ( $restore > 0 ) {
+				$text .= ' <a href="' . esc_url( self::action_url( self::RESTORE_ACTION, $restore ) ) . '"><strong>' . esc_html__( 'Undo', 'ifthenpay-pay-button' ) . '</strong></a>';
+			}
+
 			wp_admin_notice(
-				esc_html( $messages[ $notice ][1] ),
+				$text,
 				array(
 					'type'        => $messages[ $notice ][0],
 					'dismissible' => true,
@@ -448,11 +476,13 @@ class ButtonsPage {
 		$connected = $this->settings->is_connected();
 		$links     = new PayLinks();
 		$order     = array_flip( $ids );
+		$skipped   = '1' === get_user_meta( get_current_user_id(), self::WELCOME_SKIPPED_META, true );
 
-		$new = $connected ? '<a class="iftp-btn-btn iftp-btn-btn--ai" href="' . esc_url( AiStudioPage::url( null ) ) . '">' . AiPanel::sparkle() . esc_html__( 'Build with AI', 'ifthenpay-pay-button' ) . '</a><a class="iftp-btn-btn iftp-btn-btn--primary" href="' . esc_url( self::edit_url( 0 ) ) . '">' . self::icon( 'plus' ) . esc_html__( 'New button', 'ifthenpay-pay-button' ) . '</a>' : '';
+		$new  = $connected ? '<a class="iftp-btn-btn iftp-btn-btn--ai" data-iftp-tour="ai" href="' . esc_url( AiStudioPage::url( null ) ) . '">' . AiPanel::sparkle() . esc_html__( 'Build with AI', 'ifthenpay-pay-button' ) . '</a><a class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-tour="new" href="' . esc_url( self::edit_url( 0 ) ) . '">' . self::icon( 'plus' ) . esc_html__( 'New button', 'ifthenpay-pay-button' ) . '</a>' : '';
+		$help = $connected ? '<button type="button" class="iftp-btn-help" data-iftp-help-open data-iftp-tour="help" aria-haspopup="dialog" aria-label="' . esc_attr__( 'Help: start from a template', 'ifthenpay-pay-button' ) . '" title="' . esc_attr__( 'Help: start from a template', 'ifthenpay-pay-button' ) . '">?</button>' : '';
 		?>
 		<div class="wrap iftp-btn-buttons" data-iftp-buttons>
-			<?php self::print_header( __( 'Pay buttons', 'ifthenpay-pay-button' ), $new ); ?>
+			<?php self::print_header( __( 'Pay buttons', 'ifthenpay-pay-button' ), $new, $help ); ?>
 			<?php self::print_notice(); ?>
 
 			<?php if ( ! $connected ) : ?>
@@ -462,6 +492,8 @@ class ButtonsPage {
 					<p class="iftp-btn-empty__text"><?php esc_html_e( 'Buttons take payments through your ifthenpay Gateway Key. Connect it once, pick the payment methods, and come back here.', 'ifthenpay-pay-button' ); ?></p>
 					<a class="iftp-btn-btn iftp-btn-btn--primary" href="<?php echo esc_url( ConfigurationPage::url() ); ?>"><?php esc_html_e( 'Connect ifthenpay', 'ifthenpay-pay-button' ); ?></a>
 				</section>
+			<?php elseif ( array() === $buttons && ! $skipped ) : ?>
+				<?php $this->render_welcome(); ?>
 			<?php elseif ( array() === $buttons ) : ?>
 				<section class="iftp-btn-empty">
 					<div class="iftp-btn-empty__demo" aria-hidden="true">
@@ -515,13 +547,102 @@ class ButtonsPage {
 				</ul>
 				<nav class="iftp-btn-bpager" data-iftp-bpager aria-label="<?php esc_attr_e( 'Pages', 'ifthenpay-pay-button' ); ?>" hidden>
 					<button type="button" class="iftp-btn-btn" data-iftp-bpage="prev"><?php esc_html_e( 'Previous', 'ifthenpay-pay-button' ); ?></button>
-					<span class="iftp-btn-bpager__status" data-iftp-bpager-status data-template="<?php echo esc_attr_x( 'Page %1$s of %2$s', 'pager', 'ifthenpay-pay-button' ); ?>"></span>
+					<span class="iftp-btn-bpager__status" data-iftp-bpager-status data-template="<?php /* translators: 1: current page, 2: number of pages */ echo esc_attr_x( 'Page %1$s of %2$s', 'pager', 'ifthenpay-pay-button' ); ?>"></span>
 					<button type="button" class="iftp-btn-btn" data-iftp-bpage="next"><?php esc_html_e( 'Next', 'ifthenpay-pay-button' ); ?></button>
 				</nav>
 				<p class="iftp-btn-bnone" data-iftp-bnone hidden><?php esc_html_e( 'No buttons match.', 'ifthenpay-pay-button' ); ?></p>
 			<?php endif; ?>
-			<?php self::print_shared_ui(); ?>
+			<?php
+			if ( $connected ) {
+				$this->render_help_dialog();
+			}
+			self::print_shared_ui();
+			?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * The first-time welcome: three starters that make a button in one click, or skip to the plain empty list.
+	 */
+	private function render_welcome(): void {
+		?>
+		<section class="iftp-btn-empty iftp-btn-welcome">
+			<span class="iftp-btn-mark iftp-btn-empty__mark" aria-hidden="true"><img class="iftp-btn-mark__logo" src="<?php echo esc_url( IFTP_BTN_URL . 'assets/img/icon-normal.svg' ); ?>" alt="" width="28" height="28" /></span>
+			<h2 class="iftp-btn-empty__title"><?php esc_html_e( 'Welcome! Create your first button', 'ifthenpay-pay-button' ); ?></h2>
+			<p class="iftp-btn-empty__text"><?php esc_html_e( 'Start from one of these and change anything you like in the editor. Nothing goes live until you turn it on.', 'ifthenpay-pay-button' ); ?></p>
+			<?php self::print_starters(); ?>
+			<div class="iftp-btn-empty__actions">
+				<?php self::print_ai_link(); ?>
+				<a class="iftp-btn-btn iftp-btn-btn--link" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'action', self::SKIP_ACTION, admin_url( 'admin-post.php' ) ), self::SKIP_ACTION ) ); ?>"><?php esc_html_e( 'Skip', 'ifthenpay-pay-button' ); ?></a>
+			</div>
+		</section>
+		<?php
+	}
+
+	/**
+	 * The help popup, opened from the "?" beside the title: the same starters, for anyone to use again.
+	 */
+	private function render_help_dialog(): void {
+		?>
+		<dialog class="iftp-btn-dialog iftp-btn-helpdialog" aria-labelledby="iftp-btn-help-title" data-iftp-help-dialog>
+			<h2 id="iftp-btn-help-title" class="iftp-btn-dialog__title"><?php esc_html_e( 'Need a hand?', 'ifthenpay-pay-button' ); ?></h2>
+			<button type="button" class="iftp-btn-helpdialog__tour" data-iftp-tour-start>
+				<span class="iftp-btn-welcome__icon" aria-hidden="true"><?php echo self::icon( 'bolt' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
+				<span><strong><?php esc_html_e( 'Take the tour again', 'ifthenpay-pay-button' ); ?></strong> <?php esc_html_e( 'A quick walk through this screen, step by step.', 'ifthenpay-pay-button' ); ?></span>
+			</button>
+			<p class="iftp-btn-dialog__text"><?php esc_html_e( 'Or start from a template and change anything you like in the editor. It starts turned off, so nothing goes live until you turn it on.', 'ifthenpay-pay-button' ); ?></p>
+			<?php self::print_starters(); ?>
+			<div class="iftp-btn-dialog__actions">
+				<?php self::print_ai_link(); ?>
+				<button type="button" class="iftp-btn-btn" data-iftp-help-close><?php esc_html_e( 'Close', 'ifthenpay-pay-button' ); ?></button>
+			</div>
+		</dialog>
+		<?php
+	}
+
+	/**
+	 * The starter cards, each a signed link that makes the button and opens it in the editor.
+	 */
+	private static function print_starters(): void {
+		$starters = array(
+			Templates::DONATION => array( 'heart', __( 'Donation', 'ifthenpay-pay-button' ), __( 'The payer picks the amount, with quick suggestions.', 'ifthenpay-pay-button' ) ),
+			Templates::EVENT    => array( 'ticket', __( 'Event ticket', 'ifthenpay-pay-button' ), __( 'A fixed price, a quantity and a limited number of spots.', 'ifthenpay-pay-button' ) ),
+			Templates::FIXED    => array( 'tag', __( 'Fixed price', 'ifthenpay-pay-button' ), __( 'One product or service at one price.', 'ifthenpay-pay-button' ) ),
+		);
+		?>
+		<ul class="iftp-btn-welcome__starters" data-iftp-tour="starters">
+			<?php foreach ( $starters as $key => $starter ) : ?>
+				<?php
+				$url = wp_nonce_url(
+					add_query_arg(
+						array(
+							'action'   => self::TEMPLATE_ACTION,
+							'template' => $key,
+						),
+						admin_url( 'admin-post.php' )
+					),
+					self::TEMPLATE_ACTION
+				);
+				?>
+				<li>
+					<a class="iftp-btn-welcome__starter" href="<?php echo esc_url( $url ); ?>">
+						<span class="iftp-btn-welcome__icon" aria-hidden="true"><?php echo self::icon( $starter[0] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
+						<strong><?php echo esc_html( $starter[1] ); ?></strong>
+						<span><?php echo esc_html( $starter[2] ); ?></span>
+					</a>
+				</li>
+			<?php endforeach; ?>
+		</ul>
+		<?php
+	}
+
+	/**
+	 * The "describe it to the AI" link.
+	 */
+	private static function print_ai_link(): void {
+		?>
+		<a class="iftp-btn-btn iftp-btn-btn--ai" href="<?php echo esc_url( AiStudioPage::url( null ) ); ?>"><?php echo AiPanel::sparkle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><?php esc_html_e( 'Or describe it to the AI', 'ifthenpay-pay-button' ); ?></a>
 		<?php
 	}
 
@@ -783,6 +904,7 @@ class ButtonsPage {
 				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes.
 				echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( ButtonDesign::for_button( $button, $this->checkout_settings ), $button->display_label() ) . '</span>';
 				?>
+				<span class="iftp-btn-bcard__status"><?php echo esc_html( $button->active ? __( 'Active', 'ifthenpay-pay-button' ) : __( 'Inactive', 'ifthenpay-pay-button' ) ); ?></span>
 				<span class="iftp-btn-bcard__look"><?php echo esc_html( $looks[ $button->config['design']['source'] ] ?? $looks[ ButtonDesign::SOURCE_THEME ] ); ?></span>
 				<?php if ( $sold_out ) : ?>
 					<span class="iftp-btn-bcard__badge iftp-btn-bcard__badge--sold"><?php esc_html_e( 'Sold out', 'ifthenpay-pay-button' ); ?></span>
@@ -812,7 +934,7 @@ class ButtonsPage {
 							echo esc_html( sprintf( __( 'Take payments with %s', 'ifthenpay-pay-button' ), $button->title ) );
 							?>
 						</span>
-						<input type="checkbox" class="iftp-btn-switch" data-iftp-toggle-button="<?php echo esc_attr( (string) $button->id ); ?>" <?php checked( $button->active ); ?> />
+						<input type="checkbox" class="iftp-btn-bcard__check" data-iftp-toggle-button="<?php echo esc_attr( (string) $button->id ); ?>" <?php checked( $button->active ); ?> />
 					</label>
 				</div>
 
@@ -873,11 +995,13 @@ class ButtonsPage {
 			</div>
 
 			<div class="iftp-btn-bcard__foot">
-				<a class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-bcard__edit" href="<?php echo esc_url( $edit ); ?>"><?php esc_html_e( 'Edit', 'ifthenpay-pay-button' ); ?></a>
+				<a class="iftp-btn-btn iftp-btn-btn--primary iftp-btn-bcard__edit" href="<?php echo esc_url( $edit ); ?>"><?php esc_html_e( 'Edit', 'ifthenpay-pay-button' ); ?></a>
+				<button type="button" class="iftp-btn-btn iftp-btn-btn--primary iftp-btn-bcard__activate" data-iftp-activate-button><?php esc_html_e( 'Activate button', 'ifthenpay-pay-button' ); ?></button>
 				<span class="iftp-btn-bcard__tools">
-					<button type="button" class="iftp-btn-tool" data-iftp-copy-text="<?php echo esc_attr( $shortcode ); ?>" data-iftp-copy-done="<?php esc_attr_e( 'Shortcode copied.', 'ifthenpay-pay-button' ); ?>" data-iftp-tip="<?php esc_attr_e( 'Copy shortcode', 'ifthenpay-pay-button' ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: the shortcode */ __( 'Copy shortcode %s', 'ifthenpay-pay-button' ), $shortcode ) ); ?>"><?php echo self::icon( 'code' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
-					<button type="button" class="iftp-btn-tool" data-iftp-copy-text="<?php echo esc_attr( $pay_link ); ?>" data-iftp-copy-done="<?php esc_attr_e( 'Pay link copied.', 'ifthenpay-pay-button' ); ?>" data-iftp-tip="<?php esc_attr_e( 'Copy pay link', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Copy pay link', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
-					<a class="iftp-btn-tool" href="<?php echo esc_url( $pay_link ); ?>" target="_blank" rel="noopener" data-iftp-tip="<?php esc_attr_e( 'Open pay page', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Open pay page (opens in a new tab)', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'external' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></a>
+					<button type="button" class="iftp-btn-tool iftp-btn-tool--live" data-iftp-copy-text="<?php echo esc_attr( $shortcode ); ?>" data-iftp-copy-done="<?php esc_attr_e( 'Shortcode copied.', 'ifthenpay-pay-button' ); ?>" data-iftp-tip="<?php esc_attr_e( 'Copy shortcode', 'ifthenpay-pay-button' ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: the shortcode */ __( 'Copy shortcode %s', 'ifthenpay-pay-button' ), $shortcode ) ); ?>"><?php echo self::icon( 'code' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
+					<button type="button" class="iftp-btn-tool iftp-btn-tool--live" data-iftp-copy-text="<?php echo esc_attr( $pay_link ); ?>" data-iftp-copy-done="<?php esc_attr_e( 'Pay link copied.', 'ifthenpay-pay-button' ); ?>" data-iftp-tip="<?php esc_attr_e( 'Copy pay link', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Copy pay link', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
+					<button type="button" class="iftp-btn-tool iftp-btn-tool--live" data-iftp-qr="<?php echo esc_attr( $pay_link ); ?>" data-iftp-qr-name="<?php echo esc_attr( $button->title ); ?>" data-iftp-tip="<?php esc_attr_e( 'QR code', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'QR code for the pay link', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'qr' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
+					<a class="iftp-btn-tool iftp-btn-tool--live" href="<?php echo esc_url( $pay_link ); ?>" target="_blank" rel="noopener" data-iftp-tip="<?php esc_attr_e( 'Open pay page', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Open pay page (opens in a new tab)', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'external' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></a>
 					<a class="iftp-btn-tool" href="<?php echo esc_url( self::action_url( self::DUPLICATE_ACTION, $button->id ) ); ?>" data-iftp-tip="<?php esc_attr_e( 'Duplicate', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Duplicate', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'copy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></a>
 					<a class="iftp-btn-tool iftp-btn-tool--danger" href="<?php echo esc_url( self::action_url( self::DELETE_ACTION, $button->id ) ); ?>" data-iftp-confirm-delete="<?php echo esc_attr( $button->title ); ?>" data-iftp-tip="<?php esc_attr_e( 'Delete', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Delete', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'trash' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></a>
 				</span>
@@ -893,10 +1017,22 @@ class ButtonsPage {
 		?>
 		<dialog class="iftp-btn-dialog" role="alertdialog" aria-labelledby="iftp-btn-delete-title" aria-describedby="iftp-btn-delete-text" data-iftp-delete-dialog>
 			<h2 id="iftp-btn-delete-title" class="iftp-btn-dialog__title" data-iftp-delete-title><?php esc_html_e( 'Delete this button?', 'ifthenpay-pay-button' ); ?></h2>
-			<p id="iftp-btn-delete-text" class="iftp-btn-dialog__text"><?php esc_html_e( 'Its payments stay in Payments, but every block, shortcode and link that uses it stops working. This cannot be undone.', 'ifthenpay-pay-button' ); ?></p>
+			<p id="iftp-btn-delete-text" class="iftp-btn-dialog__text"><?php esc_html_e( 'Its payments stay in Payments, but every block, shortcode and link that uses it stops working. It goes to the trash, so you can undo it right after.', 'ifthenpay-pay-button' ); ?></p>
 			<div class="iftp-btn-dialog__actions">
 				<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-delete-cancel><?php esc_html_e( 'Keep it', 'ifthenpay-pay-button' ); ?></button>
-				<a class="iftp-btn-btn iftp-btn-btn--danger" href="#" data-iftp-delete-ok><?php esc_html_e( 'Delete button', 'ifthenpay-pay-button' ); ?></a>
+				<a class="iftp-btn-btn iftp-btn-btn--danger" href="#" data-iftp-delete-ok><?php esc_html_e( 'Move to trash', 'ifthenpay-pay-button' ); ?></a>
+			</div>
+		</dialog>
+
+		<dialog class="iftp-btn-dialog iftp-btn-qr" aria-labelledby="iftp-btn-qr-title" data-iftp-qr-dialog>
+			<h2 id="iftp-btn-qr-title" class="iftp-btn-dialog__title"><?php esc_html_e( 'QR code for the pay link', 'ifthenpay-pay-button' ); ?></h2>
+			<div class="iftp-btn-qr__code" data-iftp-qr-preview role="img" aria-label="<?php esc_attr_e( 'QR code', 'ifthenpay-pay-button' ); ?>"></div>
+			<p class="iftp-btn-qr__link" data-iftp-qr-link></p>
+			<p class="iftp-btn-dialog__text"><?php esc_html_e( 'Print it or put it on a flyer: scanning it opens the pay page. It always points to this button, so it keeps working if you change the button.', 'ifthenpay-pay-button' ); ?></p>
+			<div class="iftp-btn-dialog__actions">
+				<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-qr-close><?php esc_html_e( 'Close', 'ifthenpay-pay-button' ); ?></button>
+				<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-qr-download="png"><?php esc_html_e( 'Download PNG', 'ifthenpay-pay-button' ); ?></button>
+				<button type="button" class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-qr-download="svg"><?php esc_html_e( 'Download SVG', 'ifthenpay-pay-button' ); ?></button>
 			</div>
 		</dialog>
 
@@ -933,6 +1069,7 @@ class ButtonsPage {
 			'code'     => '<path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/>',
 			'link'     => '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
 			'external' => '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',
+			'qr'       => '<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2.5v2.5H14zM18 14h2M14 19v1M17.5 18v2M20 18v2"/>',
 			'copy'     => '<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
 			'trash'    => '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
 			'search'   => '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
@@ -944,6 +1081,9 @@ class ButtonsPage {
 			'seat'     => '<path d="M7 11V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v5"/><path d="M5 11h14v4H5zM7 15v5M17 15v5"/>',
 			'receipt'  => '<path d="M6 3.5h12v17l-3-1.8-3 1.8-3-1.8-3 1.8z"/><path d="M9 8h6M9 11.5h6M9 15h3.5"/>',
 			'grid'     => '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
+			'heart'    => '<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+			'ticket'   => '<path d="M4 8a2 2 0 0 0 0 8v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2a2 2 0 0 1 0-8V6a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1z"/><path d="M14 5v14" stroke-dasharray="2 2"/>',
+			'tag'      => '<path d="M4 4h8l8 8-8 8-8-8z"/><circle cx="8.5" cy="8.5" r="1"/>',
 			'list'     => '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.75" cy="6" r=".9"/><circle cx="4.75" cy="12" r=".9"/><circle cx="4.75" cy="18" r=".9"/>',
 		);
 

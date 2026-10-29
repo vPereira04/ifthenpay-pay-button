@@ -72,28 +72,10 @@ class ReceiptEmail {
 
 		$switched = switch_to_locale( get_locale() );
 		$pairs    = $this->transactions->entry_data_pairs( $record );
-		$site     = wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
 		$headers  = array( 'Content-Type: text/html; charset=UTF-8' );
 
 		if ( $this->settings->get_receipt_payer() && is_email( $record['customer_email'] ) ) {
-			$reply = (string) get_option( 'admin_email' );
-
-			wp_mail(
-				$record['customer_email'],
-				/* translators: %s: the site name */
-				sprintf( __( 'Your payment to %s', 'ifthenpay-pay-button' ), $site ),
-				self::render(
-					__( 'Payment received', 'ifthenpay-pay-button' ),
-					'' !== $record['customer_name']
-						/* translators: %s: the payer's name */
-						? sprintf( __( 'Hi %s, thank you. Your payment was received.', 'ifthenpay-pay-button' ), $record['customer_name'] )
-						: __( 'Thank you. Your payment was received.', 'ifthenpay-pay-button' ),
-					$record,
-					$pairs,
-					''
-				),
-				is_email( $reply ) ? array_merge( $headers, array( 'Reply-To: ' . $reply ) ) : $headers
-			);
+			$this->mail_payer( $record, $pairs );
 		}
 
 		if ( $this->settings->get_notify_admin() ) {
@@ -109,6 +91,69 @@ class ReceiptEmail {
 		if ( $switched ) {
 			restore_previous_locale();
 		}
+	}
+
+	/**
+	 * Whether a row is a paid payment with a valid customer email to send a receipt to.
+	 *
+	 * @param array<string, mixed> $record A transaction row.
+	 * @phpstan-param Transaction $record
+	 */
+	public static function can_resend( array $record ): bool {
+		return TransactionStore::STATUS_PAID === $record['status'] && false !== is_email( $record['customer_email'] );
+	}
+
+	/**
+	 * Sends the payer's receipt again, on an admin's say-so. The "Receipt to the payer" setting doesn't apply here,
+	 * and I never send the owner's notice a second time.
+	 *
+	 * @param array<string, mixed>|null $record The transaction row, or null when the ref is gone.
+	 * @phpstan-param Transaction|null $record
+	 * @return string PaymentEmailSender::SENT, INELIGIBLE or MAIL_FAILED.
+	 */
+	public function resend_to_payer( ?array $record ): string {
+		if ( null === $record || ! self::can_resend( $record ) ) {
+			return PaymentEmailSender::INELIGIBLE;
+		}
+
+		$switched = switch_to_locale( get_locale() );
+		$sent     = $this->mail_payer( $record, $this->transactions->entry_data_pairs( $record ) );
+
+		if ( $switched ) {
+			restore_previous_locale();
+		}
+
+		return $sent ? PaymentEmailSender::SENT : PaymentEmailSender::MAIL_FAILED;
+	}
+
+	/**
+	 * Mails the payer's receipt.
+	 *
+	 * @param array<string, mixed>                            $record The transaction row.
+	 * @param array<int, array{label: string, value: string}> $pairs  The submitted details.
+	 * @phpstan-param Transaction $record
+	 */
+	private function mail_payer( array $record, array $pairs ): bool {
+		$site    = wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
+		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+		$reply   = (string) get_option( 'admin_email' );
+
+		return wp_mail(
+			$record['customer_email'],
+			/* translators: %s: the site name */
+			sprintf( __( 'Your payment to %s', 'ifthenpay-pay-button' ), $site ),
+			self::render(
+				__( 'Payment received', 'ifthenpay-pay-button' ),
+				'' !== $record['customer_name']
+					/* translators: %s: the payer's name */
+					? sprintf( __( 'Hi %s, thank you. Your payment was received.', 'ifthenpay-pay-button' ), $record['customer_name'] )
+					: __( 'Thank you. Your payment was received.', 'ifthenpay-pay-button' ),
+				$record,
+				$pairs,
+				''
+			),
+			is_email( $reply ) ? array_merge( $headers, array( 'Reply-To: ' . $reply ) ) : $headers
+		);
 	}
 
 	/**

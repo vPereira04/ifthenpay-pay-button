@@ -751,7 +751,7 @@ class TransactionStore {
 	 * Every row matching query()'s filters, unpaginated and without field_snapshot, for the export.
 	 * Uncached and read in batches so memory stays flat on a big table.
 	 *
-	 * @param array<string, mixed> $args  Same filter/sort args as query(); paged/per_page are ignored.
+	 * @param array<string, mixed> $args  Same filter/sort args as query(); paged/per_page are ignored. `with_snapshot` adds field_snapshot.
 	 * @param int                  $batch Rows per SELECT.
 	 * @return \Generator<int, Transaction, void, void>
 	 */
@@ -764,7 +764,7 @@ class TransactionStore {
 		$offset    = 0;
 
 		do {
-			$rows = $this->fetch_page( $where_sql, $order_sql, $batch, $offset );
+			$rows = $this->fetch_page( $where_sql, $order_sql, $batch, $offset, ! empty( $args['with_snapshot'] ) );
 
 			// wpdb keeps its own copy of the last result set; I drop it before yielding.
 			$wpdb->flush();
@@ -1134,15 +1134,16 @@ class TransactionStore {
 	 * @param string $order_sql From build_order().
 	 * @param int    $limit     Rows to fetch.
 	 * @param int    $offset    Rows to skip.
+	 * @param bool   $snapshot  Whether to read field_snapshot too.
 	 * @return array<int, Transaction>
 	 */
-	private function fetch_page( string $where_sql, string $order_sql, int $limit, int $offset ): array {
+	private function fetch_page( string $where_sql, string $order_sql, int $limit, int $offset, bool $snapshot = false ): array {
 		global $wpdb;
 
 		$table = self::table_name();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- custom plugin table, callers cache; $where_sql is built from prepare() calls, $order_sql from SORTABLE_COLUMNS, and LIST_COLUMNS is a constant.
-		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT ' . self::LIST_COLUMNS . ' FROM %i AS t INNER JOIN (SELECT ref FROM %i' . $where_sql . $order_sql . ' LIMIT %d OFFSET %d) AS page USING (ref)' . $order_sql, $table, $table, $limit, $offset ), ARRAY_A );
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT ' . self::LIST_COLUMNS . ( $snapshot ? ', t.field_snapshot' : '' ) . ' FROM %i AS t INNER JOIN (SELECT ref FROM %i' . $where_sql . $order_sql . ' LIMIT %d OFFSET %d) AS page USING (ref)' . $order_sql, $table, $table, $limit, $offset ), ARRAY_A );
 
 		return array_map( array( self::class, 'hydrate' ), is_array( $rows ) ? $rows : array() );
 	}

@@ -14,11 +14,14 @@
 	var selectionStorageKey = 'iftpBtnEntriesSelectedRefs';
 	var statusStorageKey = 'iftpBtnEntriesSelectedStatus';
 	// Tells the next page (entries-restore.js reads it) that it was reached from this one.
+	var receiptStorageKey = 'iftpBtnEntriesSelectedReceipt';
 	var navLoadingStorageKey = 'iftpBtnEntriesNavLoading';
 
 	var selectedRefsSet = new Set( loadPersistedSelection() );
 	// ref => status for the selected rows, so the bulk bar knows statuses on pages that aren't showing.
 	var selectedStatus = loadPersistedStatus();
+	// ref => true for the selected paid rows that have an email to send a receipt to.
+	var selectedReceipt = loadPersistedMap( receiptStorageKey );
 	var loadingTimer = 0;
 
 	document.addEventListener( 'DOMContentLoaded', function () {
@@ -309,8 +312,12 @@
 	}
 
 	function loadPersistedStatus() {
+		return loadPersistedMap( statusStorageKey );
+	}
+
+	function loadPersistedMap( key ) {
 		try {
-			var map = JSON.parse( sessionStorage.getItem( statusStorageKey ) || '{}' );
+			var map = JSON.parse( sessionStorage.getItem( key ) || '{}' );
 
 			return map && 'object' === typeof map ? map : {};
 		} catch ( e ) {
@@ -320,19 +327,26 @@
 
 	function persistSelection() {
 		var statuses = {};
+		var receipts = {};
 
 		// Pruned to the selection, so it can't grow past it.
 		selectedRefsSet.forEach( function ( ref ) {
 			if ( selectedStatus[ ref ] ) {
 				statuses[ ref ] = selectedStatus[ ref ];
 			}
+
+			if ( selectedReceipt[ ref ] ) {
+				receipts[ ref ] = true;
+			}
 		} );
 
 		selectedStatus = statuses;
+		selectedReceipt = receipts;
 
 		try {
 			sessionStorage.setItem( selectionStorageKey, JSON.stringify( Array.from( selectedRefsSet ) ) );
 			sessionStorage.setItem( statusStorageKey, JSON.stringify( selectedStatus ) );
+			sessionStorage.setItem( receiptStorageKey, JSON.stringify( selectedReceipt ) );
 		} catch ( e ) {
 			// No storage, so the selection just won't survive a page turn.
 		}
@@ -360,6 +374,12 @@
 	function selectRow( checkbox ) {
 		selectedRefsSet.add( checkbox.value );
 		selectedStatus[ checkbox.value ] = checkbox.getAttribute( 'data-iftp-status' ) || '';
+
+		if ( '1' === checkbox.getAttribute( 'data-iftp-receipt' ) ) {
+			selectedReceipt[ checkbox.value ] = true;
+		} else {
+			delete selectedReceipt[ checkbox.value ];
+		}
 	}
 
 	// Freshly rendered rows start unchecked, so I re-sync them (and select-all) to the stored selection.
@@ -372,7 +392,7 @@
 		checkboxes.forEach( function ( checkbox ) {
 			checkbox.checked = selectedRefsSet.has( checkbox.value );
 
-			if ( checkbox.checked && selectedStatus[ checkbox.value ] !== checkbox.getAttribute( 'data-iftp-status' ) ) {
+			if ( checkbox.checked && ( selectedStatus[ checkbox.value ] !== checkbox.getAttribute( 'data-iftp-status' ) || !! selectedReceipt[ checkbox.value ] !== ( '1' === checkbox.getAttribute( 'data-iftp-receipt' ) ) ) ) {
 				selectRow( checkbox );
 				statusChanged = true;
 			}
@@ -485,7 +505,8 @@
 		}
 	}
 
-	// "Send payment email" only when every selected entry is pending; Delete when at least one isn't paid.
+	// "Send payment email" only when every selected entry is pending, "Resend receipt" when every one is paid with an email;
+	// Delete when at least one isn't paid.
 	// The server re-checks each one anyway.
 	function refreshBulkOptions( wrap ) {
 		var refs = Array.from( selectedRefsSet );
@@ -494,6 +515,14 @@
 			wrap.querySelector( '[data-iftp-bulk-email]' ),
 			refs.length > 0 && refs.every( function ( ref ) {
 				return 'pending' === selectedStatus[ ref ];
+			} ),
+			true
+		);
+
+		setBulkOption(
+			wrap.querySelector( '[data-iftp-bulk-receipt]' ),
+			refs.length > 0 && refs.every( function ( ref ) {
+				return !! selectedReceipt[ ref ];
 			} ),
 			true
 		);
@@ -618,28 +647,31 @@
 
 	// Its own runner: a request may hand back fewer refs than I sent (it ran out of time), and the outcome is a
 	// per-ref tally. Sent and skipped refs leave the selection; failed ones stay, so Apply again retries just those.
-	function sendPaymentEmails( wrap, refs ) {
+	function sendPaymentEmails( wrap, refs, action, text ) {
 		var size = Math.max( 1, parseInt( iftpBtnEntries.emailChunkSize, 10 ) || 10 );
 		var queue = refs.slice();
 		var tally = { sent: 0, skipped: 0, failed: 0 };
+
+		action = action || 'iftp_btn_send_payment_emails';
+		text = text || { progress: i18n.bulkEmailing, sent: i18n.bulkEmailSent, skipped: i18n.bulkEmailSkipped, failed: i18n.bulkEmailFailed };
 
 		function handled() {
 			return tally.sent + tally.skipped + tally.failed;
 		}
 
 		function progress() {
-			showToast( i18n.bulkEmailing.replace( '%1$s', formatCount( handled() ) ).replace( '%2$s', formatCount( refs.length ) ), false, true );
+			showToast( text.progress.replace( '%1$s', formatCount( handled() ) ).replace( '%2$s', formatCount( refs.length ) ), false, true );
 		}
 
 		function summary() {
-			var parts = [ i18n.bulkEmailSent.replace( '%s', formatCount( tally.sent ) ) ];
+			var parts = [ text.sent.replace( '%s', formatCount( tally.sent ) ) ];
 
 			if ( tally.skipped ) {
-				parts.push( i18n.bulkEmailSkipped.replace( '%s', formatCount( tally.skipped ) ) );
+				parts.push( text.skipped.replace( '%s', formatCount( tally.skipped ) ) );
 			}
 
 			if ( tally.failed ) {
-				parts.push( i18n.bulkEmailFailed.replace( '%s', formatCount( tally.failed ) ) );
+				parts.push( text.failed.replace( '%s', formatCount( tally.failed ) ) );
 			}
 
 			return parts.join( ' ' );
@@ -654,7 +686,7 @@
 			// Only the last chunk asks for the re-rendered table; the ones before would redraw it for nothing.
 			var params = { refs: JSON.stringify( chunk ), render: chunk.length === queue.length ? '1' : '' };
 
-			return post( 'iftp_btn_send_payment_emails', Object.assign( params, currentViewParams( '' ) ) ).then( function ( response ) {
+			return post( action, Object.assign( params, currentViewParams( '' ) ) ).then( function ( response ) {
 				var data = response && response.data;
 
 				if ( ! response || ! response.success || ! Array.isArray( data.sent ) ) {
@@ -756,7 +788,7 @@
 			var refs = Array.from( selectedRefsSet );
 
 			// No confirm here: exporting changes nothing.
-			if ( 'export-csv' === value || 'export-json' === value ) {
+			if ( 'export-csv' === value || 'export-json' === value || 'export-accounting' === value ) {
 				if ( 0 === refs.length ) {
 					showToast( i18n.exportNothingSelected, true );
 					return;
@@ -795,6 +827,21 @@
 						} );
 					}
 				);
+				return;
+			}
+
+			if ( 'receipt' === value ) {
+				confirmAction( i18n.bulkReceiptTitle, i18n.bulkReceiptMessage.replace( '%s', formatCount( refs.length ) ), i18n.bulkReceiptButton, false, function () {
+					select.value = '';
+					runLocked( wrap, function () {
+						return sendPaymentEmails( wrap, refs, 'iftp_btn_resend_receipts', {
+							progress: i18n.bulkReceipting,
+							sent: i18n.bulkReceiptSent,
+							skipped: i18n.bulkReceiptSkipped,
+							failed: i18n.bulkReceiptFailed,
+						} );
+					} );
+				} );
 				return;
 			}
 
@@ -2132,6 +2179,7 @@
 		var statusSelect = wrap.querySelector( '[data-iftp-entry-status-select]' );
 		var statusApply = wrap.querySelector( '[data-iftp-entry-status-apply]' );
 		var resendBtn = wrap.querySelector( '[data-iftp-resend-email]' );
+		var receiptBtn = wrap.querySelector( '[data-iftp-resend-receipt]' );
 
 		// The single page has no list view to re-render, so it posts the default one.
 		function postFor( action, extra ) {
@@ -2182,6 +2230,32 @@
 						.catch( function ( message ) {
 							statusApply.disabled = false;
 							showToast( 'string' === typeof message ? message : i18n.updateStatusError, true );
+						} );
+				} );
+			} );
+		}
+
+		if ( receiptBtn ) {
+			receiptBtn.addEventListener( 'click', function () {
+				confirmAction( i18n.confirmReceiptTitle, i18n.confirmReceiptMessage.replace( '%s', receiptBtn.getAttribute( 'data-iftp-resend-to' ) ), i18n.bulkReceiptButton, false, function () {
+					var label = receiptBtn.querySelector( '[data-iftp-resend-label]' );
+					var idle = label.textContent;
+
+					receiptBtn.disabled = true;
+					label.textContent = i18n.resendSending;
+
+					postFor( 'iftp_btn_resend_receipts', {} )
+						.then( function ( response ) {
+							var ok = response && response.success && Array.isArray( response.data.sent ) && 1 === response.data.sent.length;
+
+							showToast( ok ? i18n.receiptSent : errorOf( response, i18n.receiptError ), ! ok );
+						} )
+						.catch( function () {
+							showToast( i18n.receiptError, true );
+						} )
+						.then( function () {
+							receiptBtn.disabled = false;
+							label.textContent = idle;
 						} );
 				} );
 			} );

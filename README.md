@@ -223,7 +223,7 @@ With **Go straight to ifthenpay** on, a link that already fills in everything re
 
 (screenshot 16)
 
-A button the AI builds goes live as soon as it's created, so check its prices before you share it.
+A button the AI builds starts switched off, so check its prices, then turn on Take payments.
 
 #### Optional — Design every checkout, pay page, popup and button
 

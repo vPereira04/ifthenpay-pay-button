@@ -2164,6 +2164,7 @@ body.iftp-btn-screen .iftp-btn-scroll-top:hover {
 	transform: translateY(-3px);
 }
 
+/* A light card with a round status icon: green check, grey pause when something was turned off, red mark on errors. */
 body.iftp-btn-screen .iftp-btn-toast {
 	position: fixed;
 	bottom: 28px;
@@ -2171,32 +2172,59 @@ body.iftp-btn-screen .iftp-btn-toast {
 	z-index: 100001;
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	max-width: min(560px, calc(100vw - 32px));
-	padding: 13px 20px 13px 16px;
-	border-radius: var(--iftp-r-md);
-	background: var(--iftp-night);
-	color: #eef2f8;
+	gap: 12px;
+	max-width: min(520px, calc(100vw - 32px));
+	padding: 12px 20px 12px 12px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-raised);
+	color: var(--iftp-ink);
 	font-family: var(--iftp-font);
 	font-size: 13.5px;
-	font-weight: 550;
+	font-weight: 600;
+	line-height: 1.4;
 	box-shadow: var(--iftp-shadow-4);
 	transform: translateX(-50%);
+	animation: iftp-btn-toast-in var(--iftp-mid) var(--iftp-spring);
 }
 
 body.iftp-btn-screen .iftp-btn-toast::before {
 	content: "";
 	flex: none;
-	width: 8px;
-	height: 8px;
+	width: 30px;
+	height: 30px;
 	border-radius: 50%;
-	background: var(--iftp-paid-dot);
-	box-shadow: 0 0 0 4px rgb(18 183 106 / 22%);
+	background: var(--iftp-paid-dot) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 16px no-repeat;
+}
+
+body.iftp-btn-screen .iftp-btn-toast--muted::before {
+	background-color: var(--iftp-muted);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6v12M15 6v12'/%3E%3C/svg%3E");
 }
 
 body.iftp-btn-screen .iftp-btn-toast--error::before {
-	background: var(--iftp-failed-dot);
-	box-shadow: 0 0 0 4px rgb(229 72 77 / 25%);
+	background-color: var(--iftp-failed-dot);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 6v7M12 18v.01'/%3E%3C/svg%3E");
+}
+
+@keyframes iftp-btn-toast-in {
+
+	from {
+		opacity: 0;
+		transform: translate(-50%, 12px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translate(-50%, 0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	body.iftp-btn-screen .iftp-btn-toast {
+		animation: none;
+	}
 }
 
 /* --------------------------------------------------------------------------
@@ -4290,5 +4318,20 @@ body.iftp-btn-screen ::selection {
 	.iftp-btn-table__row,
 	.iftp-btn-methods__row {
 		filter: none;
+	}
+}
+
+/* Phones: the methods table scrolls inside its card and the tabs keep each name on one line. */
+.iftp-btn-methods-wrap {
+	overflow-x: auto;
+}
+
+body.iftp-btn-screen .iftp-btn-tabs__link {
+	white-space: nowrap;
+}
+
+@media (width <= 600px) {
+	.iftp-btn-methods {
+		min-width: 560px;
 	}
 }

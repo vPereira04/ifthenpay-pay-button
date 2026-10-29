@@ -13,6 +13,7 @@ use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
 use Ifthenpay\PayButton\Api\PaymentLinks;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
 use Ifthenpay\PayButton\Dates;
+use Ifthenpay\PayButton\Mail\ReceiptEmail;
 use Ifthenpay\PayButton\Plugin;
 use Ifthenpay\PayButton\Reports\Insights;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
@@ -41,13 +42,15 @@ class EntriesPage {
 	private ?array $button_titles = null;
 
 
-	public const PAGE_SLUG     = 'iftp-btn-payments';
-	public const NONCE_ACTION  = 'iftp_btn_entries';
-	public const VIEW_NONCE    = 'iftp_btn_view_entry';
-	public const ENTRY_VAR     = 'entry';
-	public const EXPORT_ACTION = 'iftp_btn_export';
-	public const EXPORT_CSV    = 'csv';
-	public const EXPORT_JSON   = 'json';
+	public const PAGE_SLUG         = 'iftp-btn-payments';
+	public const NONCE_ACTION      = 'iftp_btn_entries';
+	public const VIEW_NONCE        = 'iftp_btn_view_entry';
+	public const ENTRY_VAR         = 'entry';
+	public const EXPORT_ACTION     = 'iftp_btn_export';
+	public const EXPORT_CSV        = 'csv';
+	public const EXPORT_XLS        = 'xls';
+	public const EXPORT_JSON       = 'json';
+	public const EXPORT_ACCOUNTING = 'accounting';
 
 	public const HIDDEN_COLS_META = 'iftp_btn_entries_hidden_cols';
 	public const COL_ORDER_META   = 'iftp_btn_entries_col_order';
@@ -361,6 +364,23 @@ class EntriesPage {
 			'confirmResendButton'   => __( 'Send email', 'ifthenpay-pay-button' ),
 			'resendSending'         => __( 'Sending…', 'ifthenpay-pay-button' ),
 			'resendError'           => __( 'Could not send the payment email. Please try again.', 'ifthenpay-pay-button' ),
+			'confirmReceiptTitle'   => __( 'Resend the receipt?', 'ifthenpay-pay-button' ),
+			/* translators: %s: customer email address */
+			'confirmReceiptMessage' => __( 'The payer will get their receipt again at %s.', 'ifthenpay-pay-button' ),
+			'receiptSent'           => __( 'Receipt sent.', 'ifthenpay-pay-button' ),
+			'receiptError'          => __( 'Could not send the receipt. Check that this site can send mail.', 'ifthenpay-pay-button' ),
+			'bulkReceiptTitle'      => __( 'Resend receipts?', 'ifthenpay-pay-button' ),
+			/* translators: %s: number of selected entries */
+			'bulkReceiptMessage'    => __( 'The payers of the %s selected paid payments will each get their receipt again. The notice to you is not sent again.', 'ifthenpay-pay-button' ),
+			'bulkReceiptButton'     => __( 'Resend receipts', 'ifthenpay-pay-button' ),
+			/* translators: 1: entries handled so far, 2: entries in total */
+			'bulkReceipting'        => __( 'Sending receipts… %1$s of %2$s', 'ifthenpay-pay-button' ),
+			/* translators: %s: number of receipts sent */
+			'bulkReceiptSent'       => __( 'Receipts sent: %s.', 'ifthenpay-pay-button' ),
+			/* translators: %s: number of entries skipped */
+			'bulkReceiptSkipped'    => __( 'Skipped (not paid, or no customer email): %s.', 'ifthenpay-pay-button' ),
+			/* translators: %s: number of entries that failed */
+			'bulkReceiptFailed'     => __( 'Failed: %s. They are still selected, so you can try again.', 'ifthenpay-pay-button' ),
 			'bulkEmailTitle'        => __( 'Send payment emails?', 'ifthenpay-pay-button' ),
 			/* translators: %s: number of selected entries */
 			'bulkEmailMessage'      => __( 'The customers of the %s selected pending payments will each get an email with their payment button. Entries without a customer email are skipped.', 'ifthenpay-pay-button' ),
@@ -675,8 +695,11 @@ class EntriesPage {
 				<?php endforeach; ?>
 				<?php // Shown by entries.js only while every selected entry is pending. ?>
 				<option value="email" data-iftp-bulk-email hidden disabled><?php esc_html_e( 'Send payment email', 'ifthenpay-pay-button' ); ?></option>
+				<?php // Shown by entries.js only while every selected entry is paid and has a customer email. ?>
+				<option value="receipt" data-iftp-bulk-receipt hidden disabled><?php esc_html_e( 'Resend receipt', 'ifthenpay-pay-button' ); ?></option>
 				<option value="export-csv"><?php esc_html_e( 'Export selected as CSV', 'ifthenpay-pay-button' ); ?></option>
 				<option value="export-json"><?php esc_html_e( 'Export selected as JSON', 'ifthenpay-pay-button' ); ?></option>
+				<option value="export-accounting"><?php esc_html_e( 'Export selected as accounting CSV (paid only)', 'ifthenpay-pay-button' ); ?></option>
 				<?php // Disabled by entries.js while every selected entry is paid. ?>
 				<option value="delete" data-iftp-bulk-delete><?php esc_html_e( 'Delete', 'ifthenpay-pay-button' ); ?></option>
 			</select>
@@ -993,8 +1016,10 @@ class EntriesPage {
 	 */
 	private function render_export_menu( array $view ): void {
 		$formats = array(
-			self::EXPORT_CSV  => array( __( 'CSV', 'ifthenpay-pay-button' ), __( 'For Excel or Google Sheets', 'ifthenpay-pay-button' ) ),
-			self::EXPORT_JSON => array( __( 'JSON', 'ifthenpay-pay-button' ), __( 'For developers and integrations', 'ifthenpay-pay-button' ) ),
+			self::EXPORT_XLS        => array( __( 'XLS', 'ifthenpay-pay-button' ), __( 'Opens directly in Excel', 'ifthenpay-pay-button' ) ),
+			self::EXPORT_CSV        => array( __( 'CSV', 'ifthenpay-pay-button' ), __( 'For Google Sheets or any tool', 'ifthenpay-pay-button' ) ),
+			self::EXPORT_JSON       => array( __( 'JSON', 'ifthenpay-pay-button' ), __( 'For developers and integrations', 'ifthenpay-pay-button' ) ),
+			self::EXPORT_ACCOUNTING => array( __( 'Accounting CSV', 'ifthenpay-pay-button' ), __( 'Paid payments only, for your accountant', 'ifthenpay-pay-button' ) ),
 		);
 		?>
 		<div id="iftp-btn-export-menu" class="iftp-btn-popover iftp-btn-export" data-iftp-export-menu role="group" aria-labelledby="iftp-btn-export-title" hidden>
@@ -1099,7 +1124,7 @@ class EntriesPage {
 		?>
 		<tr class="iftp-btn-table__row" data-iftp-row data-iftp-ref="<?php echo esc_attr( $ref ); ?>">
 			<td class="iftp-btn-table__check">
-				<input type="checkbox" data-iftp-row-check data-iftp-status="<?php echo esc_attr( $record['status'] ); ?>" value="<?php echo esc_attr( $ref ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: payment reference */ __( 'Select %s', 'ifthenpay-pay-button' ), $ref ) ); ?>" />
+				<input type="checkbox" data-iftp-row-check data-iftp-status="<?php echo esc_attr( $record['status'] ); ?>" data-iftp-receipt="<?php echo ReceiptEmail::can_resend( $record ) ? '1' : '0'; ?>" value="<?php echo esc_attr( $ref ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: payment reference */ __( 'Select %s', 'ifthenpay-pay-button' ), $ref ) ); ?>" />
 			</td>
 			<td class="iftp-btn-table__cell iftp-btn-table__cell--ref" data-col="ref">
 				<button type="button" class="iftp-btn-ref" data-iftp-copy-ref="<?php echo esc_attr( $ref ); ?>" title="<?php esc_attr_e( 'Copy reference', 'ifthenpay-pay-button' ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: payment reference */ __( 'Copy reference %s', 'ifthenpay-pay-button' ), $ref ) ); ?>">
@@ -1592,7 +1617,7 @@ class EntriesPage {
 	 *
 	 * @return array<int, string>
 	 */
-	private function button_titles(): array {
+	public function button_titles(): array {
 		if ( null === $this->button_titles ) {
 			$this->button_titles = array();
 

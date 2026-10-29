@@ -267,7 +267,7 @@ class Insights {
 			}
 
 			// The bucket's start is a site-calendar midnight expressed as UTC, so I format it as UTC.
-			$series['labels'][]   = Dates::day( $monthly ? 'M' : 'j M', $bucket['start'] );
+			$series['labels'][]   = Dates::day( $monthly ? 'M y' : 'j M', $bucket['start'] );
 			$series['tooltips'][] = Dates::day( $monthly ? 'F Y' : 'l, j F', $bucket['start'] );
 			$series['values'][]   = round( $revenue, 2 );
 			$series['averages'][] = $paid > 0 ? round( $revenue / $paid, 2 ) : 0.0;

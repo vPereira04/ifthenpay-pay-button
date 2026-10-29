@@ -385,7 +385,7 @@ class Studio {
 
 		return null !== $saved
 			? new Button( $saved->id, $latest['title'], $saved->slug, $saved->active, $latest['config'] )
-			: new Button( 0, $latest['title'], '', true, $latest['config'] );
+			: new Button( 0, $latest['title'], '', false, $latest['config'] );
 	}
 
 	/**

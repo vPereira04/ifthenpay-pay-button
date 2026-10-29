@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Ifthenpay\PayButton\Admin;
 
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
+use Ifthenpay\PayButton\Checkout\CheckoutTexts;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -23,6 +24,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @phpstan-import-type ButtonDesignConfig from ButtonDesign
  */
 class DesignControls {
+
+	// How many style and preset tiles show before "Show all".
+	private const FEATURED_STYLES  = 8;
+	private const FEATURED_PRESETS = 7;
 
 	/**
 	 * What every field's name starts with.
@@ -194,7 +199,7 @@ class DesignControls {
 			<?php self::open_fold( 'design-start', __( 'Start from a preset', 'ifthenpay-pay-button' ), __( 'One click sets the style, colours and effects. Tweak anything after.', 'ifthenpay-pay-button' ), true ); ?>
 			<div class="iftp-btn-field">
 				<span class="screen-reader-text" id="iftp-btn-presets-label"><?php esc_html_e( 'Start from', 'ifthenpay-pay-button' ); ?></span>
-				<div class="iftp-btn-looks" role="group" aria-labelledby="iftp-btn-presets-label">
+				<div class="iftp-btn-looks is-folded" role="group" aria-labelledby="iftp-btn-presets-label" data-iftp-more-list>
 					<button type="button" class="iftp-btn-looks__item" data-iftp-preset-saved="<?php echo esc_attr( (string) wp_json_encode( $this->saved ) ); ?>">
 						<span class="iftp-btn-looks__stage" aria-hidden="true">
 							<?php
@@ -215,14 +220,17 @@ class DesignControls {
 						<span class="iftp-btn-looks__name"><?php esc_html_e( 'This button\'s look', 'ifthenpay-pay-button' ); ?></span>
 					</button>
 					<?php endif; ?>
+					<?php $shown_presets = 0; ?>
 					<?php foreach ( ButtonDesign::presets() as $key => $preset ) : ?>
 						<?php
 						// A button's own design isn't the ifthenpay one; that stays the site's.
 						if ( $this->with_site && 'ifthenpay' === $key ) {
 							continue;
 						}
+
+						++$shown_presets;
 						?>
-						<button type="button" class="iftp-btn-looks__item" data-iftp-preset="<?php echo esc_attr( $key ); ?>">
+						<button type="button" class="iftp-btn-looks__item<?php echo $shown_presets > self::FEATURED_PRESETS ? ' iftp-btn-looks__item--more' : ''; ?>" data-iftp-preset="<?php echo esc_attr( $key ); ?>">
 							<span class="iftp-btn-looks__stage" aria-hidden="true">
 								<?php
 								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes.
@@ -233,12 +241,13 @@ class DesignControls {
 						</button>
 					<?php endforeach; ?>
 				</div>
+				<?php $this->render_more_toggle( $shown_presets ); ?>
 			</div>
 			<?php self::close_fold(); ?>
 
 			<?php self::open_fold( 'design-style', __( 'Style and colour', 'ifthenpay-pay-button' ), __( 'Filled, outline, gradient, glass and more, in your colours.', 'ifthenpay-pay-button' ), true ); ?>
 			<div class="iftp-btn-design__grid">
-				<?php $this->render_fx_picker( 'variant', __( 'Style', 'ifthenpay-pay-button' ), $variants, $design ); ?>
+				<?php $this->render_fx_picker( 'variant', __( 'Style', 'ifthenpay-pay-button' ), $variants, $design, '', self::FEATURED_STYLES ); ?>
 
 				<div class="iftp-btn-field">
 					<label class="iftp-btn-field__label" for="iftp-btn-color"><?php esc_html_e( 'Colour', 'ifthenpay-pay-button' ); ?></label>
@@ -434,6 +443,25 @@ class DesignControls {
 	}
 
 	/**
+	 * The button under a long list of tiles that shows the rest. buttons.js flips it.
+	 *
+	 * @param int $total How many tiles there are in all.
+	 */
+	private function render_more_toggle( int $total ): void {
+		?>
+		<button type="button" class="iftp-btn-more" data-iftp-more aria-expanded="false">
+			<span data-iftp-more-closed>
+				<?php
+				/* translators: %s: number of tiles */
+				echo esc_html( sprintf( __( 'Show all %s', 'ifthenpay-pay-button' ), number_format_i18n( $total ) ) );
+				?>
+			</span>
+			<span data-iftp-more-open hidden><?php esc_html_e( 'Show fewer', 'ifthenpay-pay-button' ); ?></span>
+		</button>
+		<?php
+	}
+
+	/**
 	 * A row of tiles, each a radio with a small live sample of the button wearing that choice. buttons.js
 	 * redraws the samples in the current colours.
 	 *
@@ -442,13 +470,17 @@ class DesignControls {
 	 * @param array<string, string> $options Value => label.
 	 * @param array<string, mixed>  $design  The current design.
 	 * @param string                $help    A line under the tiles.
+	 * @param int                   $featured How many tiles show before "Show all"; 0 shows every one.
 	 */
-	private function render_fx_picker( string $key, string $legend, array $options, array $design, string $help = '' ): void {
+	private function render_fx_picker( string $key, string $legend, array $options, array $design, string $help = '', int $featured = 0 ): void {
 		$help_id = 'iftp-btn-fx-' . $key . '-help';
+		$shown   = array_slice( array_keys( $options ), 0, $featured );
+		// Only the first few show at first, unless the one in use is further down.
+		$folded = $featured > 0 && count( $options ) > $featured && ! in_array( $design[ $key ] ?? '', array_slice( array_keys( $options ), $featured ), true );
 		?>
 		<fieldset class="iftp-btn-field iftp-btn-design__wide"<?php echo '' !== $help ? ' aria-describedby="' . esc_attr( $help_id ) . '"' : ''; ?>>
 			<legend class="iftp-btn-field__label"><?php echo esc_html( $legend ); ?></legend>
-			<span class="iftp-btn-fxpick<?php echo 'effect' === $key ? ' iftp-btn-fxpick--hover' : ''; ?>">
+			<span class="iftp-btn-fxpick<?php echo 'effect' === $key ? ' iftp-btn-fxpick--hover' : ''; ?><?php echo $folded ? ' is-folded' : ''; ?>" data-iftp-more-list>
 				<?php foreach ( $options as $value => $label ) : ?>
 					<?php
 					// A calm sample: only the choice this row is about moves.
@@ -468,7 +500,7 @@ class DesignControls {
 						$sample['icon'] = 'arrow';
 					}
 					?>
-					<label class="iftp-btn-fxpick__item">
+					<label class="iftp-btn-fxpick__item<?php echo $featured > 0 && ! in_array( $value, $shown, true ) ? ' iftp-btn-fxpick__item--more' : ''; ?>">
 						<input type="radio" name="<?php echo esc_attr( $this->name( $key ) ); ?>" value="<?php echo esc_attr( $value ); ?>" <?php checked( $design[ $key ], $value ); ?> data-iftp-design="<?php echo esc_attr( $key ); ?>" />
 						<span class="iftp-btn-fxpick__stage" aria-hidden="true" data-iftp-fx-sample="<?php echo esc_attr( $key ); ?>" data-iftp-fx-value="<?php echo esc_attr( $value ); ?>">
 							<?php echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( $sample, __( 'Pay', 'ifthenpay-pay-button' ) ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes. ?>
@@ -477,6 +509,9 @@ class DesignControls {
 					</label>
 				<?php endforeach; ?>
 			</span>
+			<?php if ( $featured > 0 && count( $options ) > $featured ) : ?>
+				<?php $this->render_more_toggle( count( $options ) ); ?>
+			<?php endif; ?>
 			<?php if ( '' !== $help ) : ?>
 				<p class="iftp-btn-field__help" id="<?php echo esc_attr( $help_id ); ?>"><?php echo esc_html( $help ); ?></p>
 			<?php endif; ?>
@@ -502,10 +537,12 @@ class DesignControls {
 			</span>
 		</div>
 		<div class="iftp-btn-preview__stage" data-iftp-stage data-bg="light">
+			<span class="iftp-btn-pay__group">
 			<span class="iftp-btn-pay iftp-btn-preview__pay" data-iftp-preview-button>
 				<?php echo ButtonDesign::preview_markup( $design, $label ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes. ?>
 			</span>
-			<span class="iftp-btn-pay__logos" data-iftp-preview-logos<?php echo $design['logos'] && '' !== $logos ? '' : ' hidden'; ?>><?php echo $logos; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the caller. ?></span>
+			<span class="iftp-btn-pay__logos" data-iftp-preview-logos<?php echo $design['logos'] && '' !== $logos ? '' : ' hidden'; ?>><span class="iftp-btn-pay__logos-label"><?php echo esc_html( CheckoutTexts::get( 'pay_with' ) ); ?></span><span class="iftp-btn-pay__logos-list" data-iftp-preview-logo-list><?php echo $logos; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the caller. ?></span></span>
+			</span>
 		</div>
 		<p class="iftp-btn-preview__note" data-iftp-theme-note<?php echo ButtonDesign::SOURCE_CUSTOM === $design['source'] ? ' hidden' : ''; ?>><?php esc_html_e( 'A close guess: on your pages it takes your theme\'s exact button style.', 'ifthenpay-pay-button' ); ?></p>
 		<?php

@@ -217,7 +217,7 @@ class AiStudioPage {
 								</button>
 								<a class="iftp-btn-btn iftp-btn-btn--primary" href="<?php echo esc_url( self::draft_url( $button ) ); ?>" data-iftp-studio-draft><?php esc_html_e( 'Review and save', 'ifthenpay-pay-button' ); ?></a>
 							</div>
-							<p class="iftp-btn-studio__note"><?php echo null !== $button ? esc_html__( 'Nothing changes on your live button until you save it in the editor.', 'ifthenpay-pay-button' ) : esc_html__( 'Nothing is saved until you create it in the editor. It goes live as soon as you do.', 'ifthenpay-pay-button' ); ?></p>
+							<p class="iftp-btn-studio__note"><?php echo null !== $button ? esc_html__( 'Nothing changes on your live button until you save it in the editor.', 'ifthenpay-pay-button' ) : esc_html__( 'Nothing is saved until you create it in the editor. It starts switched off, so you can check it first.', 'ifthenpay-pay-button' ); ?></p>
 						</div>
 					</section>
 				</div>

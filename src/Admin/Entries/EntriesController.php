@@ -12,6 +12,7 @@ namespace Ifthenpay\PayButton\Admin\Entries;
 use Ifthenpay\PayButton\Api\PaymentLinks;
 use Ifthenpay\PayButton\Dates;
 use Ifthenpay\PayButton\Mail\PaymentEmailSender;
+use Ifthenpay\PayButton\Mail\ReceiptEmail;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
 use Ifthenpay\PayButton\Repository\TransactionStore;
 
@@ -90,6 +91,7 @@ class EntriesController {
 		add_action( 'wp_ajax_iftp_btn_save_columns', array( $this, 'save_columns' ) );
 		add_action( 'wp_ajax_iftp_btn_resend_payment_email', array( $this, 'resend_payment_email' ) );
 		add_action( 'wp_ajax_iftp_btn_send_payment_emails', array( $this, 'send_payment_emails' ) );
+		add_action( 'wp_ajax_iftp_btn_resend_receipts', array( $this, 'resend_receipts' ) );
 		add_action( 'admin_post_' . EntriesPage::EXPORT_ACTION, array( $this, 'export' ) );
 	}
 
@@ -329,7 +331,47 @@ class EntriesController {
 	}
 
 	/**
-	 * Admin-post: streams the current view (or just the selected refs) as a CSV or JSON download.
+	 * The bulk "Resend receipt", for one chunk of refs, answering like send_payment_emails(). It only ever mails the payer.
+	 */
+	public function resend_receipts(): void {
+		$this->guard();
+
+		$refs     = $this->bulk_refs();
+		$started  = microtime( true );
+		$receipts = new ReceiptEmail( $this->transactions );
+		$result   = array(
+			'sent'    => array(),
+			'skipped' => array(),
+			'failed'  => array(),
+		);
+
+		$this->transactions->prime( $refs );
+
+		foreach ( $refs as $ref ) {
+			if ( microtime( true ) - $started > self::EMAIL_TIME_BUDGET ) {
+				break;
+			}
+
+			$outcome = $receipts->resend_to_payer( $this->transactions->get( $ref ) );
+
+			if ( self::EMAIL_SENT === $outcome ) {
+				$result['sent'][] = $ref;
+			} elseif ( self::EMAIL_INELIGIBLE === $outcome ) {
+				$result['skipped'][] = $ref;
+			} else {
+				$result['failed'][] = $ref;
+			}
+		}
+
+		if ( '' !== $this->post_text( 'render' ) ) {
+			$result += $this->page->rendered_view( $this->page->view_state()->from_post() );
+		}
+
+		wp_send_json_success( $result );
+	}
+
+	/**
+	 * Admin-post: streams the current view (or just the selected refs) as a CSV, XLS or JSON download.
 	 */
 	public function export(): void {
 		check_admin_referer( EntriesPage::EXPORT_ACTION );
@@ -343,7 +385,8 @@ class EntriesController {
 		$refs = $this->refs();
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- check_admin_referer() verified the nonce.
-		$format = isset( $_REQUEST['format'] ) && EntriesPage::EXPORT_JSON === sanitize_key( wp_unslash( $_REQUEST['format'] ) ) ? EntriesPage::EXPORT_JSON : EntriesPage::EXPORT_CSV;
+		$format = isset( $_REQUEST['format'] ) ? sanitize_key( wp_unslash( $_REQUEST['format'] ) ) : '';
+		$format = in_array( $format, array( EntriesPage::EXPORT_JSON, EntriesPage::EXPORT_XLS, EntriesPage::EXPORT_ACCOUNTING ), true ) ? $format : EntriesPage::EXPORT_CSV;
 		$args   = ViewState::store_filters( $view ) + array(
 			'status'  => $view['status'],
 			'orderby' => $view['orderby'],
@@ -359,9 +402,22 @@ class EntriesController {
 			);
 		}
 
+		// Accounting is paid only, and the one format that needs the NIF out of each snapshot.
+		if ( EntriesPage::EXPORT_ACCOUNTING === $format ) {
+			$args['status']        = TransactionStore::STATUS_PAID;
+			$args['with_snapshot'] = true;
+		}
+
 		nocache_headers();
-		header( 'Content-Type: ' . ( EntriesPage::EXPORT_JSON === $format ? 'application/json' : 'text/csv' ) . '; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename="ifthenpay-entries-' . Dates::local( 'Y-m-d' ) . '.' . $format . '"' );
+		$types = array(
+			EntriesPage::EXPORT_ACCOUNTING => 'text/csv',
+			EntriesPage::EXPORT_JSON       => 'application/json',
+			EntriesPage::EXPORT_XLS        => 'application/vnd.ms-excel',
+			EntriesPage::EXPORT_CSV        => 'text/csv',
+		);
+
+		header( 'Content-Type: ' . $types[ $format ] . '; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="ifthenpay-' . ( EntriesPage::EXPORT_ACCOUNTING === $format ? 'accounting' : 'entries' ) . '-' . Dates::local( 'Y-m-d' ) . '.' . ( EntriesPage::EXPORT_ACCOUNTING === $format ? 'csv' : $format ) . '"' );
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- streaming to the response body; WP_Filesystem has no stream API.
 		$out = fopen( 'php://output', 'w' );
@@ -372,6 +428,10 @@ class EntriesController {
 
 		if ( EntriesPage::EXPORT_JSON === $format ) {
 			$this->stream_json( $out, $args );
+		} elseif ( EntriesPage::EXPORT_XLS === $format ) {
+			$this->stream_xls( $out, $args );
+		} elseif ( EntriesPage::EXPORT_ACCOUNTING === $format ) {
+			$this->stream_accounting( $out, $args );
 		} else {
 			$this->stream_csv( $out, $args );
 		}
@@ -402,47 +462,151 @@ class EntriesController {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- see export()'s fopen().
 		fwrite( $out, "\xEF\xBB\xBF" );
 
-		$presenter = $this->page->presenter();
+		$this->put_csv_row( $out, $this->export_headers() );
+
+		foreach ( $this->transactions->iterate( $args ) as $record ) {
+			$this->put_csv_row( $out, $this->export_cells( $record ) );
+		}
+	}
+
+	/**
+	 * Writes the paid rows as an accountant's CSV: semicolons, decimal commas and d/m/Y dates, the way Portuguese
+	 * Excel opens it, with the NIF the payer gave and the button the payment was for.
+	 *
+	 * @param resource             $out  The open php://output handle.
+	 * @param array<string, mixed> $args TransactionStore::iterate() filters.
+	 */
+	private function stream_accounting( $out, array $args ): void {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- see export()'s fopen().
+		fwrite( $out, "\xEF\xBB\xBF" );
 
 		$this->put_csv_row(
 			$out,
 			array(
+				__( 'Date paid', 'ifthenpay-pay-button' ),
 				__( 'Reference', 'ifthenpay-pay-button' ),
+				__( 'Description', 'ifthenpay-pay-button' ),
 				__( 'Customer name', 'ifthenpay-pay-button' ),
+				__( 'Tax number (NIF)', 'ifthenpay-pay-button' ),
 				__( 'Customer email', 'ifthenpay-pay-button' ),
-				__( 'Button ID', 'ifthenpay-pay-button' ),
-				__( 'External reference', 'ifthenpay-pay-button' ),
 				__( 'Method', 'ifthenpay-pay-button' ),
-				__( 'Amount', 'ifthenpay-pay-button' ),
-				__( 'Status', 'ifthenpay-pay-button' ),
-				__( 'Created', 'ifthenpay-pay-button' ),
-				__( 'Last updated', 'ifthenpay-pay-button' ),
-				__( 'Request ID', 'ifthenpay-pay-button' ),
+				__( 'Amount (EUR)', 'ifthenpay-pay-button' ),
 				__( 'Transaction ID', 'ifthenpay-pay-button' ),
-				__( 'Payment link', 'ifthenpay-pay-button' ),
-			)
+			),
+			';'
 		);
 
+		$titles = $this->page->button_titles();
+
 		foreach ( $this->transactions->iterate( $args ) as $record ) {
+			$nif = TransactionStore::decode_snapshot( $record['field_snapshot'] )['nif'] ?? '';
+			$nif = is_array( $nif ) && isset( $nif['value'] ) && is_scalar( $nif['value'] ) ? trim( (string) $nif['value'] ) : '';
+
 			$this->put_csv_row(
 				$out,
 				array(
+					// The paid date is when the status last moved, which for a paid row is the confirmation.
+					Dates::local( 'd/m/Y', $record['updated_at'] ),
 					$record['ref'],
+					$titles[ $record['button_id'] ] ?? '',
 					$record['customer_name'],
+					$nif,
 					$record['customer_email'],
-					$record['button_id'] > 0 ? (string) $record['button_id'] : '',
-					$record['external_ref'],
 					$record['pay_method'],
-					number_format( $record['amount'], 2, '.', '' ),
-					$presenter->status_label( $record['status'] ),
-					Dates::local( 'Y-m-d H:i:s', $record['created_at'] ),
-					Dates::local( 'Y-m-d H:i:s', $record['updated_at'] ),
-					$record['request_id'],
+					number_format( $record['amount'], 2, ',', '' ),
 					$record['transaction_id'],
-					$record['payment_url'],
-				)
+				),
+				';'
 			);
 		}
+	}
+
+	/**
+	 * Writes the matching rows as an Excel 2003 XML spreadsheet, which Excel opens as a .xls with no library.
+	 *
+	 * @param resource             $out  The open php://output handle.
+	 * @param array<string, mixed> $args TransactionStore::iterate() filters.
+	 */
+	private function stream_xls( $out, array $args ): void {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- see export()'s fopen().
+		fwrite( $out, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?mso-application progid=\"Excel.Sheet\"?>\n" . '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="h"><Font ss:Bold="1"/></Style></Styles><Worksheet ss:Name="' . esc_attr( __( 'Entries', 'ifthenpay-pay-button' ) ) . '"><Table>' );
+
+		$this->put_xls_row( $out, $this->export_headers(), 'h' );
+
+		foreach ( $this->transactions->iterate( $args ) as $record ) {
+			$this->put_xls_row( $out, $this->export_cells( $record ) );
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- see export()'s fopen().
+		fwrite( $out, '</Table></Worksheet></Workbook>' );
+	}
+
+	/**
+	 * Writes one spreadsheet row. Every cell is typed String, so Excel never evaluates a would-be formula.
+	 *
+	 * @param resource           $out   The open php://output handle.
+	 * @param array<int, string> $cells The row's cells, in column order.
+	 * @param string             $style Optional style ID.
+	 */
+	private function put_xls_row( $out, array $cells, string $style = '' ): void {
+		$xml = '<Row>';
+
+		foreach ( $cells as $cell ) {
+			// XML 1.0 can't carry control characters, so I drop them rather than corrupt the file.
+			$clean = (string) preg_replace( '/[^\x09\x0A\x0D\x20-\x{D7FF}\x{E000}-\x{FFFD}]/u', '', $cell );
+			$xml  .= '<Cell' . ( '' !== $style ? ' ss:StyleID="' . $style . '"' : '' ) . '><Data ss:Type="String">' . esc_xml( $clean ) . '</Data></Cell>';
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- see export()'s fopen().
+		fwrite( $out, $xml . '</Row>' );
+	}
+
+	/**
+	 * The CSV and XLS column headings.
+	 *
+	 * @return array<int, string>
+	 */
+	private function export_headers(): array {
+		return array(
+			__( 'Reference', 'ifthenpay-pay-button' ),
+			__( 'Customer name', 'ifthenpay-pay-button' ),
+			__( 'Customer email', 'ifthenpay-pay-button' ),
+			__( 'Button ID', 'ifthenpay-pay-button' ),
+			__( 'External reference', 'ifthenpay-pay-button' ),
+			__( 'Method', 'ifthenpay-pay-button' ),
+			__( 'Amount', 'ifthenpay-pay-button' ),
+			__( 'Status', 'ifthenpay-pay-button' ),
+			__( 'Created', 'ifthenpay-pay-button' ),
+			__( 'Last updated', 'ifthenpay-pay-button' ),
+			__( 'Request ID', 'ifthenpay-pay-button' ),
+			__( 'Transaction ID', 'ifthenpay-pay-button' ),
+			__( 'Payment link', 'ifthenpay-pay-button' ),
+		);
+	}
+
+	/**
+	 * One transaction as the CSV and XLS cells, in header order.
+	 *
+	 * @param array<string, mixed> $record The transaction row.
+	 * @phpstan-param Transaction $record
+	 * @return array<int, string>
+	 */
+	private function export_cells( array $record ): array {
+		return array(
+			$record['ref'],
+			$record['customer_name'],
+			$record['customer_email'],
+			$record['button_id'] > 0 ? (string) $record['button_id'] : '',
+			$record['external_ref'],
+			$record['pay_method'],
+			number_format( $record['amount'], 2, '.', '' ),
+			$this->page->presenter()->status_label( $record['status'] ),
+			Dates::local( 'Y-m-d H:i:s', $record['created_at'] ),
+			Dates::local( 'Y-m-d H:i:s', $record['updated_at'] ),
+			$record['request_id'],
+			$record['transaction_id'],
+			$record['payment_url'],
+		);
 	}
 
 	/**
@@ -496,16 +660,17 @@ class EntriesController {
 	 * Writes one CSV line. A leading quote makes Excel/Sheets treat a would-be formula as text.
 	 *
 	 * @param resource           $out   The open php://output handle.
-	 * @param array<int, string> $cells The row's cells, in column order.
+	 * @param array<int, string> $cells     The row's cells, in column order.
+	 * @param string             $separator The field separator.
 	 */
-	private function put_csv_row( $out, array $cells ): void {
+	private function put_csv_row( $out, array $cells, string $separator = ',' ): void {
 		$safe = array_map(
 			static fn( string $cell ): string => ( '' !== $cell && false !== strpos( "=+-@\t\r", $cell[0] ) ) ? "'" . $cell : $cell,
 			$cells
 		);
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fputcsv -- see export()'s fopen().
-		fputcsv( $out, $safe, ',', '"', '' );
+		fputcsv( $out, $safe, $separator, '"', '' );
 	}
 
 	/**

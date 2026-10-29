@@ -37,6 +37,7 @@ class CheckoutTexts {
 			// The checkout form.
 			'header'           => (string) get_bloginfo( 'name' ),
 			'pay_now'          => __( 'Pay now', 'ifthenpay-pay-button' ),
+			'pay_with'         => __( 'Pay with', 'ifthenpay-pay-button' ),
 			'first_step'       => __( 'Your payment', 'ifthenpay-pay-button' ),
 			/* translators: {step} and {steps} stay as they are: the current step and how many there are */
 			'step_of'          => __( 'Step {step} of {steps}', 'ifthenpay-pay-button' ),
@@ -123,6 +124,7 @@ class CheckoutTexts {
 				'items'       => array(
 					'header'     => __( 'Top line of the form. Your site name when blank.', 'ifthenpay-pay-button' ),
 					'pay_now'    => __( 'Text on a pay button that has none of its own.', 'ifthenpay-pay-button' ),
+					'pay_with'   => __( 'The caption above the method logos under a button.', 'ifthenpay-pay-button' ),
 					'first_step' => __( 'Title of the first page, in a form with pages.', 'ifthenpay-pay-button' ),
 					'step_of'    => '',
 					'from'       => __( 'Price when options cost different amounts.', 'ifthenpay-pay-button' ),

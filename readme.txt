@@ -73,7 +73,7 @@ All settings are made in Pay Button in your WordPress admin and in your ifthenpa
 Optional extras:
 
 * **Connect another plugin:** In the button's Connect tab [1], tick the values the other plugin sends and swap each {tag} for that plugin's own merge tag, then copy the Redirect link into its "redirect after submit" setting [2]. Add a Webhook URL to get a signed JSON event when a payment is paid, fails or is cancelled (Zapier, Make, n8n…); Send a test checks it [3] (screenshot 15).
-* **Build or edit with AI:** Describe the button, or what to change, in your own words and send; Build with AI on the Buttons screen starts a new one, and Edit with AI in the editor changes this one. Each message is billed to your own AI account [1]. Or start from an idea [2]. The preview is the real pay page, redrawn after every answer, and never takes payments [3]. See it on Desktop or Phone, or at Full page [4] (screenshot 16). A button the AI builds goes live as soon as it's created, so check its prices first.
+* **Build or edit with AI:** Describe the button, or what to change, in your own words and send; Build with AI on the Buttons screen starts a new one, and Edit with AI in the editor changes this one. Each message is billed to your own AI account [1]. Or start from an idea [2]. The preview is the real pay page, redrawn after every answer, and never takes payments [3]. See it on Desktop or Phone, or at Full page [4] (screenshot 16). A button the AI builds starts switched off, so check its prices, then turn on Take payments.
 * **Default design:** Open Pay Button › Default Design [1]. Start from a look (each one sets the pay page background too), then tweak the colours, shape, fonts, pay page background and Custom CSS [2]. The preview follows every change: checkout, pay page and each popup [3]. Click Save Settings [4] (screenshot 17). The Button tab sets the default button design that every button set to Default design wears.
 * **Messages after paying:** In the Messages tab [1], choose what happens when paid: a popup message, a WordPress page or a custom URL [2]. Write the title and message for each outcome (Paid, Pending, Failed, Cancelled), with tags like {name} or {payment_id} [3] (screenshot 18).
 * **Texts:** In the Texts tab [1], rewrite any text the payer reads: buttons, labels, spots, the popup and the error messages, in any language. Blank keeps the original; keep the words in {braces} [2] (screenshot 19).
@@ -144,6 +144,10 @@ Yes. Once you choose a Gateway Key, the plugin registers its callback URL with i
 = What happens to my data if I delete the plugin? =
 
 Deleting the plugin (not just deactivating it) removes its settings, its buttons and its payments table. Export your payments to CSV first if you need them.
+
+== Third-party libraries ==
+
+* QR Code Generator for JavaScript by Kazuhiko Arase, version 1.4.4, MIT license ([source](https://github.com/kazuhikoarase/qrcode-generator)). Bundled in `assets/js/vendor/qrcode.js`; it draws the pay link's QR code in your browser and sends nothing anywhere. "QR Code" is a registered trademark of DENSO WAVE INCORPORATED.
 
 == External Services ==
 

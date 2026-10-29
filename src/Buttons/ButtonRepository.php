@@ -182,14 +182,34 @@ class ButtonRepository {
 	}
 
 	/**
-	 * Deletes a button for good. Its payments stay, as history.
+	 * Moves a button to the trash, where WP empties it after its usual trash days. Its payments stay, as history.
 	 *
 	 * @param Button $button The button.
 	 */
 	public function delete( Button $button ): bool {
-		wp_delete_post( $button->id, true );
+		return false !== wp_trash_post( $button->id ) && 'trash' === get_post_status( $button->id );
+	}
 
-		return false === get_post_status( $button->id );
+	/**
+	 * Brings a trashed button back, on or off the way it was.
+	 *
+	 * @param int $id The post ID.
+	 */
+	public function restore( int $id ): bool {
+		$post = $id > 0 ? get_post( $id ) : null;
+
+		if ( ! $post instanceof \WP_Post || self::POST_TYPE !== $post->post_type || 'trash' !== $post->post_status ) {
+			return false;
+		}
+
+		// WP brings a post back as a draft; I want it as it was, so the pay link keeps working.
+		$was    = get_post_meta( $id, '_wp_trash_meta_status', true );
+		$keep   = static fn(): string => 'publish' === $was ? 'publish' : 'draft';
+		add_filter( 'wp_untrash_post_status', $keep );
+		$result = wp_untrash_post( $id );
+		remove_filter( 'wp_untrash_post_status', $keep );
+
+		return $result instanceof \WP_Post && 'trash' !== get_post_status( $id );
 	}
 
 	/**

@@ -218,7 +218,7 @@ class ButtonEditor {
 					<?php
 					echo null !== $saved
 						? esc_html__( 'Look it over and save to put it live. Leave without saving and your button stays as it was.', 'ifthenpay-pay-button' )
-						: esc_html__( 'Look it over, then create it. It takes payments as soon as it\'s created, so check the prices first.', 'ifthenpay-pay-button' );
+						: esc_html__( 'Look it over, then create it. It starts switched off, so nothing is charged until you check the prices and turn on Take payments.', 'ifthenpay-pay-button' );
 					?>
 				</p>
 				<p class="iftp-btn-ai-note__label"><?php esc_html_e( 'Prices the AI set', 'ifthenpay-pay-button' ); ?></p>
@@ -981,6 +981,9 @@ class ButtonEditor {
 			<h2 class="iftp-btn-preview__title" id="iftp-btn-placeit-title"><?php esc_html_e( 'Place it', 'ifthenpay-pay-button' ); ?></h2>
 			<?php ButtonsPage::print_copy_field( __( 'Shortcode', 'ifthenpay-pay-button' ), sprintf( '[%1$s id="%2$d"]', Shortcode::TAG, $button->id ), 'iftp-btn-placeit-sc' ); ?>
 			<?php ButtonsPage::print_copy_field( __( 'Pay link', 'ifthenpay-pay-button' ), $this->links->url( $button ), 'iftp-btn-placeit-link' ); ?>
+			<p class="iftp-btn-placeit__qr">
+				<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-qr="<?php echo esc_attr( $this->links->url( $button ) ); ?>" data-iftp-qr-name="<?php echo esc_attr( $button->title ); ?>"><?php echo ButtonsPage::icon( 'qr' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?> <?php esc_html_e( 'QR code for the pay link', 'ifthenpay-pay-button' ); ?></button>
+			</p>
 			<p class="iftp-btn-field__help"><?php esc_html_e( 'In the block editor, add the "ifthenpay Pay Button" block and pick this button.', 'ifthenpay-pay-button' ); ?></p>
 		</section>
 		<?php

@@ -432,7 +432,7 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
    -------------------------------------------------------------------------- */
 .iftp-btn-bcards {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
 	gap: 18px;
 	margin: 14px 0 0;
 	padding: 0;
@@ -447,12 +447,21 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 	border-radius: var(--iftp-r-xl);
 	background: var(--iftp-surface);
 	box-shadow: var(--iftp-shadow-2);
-	transition: box-shadow var(--iftp-mid) var(--iftp-ease), border-color var(--iftp-mid) var(--iftp-ease);
+	overflow: hidden;
+	transition: box-shadow var(--iftp-mid) var(--iftp-ease), border-color var(--iftp-mid) var(--iftp-ease), transform var(--iftp-mid) var(--iftp-ease);
 }
 
 .iftp-btn-bcard:hover {
 	border-color: var(--iftp-line-strong);
 	box-shadow: var(--iftp-shadow-3);
+	transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.iftp-btn-bcard:hover {
+		transform: none;
+	}
 }
 
 .iftp-btn-bcard__stage {
@@ -460,13 +469,13 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	place-items: center;
-	height: 128px;
-	padding: 30px 18px 18px;
+	height: 116px;
+	padding: 34px 16px 22px;
 	overflow: hidden;
 	border-bottom: 1px solid var(--iftp-line);
 	border-radius: var(--iftp-r-xl) var(--iftp-r-xl) 0 0;
 	background:
-		radial-gradient(circle at 1px 1px, rgb(18 26 44 / 8%) 1px, transparent 0) 0 0 / 14px 14px,
+		radial-gradient(circle at 1px 1px, rgb(18 26 44 / 12%) 1px, transparent 0) 0 0 / 14px 14px,
 		var(--iftp-inset);
 	text-decoration: none;
 }
@@ -475,7 +484,7 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 .iftp-btn-bcard__stage .iftp-btn-pay {
 	width: 100%;
 	min-width: 0;
-	zoom: 0.66;
+	zoom: 0.7;
 	text-align: center;
 	pointer-events: none;
 	transition: opacity var(--iftp-mid) var(--iftp-ease), filter var(--iftp-mid) var(--iftp-ease);
@@ -497,24 +506,50 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 	text-overflow: ellipsis;
 }
 
-.iftp-btn-bcard__look,
+.iftp-btn-bcard__status,
 .iftp-btn-bcard__badge {
 	position: absolute;
-	top: 10px;
-	left: 12px;
-	padding: 2px 8px;
+	top: 14px;
+	left: 16px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 10px;
 	border-radius: var(--iftp-r-pill);
-	background: rgb(253 253 254 / 85%);
+	background: rgb(253 253 254 / 92%);
+	color: var(--iftp-ink-2);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.iftp-btn-bcard__status::before {
+	content: "";
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--iftp-paid-dot, var(--iftp-paid));
+}
+
+.iftp-btn-bcard--off .iftp-btn-bcard__status::before {
+	background: var(--iftp-faint);
+}
+
+.iftp-btn-bcard__badge {
+	right: 16px;
+	left: auto;
+}
+
+.iftp-btn-bcard__look {
+	position: absolute;
+	bottom: 10px;
+	left: 16px;
 	color: var(--iftp-muted);
 	font-size: 10.5px;
 	font-weight: 700;
 	letter-spacing: 0.05em;
 	text-transform: uppercase;
-}
-
-.iftp-btn-bcard__badge {
-	right: 12px;
-	left: auto;
 }
 
 .iftp-btn-bcard__badge--almost {
@@ -527,9 +562,48 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 	color: var(--iftp-failed);
 }
 
-.iftp-btn-bcard--off .iftp-btn-bcard__stage .iftp-btn-pay {
+/* Previews rest in gray and show their colors when the card is pointed at, so a long list isn't a wall of color.
+   An inactive card is told apart by more than gray: a hatched stage, a dark Inactive tag and a faded button. */
+.iftp-btn-bcard .iftp-btn-bcard__stage .iftp-btn-pay {
 	filter: grayscale(1);
-	opacity: 0.4;
+}
+
+.iftp-btn-bcard:hover .iftp-btn-bcard__stage .iftp-btn-pay,
+.iftp-btn-bcard:focus-within .iftp-btn-bcard__stage .iftp-btn-pay {
+	filter: none;
+}
+
+.iftp-btn-bcard--off .iftp-btn-bcard__stage .iftp-btn-pay,
+.iftp-btn-bcard--off:hover .iftp-btn-bcard__stage .iftp-btn-pay,
+.iftp-btn-bcard--off:focus-within .iftp-btn-bcard__stage .iftp-btn-pay {
+	filter: grayscale(1);
+	opacity: 0.35;
+}
+
+.iftp-btn-bcard--off .iftp-btn-bcard__stage {
+	background:
+		repeating-linear-gradient(135deg, rgb(18 26 44 / 7%) 0 6px, transparent 6px 12px),
+		var(--iftp-inset);
+}
+
+.iftp-btn-bcard--off .iftp-btn-bcard__status {
+	background: var(--iftp-ink);
+	color: #fff;
+}
+
+.iftp-btn-bcard--off .iftp-btn-bcard__status::before {
+	background: rgb(255 255 255 / 55%);
+}
+
+/* An inactive card can't be placed or paid, so only Activate, Duplicate and Delete stay. */
+body.iftp-btn-screen .iftp-btn-bcard .iftp-btn-bcard__activate,
+body.iftp-btn-screen .iftp-btn-bcard--off .iftp-btn-bcard__edit,
+body.iftp-btn-screen .iftp-btn-bcard--off .iftp-btn-tool--live {
+	display: none;
+}
+
+body.iftp-btn-screen .iftp-btn-bcard--off .iftp-btn-bcard__activate {
+	display: inline-flex;
 }
 
 .iftp-btn-bcard--off .iftp-btn-bcard__heading,
@@ -543,7 +617,7 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 	grid-template-columns: minmax(0, 1fr);
 	align-content: start;
 	gap: 14px;
-	padding: 18px 20px 16px;
+	padding: 16px 18px 14px;
 }
 
 .iftp-btn-bcard__top {
@@ -615,35 +689,58 @@ body.iftp-btn-screen .iftp-btn-bcard__title a:hover {
 	cursor: pointer;
 }
 
+/* Three small tiles; the list view drops them back to bare numbers. */
 .iftp-btn-bcard__stats {
 	display: grid;
 	grid-auto-columns: minmax(0, 1fr);
 	grid-auto-flow: column;
+	gap: 8px;
 	margin: 0;
-	padding: 12px 0 0;
-	border-top: 1px solid var(--iftp-line);
+	padding: 0;
 }
 
-.iftp-btn-bcard__stats > div + div {
-	padding-left: 16px;
-	border-left: 1px solid var(--iftp-line);
+.iftp-btn-bcard__stats > div {
+	position: relative;
+	min-width: 0;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: var(--iftp-canvas);
 }
 
 .iftp-btn-bcard__stats dt {
+	overflow: hidden;
 	color: var(--iftp-muted);
-	font-size: 11px;
+	font-size: 10.5px;
 	font-weight: 700;
-	letter-spacing: 0.05em;
+	letter-spacing: 0.04em;
+	text-overflow: ellipsis;
 	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+/* The tile is the anchor, so the tip opens above it, wraps, and stays inside the card. */
+.iftp-btn-bcard__stats > div:last-child [data-iftp-tip]::after {
+	right: 0;
+	left: auto;
+	width: max-content;
+	max-width: 220px;
+	white-space: normal;
+	transform: translateY(3px);
+}
+
+.iftp-btn-bcard__stats > div:last-child [data-iftp-tip]:hover::after,
+.iftp-btn-bcard__stats > div:last-child [data-iftp-tip]:focus-visible::after {
+	transform: none;
 }
 
 .iftp-btn-bcard__stats dd {
 	margin: 2px 0 0;
 	color: var(--iftp-ink);
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: 750;
 	font-variant-numeric: tabular-nums;
 	letter-spacing: -0.015em;
+	white-space: nowrap;
 }
 
 .iftp-btn-bcard__stats .iftp-btn-bcard__since {
@@ -711,13 +808,60 @@ body.iftp-btn-screen .iftp-btn-bcard__stats dd a:hover {
 	align-items: center;
 	justify-content: space-between;
 	gap: 10px;
-	padding: 10px 12px 10px 20px;
-	border-top: 1px solid var(--iftp-line);
+	padding: 10px 12px 10px 18px;
+	border-top: 1px solid var(--iftp-line-strong);
+	background: var(--iftp-inset);
 }
 
-body.iftp-btn-screen .iftp-btn-bcard__edit {
+/* Edit stays plain: flat brand fill, no gradient, shadow or press effect. */
+body.iftp-btn-screen .iftp-btn-bcard__edit.iftp-btn-btn--primary,
+body.iftp-btn-screen .iftp-btn-bcard__activate.iftp-btn-btn--primary,
+body.iftp-btn-screen .iftp-btn-bcard__edit.iftp-btn-btn--primary:hover:not(:disabled),
+body.iftp-btn-screen .iftp-btn-bcard__activate.iftp-btn-btn--primary:hover:not(:disabled),
+body.iftp-btn-screen .iftp-btn-bcard__edit.iftp-btn-btn--primary:active:not(:disabled) {
 	min-height: 34px;
-	padding: 0 14px;
+	padding: 0 16px;
+	background: var(--iftp-brand);
+	box-shadow: none;
+	transform: none;
+}
+
+body.iftp-btn-screen .iftp-btn-bcard__edit.iftp-btn-btn--primary:hover:not(:disabled),
+body.iftp-btn-screen .iftp-btn-bcard__activate.iftp-btn-btn--primary:hover:not(:disabled) {
+	background: var(--iftp-brand-hover);
+}
+
+/* A plain checkbox for on/off, not a switch. */
+body.iftp-btn-screen .iftp-btn-bcard__toggle input.iftp-btn-bcard__check {
+	appearance: none;
+	width: 22px;
+	height: 22px;
+	margin: 0;
+	border: 1.5px solid var(--iftp-line-strong);
+	border-radius: 6px;
+	background: var(--iftp-inset) center / 14px no-repeat;
+	box-shadow: none;
+	cursor: pointer;
+}
+
+body.iftp-btn-screen .iftp-btn-bcard__toggle input.iftp-btn-bcard__check::before {
+	content: none;
+}
+
+body.iftp-btn-screen .iftp-btn-bcard__toggle input.iftp-btn-bcard__check:checked {
+	border-color: var(--iftp-brand);
+	background-color: var(--iftp-brand);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+}
+
+body.iftp-btn-screen .iftp-btn-bcard__toggle input.iftp-btn-bcard__check:focus-visible {
+	box-shadow: var(--iftp-ring);
+	outline: none;
+}
+
+body.iftp-btn-screen .iftp-btn-bcard__toggle input.iftp-btn-bcard__check:disabled {
+	opacity: 0.5;
+	cursor: wait;
 }
 
 .iftp-btn-bcard__tools {
@@ -1047,6 +1191,7 @@ body.iftp-btn-screen .iftp-btn-bcard__half:focus-visible {
 		zoom: 0.5;
 	}
 
+	.iftp-btn-bcards--list .iftp-btn-bcard__status,
 	.iftp-btn-bcards--list .iftp-btn-bcard__look,
 	.iftp-btn-bcards--list .iftp-btn-bcard__badge {
 		display: none;
@@ -1087,13 +1232,15 @@ body.iftp-btn-screen .iftp-btn-bcard__half:focus-visible {
 		grid-row: 1;
 		grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 1fr);
 		grid-auto-flow: row;
+		gap: 0;
 		padding: 0;
 		border: 0;
 	}
 
-	.iftp-btn-bcards--list .iftp-btn-bcard__stats > div + div {
-		padding-left: 0;
-		border-left: 0;
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats > div {
+		padding: 0;
+		border-radius: 0;
+		background: none;
 	}
 
 	/* The header names the numbers once. */
@@ -1112,6 +1259,12 @@ body.iftp-btn-screen .iftp-btn-bcard__half:focus-visible {
 		font-size: 14px;
 		font-weight: 700;
 		letter-spacing: -0.01em;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats .iftp-btn-bcard__since {
+		font-size: 11px;
+		font-weight: 500;
+		letter-spacing: 0;
 	}
 
 	.iftp-btn-bcards--list .iftp-btn-bcard__spots {
@@ -1146,7 +1299,8 @@ body.iftp-btn-screen .iftp-btn-bcard__half:focus-visible {
 		border: 0;
 	}
 
-	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-bcard__edit {
+	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-bcard__edit,
+	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-bcard__activate {
 		min-height: 30px;
 		padding: 0 12px;
 		font-size: 12.5px;
@@ -2399,6 +2553,45 @@ body.iftp-btn-screen .iftp-btn-range__input {
 }
 
 /* --------------------------------------------------------------------------
+   QR code dialog
+   -------------------------------------------------------------------------- */
+body.iftp-btn-screen .iftp-btn-qr {
+	width: min(380px, calc(100vw - 32px));
+	text-align: center;
+}
+
+.iftp-btn-qr__code {
+	width: min(240px, 100%);
+	margin: 14px auto 10px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-md);
+	overflow: hidden;
+	line-height: 0;
+}
+
+.iftp-btn-qr__code svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.iftp-btn-qr__link {
+	margin: 0 0 10px;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	word-break: break-all;
+}
+
+body.iftp-btn-screen .iftp-btn-qr .iftp-btn-dialog__actions {
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.iftp-btn-placeit__qr {
+	margin: 0;
+}
+
+/* --------------------------------------------------------------------------
    Preview and share (the editor's side column)
    -------------------------------------------------------------------------- */
 .iftp-btn-preview,
@@ -2476,10 +2669,6 @@ body.iftp-btn-screen .iftp-btn-stagebg__option[aria-pressed="true"] {
 
 .iftp-btn-preview__stage .iftp-btn-pay {
 	width: 100%;
-	text-align: center;
-}
-
-.iftp-btn-preview__stage .iftp-btn-pay__logos {
 	text-align: center;
 }
 
@@ -3906,5 +4095,262 @@ body.iftp-btn-screen .iftp-btn-msg__raw {
 	.iftp-btn-tabs__tab[aria-selected="true"],
 	.iftp-btn-bfilter__option[aria-pressed="true"] {
 		outline: 2px solid Highlight;
+	}
+}
+
+/* Long tile lists show their first few, then "Show all". */
+.iftp-btn-looks.is-folded .iftp-btn-looks__item--more,
+.iftp-btn-fxpick.is-folded .iftp-btn-fxpick__item--more {
+	display: none;
+}
+
+.iftp-btn-more {
+	margin-top: 10px;
+	padding: 6px 2px;
+	border: 0;
+	background: none;
+	color: var(--iftp-brand);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.iftp-btn-more:hover {
+	text-decoration: underline;
+}
+
+.iftp-btn-more:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+	border-radius: var(--iftp-r-sm, 4px);
+}
+
+/* --------------------------------------------------------------------------
+   Welcome: starter buttons
+   -------------------------------------------------------------------------- */
+.iftp-btn-welcome__starters {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: 12px;
+	width: min(720px, 100%);
+	margin: 8px 0 6px;
+	padding: 0;
+	list-style: none;
+}
+
+.iftp-btn-welcome__starters li {
+	margin: 0;
+}
+
+.iftp-btn-welcome__starter {
+	display: grid;
+	justify-items: center;
+	gap: 6px;
+	height: 100%;
+	padding: 20px 16px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-inset);
+	color: var(--iftp-muted);
+	font-size: 13px;
+	text-align: center;
+	text-decoration: none;
+	transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.iftp-btn-welcome__starter strong {
+	color: var(--iftp-ink);
+	font-size: 15px;
+}
+
+.iftp-btn-welcome__starter:hover,
+.iftp-btn-welcome__starter:focus-visible {
+	border-color: var(--iftp-brand);
+	box-shadow: var(--iftp-shadow-2);
+	transform: translateY(-1px);
+}
+
+.iftp-btn-welcome__icon {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: var(--iftp-surface);
+	color: var(--iftp-brand);
+}
+
+.iftp-btn-welcome .iftp-btn-empty__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.iftp-btn-welcome__starter {
+		transition: none;
+	}
+}
+
+/* The "?" beside the title and its popup. */
+.iftp-btn-help {
+	display: inline-grid;
+	place-items: center;
+	flex: none;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: 50%;
+	background: var(--iftp-surface);
+	color: var(--iftp-muted);
+	font: 700 14px/1 var(--iftp-font);
+	cursor: pointer;
+	transition: border-color 0.15s, color 0.15s;
+}
+
+.iftp-btn-help:hover,
+.iftp-btn-help:focus-visible {
+	border-color: var(--iftp-brand);
+	color: var(--iftp-brand);
+}
+
+body.iftp-btn-screen .iftp-btn-helpdialog {
+	width: min(720px, calc(100vw - 32px));
+}
+
+.iftp-btn-helpdialog .iftp-btn-welcome__starters {
+	width: 100%;
+	margin: 14px 0;
+}
+
+/* --------------------------------------------------------------------------
+   Guided tour: the screen dims and blurs, the step's target stays sharp inside a ring
+   -------------------------------------------------------------------------- */
+.iftp-btn-helpdialog__tour {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	margin: 6px 0 14px;
+	padding: 12px 14px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-inset);
+	color: var(--iftp-muted);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.iftp-btn-helpdialog__tour:hover,
+.iftp-btn-helpdialog__tour:focus-visible {
+	border-color: var(--iftp-brand);
+}
+
+.iftp-btn-helpdialog__tour strong {
+	display: block;
+	color: var(--iftp-ink);
+}
+
+.iftp-btn-tour__shade {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	background: rgb(10 16 30 / 55%);
+	-webkit-backdrop-filter: blur(4px);
+	backdrop-filter: blur(4px);
+}
+
+.iftp-btn-tour__ring {
+	position: fixed;
+	z-index: 100001;
+	box-sizing: border-box;
+	border: 2px solid var(--iftp-brand);
+	border-radius: 14px;
+	box-shadow: 0 0 0 4px rgb(255 255 255 / 25%), 0 0 24px rgb(0 0 0 / 25%);
+	pointer-events: none;
+	transition: left 0.25s, top 0.25s, width 0.25s, height 0.25s;
+}
+
+.iftp-btn-tour__card {
+	position: fixed;
+	z-index: 100002;
+	box-sizing: border-box;
+	width: min(360px, calc(100vw - 24px));
+	padding: 18px 20px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-xl);
+	background: var(--iftp-surface);
+	color: var(--iftp-ink-2);
+	font-family: var(--iftp-font);
+	font-size: 13.5px;
+	line-height: 1.5;
+	box-shadow: var(--iftp-shadow-4);
+}
+
+.iftp-btn-tour__count {
+	color: var(--iftp-muted);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+body.iftp-btn-screen .iftp-btn-tour__title {
+	margin: 2px 0 6px;
+	padding: 0;
+	color: var(--iftp-ink);
+	font-size: 16px;
+	font-weight: 750;
+}
+
+.iftp-btn-tour__text {
+	margin: 0 0 14px;
+}
+
+.iftp-btn-tour__actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.iftp-btn-tour__nav {
+	display: flex;
+	gap: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.iftp-btn-tour__ring {
+		transition: none;
+	}
+}
+
+/* The checkout the AI "presents" in the studio's preview: the checkout preview's own stage, filling the frame. */
+.iftp-btn-tour-checkout {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	overflow: auto;
+	border-radius: inherit;
+	animation: iftp-btn-tour-rise 0.45s ease-out both;
+}
+
+.iftp-btn-tour-checkout .iftp-btn-look-preview__stage {
+	min-height: 100%;
+	border-radius: 0;
+}
+
+@keyframes iftp-btn-tour-rise {
+	from {
+		opacity: 0;
+		transform: translateY(10px) scale(0.98);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.iftp-btn-tour-checkout {
+		animation: none;
 	}
 }

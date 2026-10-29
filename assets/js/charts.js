@@ -187,8 +187,8 @@
 					svg.appendChild( tick );
 				}
 
-				// About six x labels, always the last one, never two crammed together.
-				var every = Math.max( 1, Math.ceil( values.length / 6 ) );
+				// A week or a year of months has room for every label; longer ranges get about six, always the last one, never two crammed together.
+				var every = values.length <= 12 ? 1 : Math.ceil( values.length / 6 );
 
 				( data.labels || [] ).forEach( function ( text, i ) {
 					var isLast = i === values.length - 1;

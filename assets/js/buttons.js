@@ -34,7 +34,7 @@
 
 	let toastTimer = 0;
 
-	function toast( message, isError ) {
+	function toast( message, isError, tone ) {
 		const box = document.querySelector( '[data-iftp-toast]' );
 
 		if ( ! box ) {
@@ -43,6 +43,7 @@
 
 		box.querySelector( '[data-iftp-toast-message]' ).textContent = message;
 		box.classList.toggle( 'iftp-btn-toast--error', !! isError );
+		box.classList.toggle( 'iftp-btn-toast--muted', tone === 'muted' );
 		box.hidden = false;
 
 		window.clearTimeout( toastTimer );
@@ -146,12 +147,10 @@
 
 			const name = link.dataset.iftpConfirmDelete;
 
+			// No <dialog> is only an old browser; the delete is just a trash with Undo, so I go straight on.
 			if ( ! deleteDialog || typeof deleteDialog.showModal !== 'function' ) {
-				// eslint-disable-next-line no-alert
-				if ( window.confirm( ( i18n.deleteNamed || '%s' ).replace( '%s', name ) ) ) {
-					leaving = true;
-					window.location.href = link.href;
-				}
+				leaving = true;
+				window.location.href = link.href;
 
 				return;
 			}
@@ -178,6 +177,164 @@
 		deleteDialog.addEventListener( 'click', function ( event ) {
 			if ( event.target === deleteDialog ) {
 				deleteDialog.close();
+			}
+		} );
+	}
+
+	/* ---------------------------------------------------------------- Help dialog */
+
+	const helpDialog = document.querySelector( '[data-iftp-help-dialog]' );
+
+	if ( helpDialog && typeof helpDialog.showModal === 'function' ) {
+		document.querySelectorAll( '[data-iftp-help-open]' ).forEach( function ( button ) {
+			button.addEventListener( 'click', function () {
+				helpDialog.showModal();
+			} );
+		} );
+
+		helpDialog.querySelector( '[data-iftp-help-close]' ).addEventListener( 'click', function () {
+			helpDialog.close();
+		} );
+
+		// A click on the backdrop lands on the dialog itself.
+		helpDialog.addEventListener( 'click', function ( event ) {
+			if ( event.target === helpDialog ) {
+				helpDialog.close();
+			}
+		} );
+	}
+
+	/* ---------------------------------------------------------------- QR code */
+
+	const qrDialog = document.querySelector( '[data-iftp-qr-dialog]' );
+	let qrState = null;
+
+	// The code as a grid of modules (4 of quiet zone round it), or null when the link won't encode.
+	function qrModules( text ) {
+		if ( typeof window.qrcode !== 'function' ) {
+			return null;
+		}
+
+		try {
+			const qr = window.qrcode( 0, 'M' );
+
+			qr.addData( text, 'Byte' );
+			qr.make();
+
+			return { count: qr.getModuleCount(), dark: qr.isDark.bind( qr ) };
+		} catch ( e ) {
+			return null;
+		}
+	}
+
+	function qrSvg( modules ) {
+		const size = modules.count + 8;
+		let path = '';
+
+		for ( let row = 0; row < modules.count; row++ ) {
+			for ( let col = 0; col < modules.count; col++ ) {
+				if ( modules.dark( row, col ) ) {
+					path += 'M' + ( col + 4 ) + ' ' + ( row + 4 ) + 'h1v1h-1z';
+				}
+			}
+		}
+
+		return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size + '" shape-rendering="crispEdges"><rect width="' + size + '" height="' + size + '" fill="#fff"/><path d="' + path + '" fill="#000"/></svg>';
+	}
+
+	function qrFileName( name, ext ) {
+		const base = ( name || 'pay-button' ).toLowerCase().normalize( 'NFD' ).replace( /[̀-ͯ]/g, '' ).replace( /[^a-z0-9]+/g, '-' ).replace( /^-|-$/g, '' );
+
+		return 'qr-' + ( base || 'pay-button' ) + '.' + ext;
+	}
+
+	function saveBlob( blob, fileName ) {
+		const url = URL.createObjectURL( blob );
+		const a = document.createElement( 'a' );
+
+		a.href = url;
+		a.download = fileName;
+		document.body.appendChild( a );
+		a.click();
+		a.remove();
+		window.setTimeout( function () {
+			URL.revokeObjectURL( url );
+		}, 1000 );
+	}
+
+	function downloadQr( kind ) {
+		if ( ! qrState ) {
+			return;
+		}
+
+		if ( kind === 'svg' ) {
+			saveBlob( new Blob( [ qrSvg( qrState.modules ) ], { type: 'image/svg+xml' } ), qrFileName( qrState.name, 'svg' ) );
+
+			return;
+		}
+
+		// PNG: a whole number of pixels per module so the edges stay sharp when printed.
+		const total = qrState.modules.count + 8;
+		const cell = Math.max( 1, Math.floor( 1024 / total ) );
+		const canvas = document.createElement( 'canvas' );
+		const ctx = canvas.getContext( '2d' );
+
+		canvas.width = total * cell;
+		canvas.height = total * cell;
+		ctx.fillStyle = '#fff';
+		ctx.fillRect( 0, 0, canvas.width, canvas.height );
+		ctx.fillStyle = '#000';
+
+		for ( let row = 0; row < qrState.modules.count; row++ ) {
+			for ( let col = 0; col < qrState.modules.count; col++ ) {
+				if ( qrState.modules.dark( row, col ) ) {
+					ctx.fillRect( ( col + 4 ) * cell, ( row + 4 ) * cell, cell, cell );
+				}
+			}
+		}
+
+		canvas.toBlob( function ( blob ) {
+			if ( blob ) {
+				saveBlob( blob, qrFileName( qrState.name, 'png' ) );
+			} else {
+				toast( i18n.qrFailed, true );
+			}
+		}, 'image/png' );
+	}
+
+	document.querySelectorAll( '[data-iftp-qr]' ).forEach( function ( trigger ) {
+		trigger.addEventListener( 'click', function () {
+			const link = trigger.dataset.iftpQr;
+			const modules = qrModules( link );
+
+			if ( ! qrDialog || ! modules || typeof qrDialog.showModal !== 'function' ) {
+				toast( i18n.qrFailed, true );
+
+				return;
+			}
+
+			qrState = { modules: modules, name: trigger.dataset.iftpQrName || '' };
+			// The SVG is made here from the module grid, never from page text.
+			qrDialog.querySelector( '[data-iftp-qr-preview]' ).innerHTML = qrSvg( modules );
+			qrDialog.querySelector( '[data-iftp-qr-link]' ).textContent = link;
+			qrDialog.showModal();
+		} );
+	} );
+
+	if ( qrDialog ) {
+		qrDialog.querySelector( '[data-iftp-qr-close]' ).addEventListener( 'click', function () {
+			qrDialog.close();
+		} );
+
+		qrDialog.querySelectorAll( '[data-iftp-qr-download]' ).forEach( function ( button ) {
+			button.addEventListener( 'click', function () {
+				downloadQr( button.dataset.iftpQrDownload );
+			} );
+		} );
+
+		qrDialog.addEventListener( 'click', function ( event ) {
+			if ( event.target === qrDialog ) {
+				qrDialog.close();
 			}
 		} );
 	}
@@ -395,9 +552,16 @@
 
 					card.classList.toggle( 'iftp-btn-bcard--off', ! wanted );
 					card.dataset.active = wanted ? '1' : '0';
+
+					const status = card.querySelector( '.iftp-btn-bcard__status' );
+
+					if ( status ) {
+						status.textContent = wanted ? i18n.active : i18n.inactive;
+					}
+
 					updateCounts();
 					applyFilter();
-					toast( wanted ? i18n.turnedOn : i18n.turnedOff );
+					toast( wanted ? i18n.turnedOn : i18n.turnedOff, false, wanted ? '' : 'muted' );
 				} )
 				.catch( function ( error ) {
 					toggle.checked = ! wanted;
@@ -406,6 +570,18 @@
 				.finally( function () {
 					toggle.disabled = false;
 				} );
+		} );
+	} );
+
+	// Activate on an inactive card ticks its checkbox, so it goes through the same save as the toggle.
+	document.querySelectorAll( '[data-iftp-activate-button]' ).forEach( function ( activate ) {
+		activate.addEventListener( 'click', function () {
+			const toggle = activate.closest( '[data-iftp-bcard]' ).querySelector( '[data-iftp-toggle-button]' );
+
+			if ( toggle && ! toggle.checked && ! toggle.disabled ) {
+				toggle.checked = true;
+				toggle.dispatchEvent( new Event( 'change' ) );
+			}
 		} );
 	} );
 
@@ -486,6 +662,29 @@
 		},
 		true
 	);
+
+	/* ---------------------------------------------------------------- Show all tiles */
+
+	// The "Show all" under a tile list flips it between its first few tiles and every one.
+	document.addEventListener( 'click', function ( event ) {
+		const toggle = event.target.closest( '[data-iftp-more]' );
+
+		if ( ! toggle ) {
+			return;
+		}
+
+		const list = toggle.parentElement.querySelector( '[data-iftp-more-list]' );
+
+		if ( ! list ) {
+			return;
+		}
+
+		const folded = list.classList.toggle( 'is-folded' );
+
+		toggle.setAttribute( 'aria-expanded', folded ? 'false' : 'true' );
+		toggle.querySelector( '[data-iftp-more-closed]' ).hidden = ! folded;
+		toggle.querySelector( '[data-iftp-more-open]' ).hidden = folded;
+	} );
 
 	/* ---------------------------------------------------------------- Editor tabs */
 
@@ -2403,7 +2602,8 @@
 		} );
 
 		window.addEventListener( 'beforeunload', function ( event ) {
-			if ( dirty && ! leaving ) {
+			// The tour fills a demo form on purpose and leaves it, so it never asks.
+			if ( dirty && ! leaving && ! document.body.classList.contains( 'iftp-btn-touring' ) ) {
 				event.preventDefault();
 				event.returnValue = i18n.unsaved || '';
 			}
@@ -2541,10 +2741,11 @@
 			const picked = editor.querySelectorAll( '[data-iftp-preview="method"]:checked' );
 
 			const strip = editor.querySelector( '[data-iftp-preview-logos]' );
+			const list = strip.querySelector( '[data-iftp-preview-logo-list]' );
 			const logosOn = shownDesign( editor ).logos;
 
 			methods.textContent = '';
-			strip.textContent = '';
+			list.textContent = '';
 
 			( picked.length ? picked : picks ).forEach( function ( pick ) {
 				const logo = pick.parentElement.querySelector( '[data-iftp-method-logo]' );
@@ -2562,11 +2763,11 @@
 					}
 					item.appendChild( image );
 					methods.appendChild( item );
-					strip.appendChild( image.cloneNode() );
+					list.appendChild( image.cloneNode() );
 				}
 			} );
 
-			strip.hidden = ! logosOn || ! strip.children.length;
+			strip.hidden = ! logosOn || ! list.children.length;
 
 			updateBuilder();
 		};
