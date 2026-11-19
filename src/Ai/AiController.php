@@ -9,10 +9,10 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Ai;
 
+use Ifthenpay\PayButton\Admin\Buttons\AiStudioPage;
+use Ifthenpay\PayButton\Admin\Buttons\DemoPage;
 use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
-use Ifthenpay\PayButton\Frontend\ButtonRenderer;
-use Ifthenpay\PayButton\Frontend\PayPage;
 use Ifthenpay\PayButton\Plugin;
 use WP_Error;
 
@@ -21,8 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Admin-only AJAX: connect, disconnect and pick a model; send a message, undo, start over; and the preview page.
+ * Admin-only AJAX: connect, disconnect and pick a model; open, rename and delete chats; send a message, undo, start over; and the preview page.
  * Every call checks the nonce and the admin capability. The key comes in once, on connect, and never goes back out.
+ *
+ * @phpstan-import-type Thread from Studio
  */
 class AiController {
 
@@ -72,6 +74,9 @@ class AiController {
 		add_action( 'wp_ajax_iftp_btn_ai_poll', array( $this, 'poll' ) );
 		add_action( 'wp_ajax_iftp_btn_ai_undo', array( $this, 'undo' ) );
 		add_action( 'wp_ajax_iftp_btn_ai_reset', array( $this, 'reset' ) );
+		add_action( 'wp_ajax_iftp_btn_ai_open', array( $this, 'open' ) );
+		add_action( 'wp_ajax_iftp_btn_ai_chat_rename', array( $this, 'rename' ) );
+		add_action( 'wp_ajax_iftp_btn_ai_chat_delete', array( $this, 'delete' ) );
 		add_action( 'wp_ajax_iftp_btn_ai_preview', array( $this, 'preview' ) );
 	}
 
@@ -79,12 +84,14 @@ class AiController {
 	 * Where a conversation's preview loads from.
 	 *
 	 * @param string $target A button id, or Studio::NEW_TARGET.
+	 * @param string $chat   The chat's id.
 	 */
-	public static function preview_url( string $target ): string {
+	public static function preview_url( string $target, string $chat ): string {
 		return add_query_arg(
 			array(
 				'action'   => 'iftp_btn_ai_preview',
 				'target'   => $target,
+				'chat'     => $chat,
 				'_wpnonce' => wp_create_nonce( self::NONCE ),
 			),
 			admin_url( 'admin-ajax.php' )
@@ -138,13 +145,13 @@ class AiController {
 		$saved = $this->target();
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked in guard().
 		$message = isset( $_POST['message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['message'] ) ) : '';
-		$thread  = $this->studio->send( $saved, $message, $this->text( 'job' ) );
+		$thread  = $this->studio->send( $saved, $this->chat(), $message, $this->text( 'job' ) );
 
 		if ( is_wp_error( $thread ) ) {
 			$this->fail( $thread );
 		}
 
-		wp_send_json_success( Studio::view( $thread, self::preview_url( Studio::target( $saved ) ) ) );
+		wp_send_json_success( $this->view( $thread ) );
 	}
 
 	/**
@@ -158,7 +165,7 @@ class AiController {
 		$status = $this->studio->job( $this->text( 'job' ) );
 
 		if ( 'done' === $status['state'] ) {
-			wp_send_json_success( array( 'state' => 'done' ) + Studio::view( $this->studio->thread( $saved ), self::preview_url( Studio::target( $saved ) ) ) );
+			wp_send_json_success( array( 'state' => 'done' ) + $this->view( $this->studio->thread( $saved, $this->chat() ) ) );
 		}
 
 		wp_send_json_success( $status );
@@ -170,21 +177,54 @@ class AiController {
 	public function undo(): void {
 		$this->guard();
 
-		$saved = $this->target();
-
-		wp_send_json_success( Studio::view( $this->studio->undo( $saved ), self::preview_url( Studio::target( $saved ) ) ) );
+		wp_send_json_success( $this->view( $this->studio->undo( $this->target(), $this->chat() ) ) );
 	}
 
 	/**
-	 * Starts over.
+	 * Starts the chat over.
 	 */
 	public function reset(): void {
 		$this->guard();
 
 		$saved = $this->target();
-		$this->studio->forget( $saved );
+		$chat  = $this->chat();
+		$this->studio->forget( $chat );
 
-		wp_send_json_success( Studio::view( $this->studio->thread( $saved ), self::preview_url( Studio::target( $saved ) ) ) );
+		wp_send_json_success( $this->view( $this->studio->thread( $saved, $chat ) ) );
+	}
+
+	/**
+	 * Opens a chat, or a new one under an id the browser made up: it exists once its first message is sent.
+	 */
+	public function open(): void {
+		$this->guard();
+
+		wp_send_json_success( $this->view( $this->studio->thread( $this->target(), $this->chat() ) ) );
+	}
+
+	/**
+	 * Renames a chat; an empty name goes back to the automatic one.
+	 */
+	public function rename(): void {
+		$this->guard();
+
+		if ( ! Chats::rename( $this->chat(), $this->text( 'title' ) ) ) {
+			wp_send_json_error( array( 'message' => __( 'That chat no longer exists.', 'ifthenpay-pay-button' ) ), 404 );
+		}
+
+		wp_send_json_success( array( 'chats' => self::chats( $this->chat() ) ) );
+	}
+
+	/**
+	 * Deletes a chat.
+	 */
+	public function delete(): void {
+		$this->guard();
+
+		$chat = $this->chat();
+		$this->studio->forget( $chat );
+
+		wp_send_json_success( array( 'chats' => self::chats( '' ) ) );
 	}
 
 	/**
@@ -198,11 +238,12 @@ class AiController {
 		}
 
 		$saved  = $this->target();
-		$thread = $this->studio->thread( $saved );
+		$thread = $this->studio->thread( $saved, $this->chat() );
 		$latest = Studio::latest( $thread );
 		$button = new Button( 0, '' !== $latest['title'] ? $latest['title'] : __( 'Your title', 'ifthenpay-pay-button' ), '', true, $latest['config'] );
 
-		( new PayPage( $this->buttons, new ButtonRenderer() ) )->preview( $button );
+		// The same demo page as every other preview: the button first, and the form once it is clicked.
+		( new DemoPage( $this->buttons ) )->show( $button );
 		exit;
 	}
 
@@ -228,6 +269,10 @@ class AiController {
 			return null;
 		}
 
+		if ( Studio::SITE_TARGET === $raw ) {
+			return Studio::site_button();
+		}
+
 		$button = $this->buttons->find( absint( $raw ) );
 
 		if ( null === $button ) {
@@ -235,6 +280,71 @@ class AiController {
 		}
 
 		return $button;
+	}
+
+	/**
+	 * The chat the request is about. An id that couldn't be one stops here.
+	 */
+	private function chat(): string {
+		// phpcs:ignore WordPress.Security.NonceVerification -- checked by every caller first.
+		$id = isset( $_REQUEST['chat'] ) ? sanitize_key( wp_unslash( $_REQUEST['chat'] ) ) : '';
+
+		if ( ! Chats::valid( $id ) ) {
+			wp_send_json_error( array( 'message' => __( 'That chat is not valid.', 'ifthenpay-pay-button' ) ), 400 );
+		}
+
+		return $id;
+	}
+
+	/**
+	 * What the studio shows for a conversation, with the list of chats beside it.
+	 *
+	 * @param array<string, mixed> $thread The conversation.
+	 * @phpstan-param Thread $thread
+	 * @return array<string, mixed>
+	 */
+	private function view( array $thread ): array {
+		return Studio::view( $thread, self::preview_url( $thread['target'], $thread['id'] ) ) + array( 'chats' => self::chats( $thread['id'] ) );
+	}
+
+	/**
+	 * The admin's chats for the list: newest first, each with where it opens.
+	 *
+	 * @param string $current The open chat's id, if any.
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function chats( string $current ): array {
+		return array_map(
+			static fn( array $entry ): array => array(
+				'id'      => $entry['id'],
+				'title'   => '' !== $entry['title'] ? $entry['title'] : __( 'Untitled chat', 'ifthenpay-pay-button' ),
+				'custom'  => $entry['custom'],
+				'target'  => $entry['target'],
+				'sub'     => self::chat_subject( $entry['target'] ),
+				/* translators: %s: how long ago, e.g. "3 hours" */
+				'when'    => sprintf( __( '%s ago', 'ifthenpay-pay-button' ), human_time_diff( $entry['updated'] ) ),
+				'url'     => AiStudioPage::chat_url( $entry['target'], $entry['id'] ),
+				'current' => $entry['id'] === $current,
+			),
+			Chats::all()
+		);
+	}
+
+	/**
+	 * What a chat is about, for the list.
+	 *
+	 * @param string $target A button id, Studio::NEW_TARGET or Studio::SITE_TARGET.
+	 */
+	private static function chat_subject( string $target ): string {
+		if ( Studio::NEW_TARGET === $target ) {
+			return __( 'New button', 'ifthenpay-pay-button' );
+		}
+
+		if ( Studio::SITE_TARGET === $target ) {
+			return __( 'Default design', 'ifthenpay-pay-button' );
+		}
+
+		return (string) get_post_field( 'post_title', (int) $target, 'raw' );
 	}
 
 	/**

@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Repository;
 
+use Ifthenpay\PayButton\Ai\Vault;
+
+use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 
@@ -105,6 +108,27 @@ class CheckoutSettings {
 			'messages'     => $filled,
 			'titles'       => $named,
 		);
+	}
+
+	/**
+	 * The confirmation a button's payers see: the site's, with any title or message the button sets itself laid over it.
+	 *
+	 * @param Button|null $button The button, or null for the site's own.
+	 * @return Confirmation
+	 */
+	public function get_confirmation_for( ?Button $button ): array {
+		$confirmation = $this->get_confirmation();
+
+		if ( null === $button ) {
+			return $confirmation;
+		}
+
+		foreach ( self::OUTCOMES as $outcome ) {
+			$confirmation['titles'][ $outcome ]   = $button->config['confirmation']['titles'][ $outcome ] ?? $confirmation['titles'][ $outcome ];
+			$confirmation['messages'][ $outcome ] = $button->config['confirmation']['messages'][ $outcome ] ?? $confirmation['messages'][ $outcome ];
+		}
+
+		return $confirmation;
 	}
 
 	/**
@@ -288,11 +312,16 @@ class CheckoutSettings {
 	 * The site secret signed links are signed with. Made on first use, and never leaves the server.
 	 */
 	public function get_signing_secret(): string {
-		$secret = (string) get_option( self::OPTION_SIGNING_SECRET, '' );
+		$stored = (string) get_option( self::OPTION_SIGNING_SECRET, '' );
+		$secret = Vault::reveal( $stored );
 
+		// Missing, too short, or sealed under keys this site no longer has: make a new one. Links signed with the old one stop working.
 		if ( strlen( $secret ) < 32 ) {
 			$secret = wp_generate_password( 64, false, false );
-			update_option( self::OPTION_SIGNING_SECRET, $secret, false );
+			$this->store_signing_secret( $secret );
+		} elseif ( ! Vault::is_sealed( $stored ) ) {
+			// One saved before secrets were sealed is sealed on its first read.
+			$this->store_signing_secret( $secret );
 		}
 
 		return $secret;
@@ -302,7 +331,16 @@ class CheckoutSettings {
 	 * Replaces the signing secret, so every signed link made so far stops working.
 	 */
 	public function rotate_signing_secret(): void {
-		update_option( self::OPTION_SIGNING_SECRET, wp_generate_password( 64, false, false ), false );
+		$this->store_signing_secret( wp_generate_password( 64, false, false ) );
+	}
+
+	/**
+	 * Saves the signing secret, sealed.
+	 *
+	 * @param string $secret The plain secret.
+	 */
+	private function store_signing_secret( string $secret ): void {
+		update_option( self::OPTION_SIGNING_SECRET, Vault::seal( $secret ), false );
 	}
 
 	/**

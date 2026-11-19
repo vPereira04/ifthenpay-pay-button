@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Ifthenpay\PayButton\Admin\Entries;
 
 use Ifthenpay\PayButton\Api\PaymentLinks;
+use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Dates;
 use Ifthenpay\PayButton\Mail\PaymentEmailSender;
 use Ifthenpay\PayButton\Mail\ReceiptEmail;
@@ -148,7 +149,7 @@ class EntriesController {
 
 		$amount = round( (float) str_replace( ',', '.', $this->post_text( 'amount', '0' ) ), 2 );
 
-		if ( $amount <= 0 || $amount > 99999999 ) {
+		if ( $amount <= 0 || $amount > Button::MAX_AMOUNT ) {
 			wp_send_json_error( array( 'message' => __( 'Enter an amount greater than zero.', 'ifthenpay-pay-button' ) ), 400 );
 		}
 
@@ -380,11 +381,9 @@ class EntriesController {
 			wp_die( esc_html__( 'You are not allowed to do this.', 'ifthenpay-pay-button' ), '', array( 'response' => 403 ) );
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- check_admin_referer() verified the nonce; from_source() sanitizes every key.
 		$view = $this->page->view_state()->from_source( $_REQUEST );
 		$refs = $this->refs();
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- check_admin_referer() verified the nonce.
 		$format = isset( $_REQUEST['format'] ) ? sanitize_key( wp_unslash( $_REQUEST['format'] ) ) : '';
 		$format = in_array( $format, array( EntriesPage::EXPORT_JSON, EntriesPage::EXPORT_XLS, EntriesPage::EXPORT_ACCOUNTING ), true ) ? $format : EntriesPage::EXPORT_CSV;
 		$args   = ViewState::store_filters( $view ) + array(
@@ -419,7 +418,6 @@ class EntriesController {
 		header( 'Content-Type: ' . $types[ $format ] . '; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename="ifthenpay-' . ( EntriesPage::EXPORT_ACCOUNTING === $format ? 'accounting' : 'entries' ) . '-' . Dates::local( 'Y-m-d' ) . '.' . ( EntriesPage::EXPORT_ACCOUNTING === $format ? 'csv' : $format ) . '"' );
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- streaming to the response body; WP_Filesystem has no stream API.
 		$out = fopen( 'php://output', 'w' );
 
 		if ( false === $out ) {
@@ -669,7 +667,6 @@ class EntriesController {
 			$cells
 		);
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fputcsv -- see export()'s fopen().
 		fputcsv( $out, $safe, $separator, '"', '' );
 	}
 

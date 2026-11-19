@@ -4100,6 +4100,8 @@ body.iftp-btn-screen .iftp-btn-msg__raw {
 
 /* Long tile lists show their first few, then "Show all". */
 .iftp-btn-looks.is-folded .iftp-btn-looks__item--more,
+.iftp-btn-looksets.is-folded .iftp-btn-looksets__item--more,
+.iftp-btn-stepstyles.is-folded .iftp-btn-stepstyles__item--more,
 .iftp-btn-fxpick.is-folded .iftp-btn-fxpick__item--more {
 	display: none;
 }
@@ -4340,6 +4342,17 @@ body.iftp-btn-screen .iftp-btn-tour__title {
 .iftp-btn-tour-checkout .iftp-btn-look-preview__stage {
 	min-height: 100%;
 	border-radius: 0;
+}
+
+/* On a phone there is no room beside it: the checkout is drawn smaller and from the top, so the lit part holds it whole. */
+@media (max-width: 600px) {
+	.iftp-btn-tour-checkout > .iftp-btn-look-preview__stage {
+		align-content: start;
+		min-height: calc(100% / 0.6);
+		padding: 10px 6px;
+		place-items: start center;
+		zoom: 0.6;
+	}
 }
 
 @keyframes iftp-btn-tour-rise {

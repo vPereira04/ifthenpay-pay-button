@@ -33,7 +33,7 @@ class CheckoutOpens {
 	public static function record( int $button_id ): void {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- update_post_meta() would read, add and write back, losing opens that land together; the meta cache is cleared right below.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- update_post_meta() would read, add and write back, losing opens that land together; the meta cache is cleared right below.
 		$updated = $wpdb->query( $wpdb->prepare( 'UPDATE %i SET meta_value = meta_value + 1 WHERE post_id = %d AND meta_key = %s', $wpdb->postmeta, $button_id, self::COUNT_META ) );
 
 		if ( 0 === $updated ) {

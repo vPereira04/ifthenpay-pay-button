@@ -1,0 +1,454 @@
+/* stylelint-disable selector-class-pattern -- BEM with the iftp-btn- prefix. */
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (width <= 1280px) {
+
+	.iftp-btn-editor {
+		grid-template-columns: minmax(0, 1fr) 360px;
+	}
+}
+
+@media (width <= 960px) {
+
+	.iftp-btn-editor {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.iftp-btn-editor__sticky {
+		position: static;
+		max-height: none;
+		overflow: visible;
+	}
+
+	.iftp-btn-editor__aside {
+		order: -1;
+	}
+}
+
+@media (width <= 1280px) {
+
+	.iftp-btn-lookpage {
+		grid-template-columns: minmax(0, 1fr) 360px;
+	}
+}
+
+@media (width <= 1280px) {
+
+	.iftp-btn-bsummary {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (width <= 1100px) {
+
+	.iftp-btn-bsummary {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.iftp-btn-lookpage {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.iftp-btn-lookpage__aside {
+		order: -1;
+	}
+
+	.iftp-btn-lookpage__sticky {
+		position: static;
+		max-height: none;
+		overflow: visible;
+	}
+}
+
+@media (width <= 782px) {
+
+	.iftp-btn-buttons {
+		margin: 12px 10px 32px 0;
+	}
+
+	.iftp-btn-design__grid,
+	.iftp-btn-segment--two,
+	.iftp-btn-fb__grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.iftp-btn-fb__panel {
+		padding-left: 14px;
+	}
+
+	.iftp-btn-csettings__bar {
+		flex-wrap: wrap;
+	}
+
+	.iftp-btn-tabs {
+		top: 46px;
+		overflow-x: auto;
+	}
+
+	.iftp-btn-bsearch {
+		flex-basis: 100%;
+	}
+
+	.iftp-btn-bfilter:not(.iftp-btn-bview) {
+		overflow-x: auto;
+	}
+
+	.iftp-btn-bcards {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.iftp-btn-segment,
+	.iftp-btn-editor__pair {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.iftp-btn-builder__row {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 6px;
+	}
+
+	.iftp-btn-fields-list__row,
+	.iftp-btn-fields-list__row:last-child {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 6px;
+		border-bottom: 1px solid var(--iftp-line);
+	}
+
+	.iftp-btn-fields-list__name {
+		padding-right: 0;
+	}
+
+	.iftp-btn-fields-list__value {
+		text-align: left;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.iftp-btn-bcard,
+	.iftp-btn-segment__option,
+	.iftp-btn-pills__option span,
+	.iftp-btn-looks__item,
+	.iftp-btn-seg__option > span,
+	[data-iftp-tip]::after {
+		transition: none;
+	}
+
+	body.iftp-btn-screen .iftp-btn-looks__item:hover {
+		transform: none;
+	}
+}
+
+@media (forced-colors: active) {
+
+	.iftp-btn-segment__option:has(input:checked),
+	.iftp-btn-pills__option input:checked + span,
+	.iftp-btn-seg__option input:checked + span,
+	.iftp-btn-tabs__tab[aria-selected="true"],
+	.iftp-btn-bfilter__option[aria-pressed="true"] {
+		outline: 2px solid Highlight;
+	}
+}
+
+/* Long tile lists always open on their first few, then "Show all"; the tile in use stays visible. */
+.iftp-btn-looks.is-folded .iftp-btn-looks__item--more,
+.iftp-btn-looksets.is-folded .iftp-btn-looksets__item--more,
+.iftp-btn-stepstyles.is-folded .iftp-btn-stepstyles__item--more:not(:has(input:checked)),
+.iftp-btn-fxpick.is-folded .iftp-btn-fxpick__item--more:not(:has(input:checked)) {
+	display: none;
+}
+
+.iftp-btn-more {
+	margin-top: 10px;
+	padding: 6px 2px;
+	border: 0;
+	background: none;
+	color: var(--iftp-brand);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.iftp-btn-more:hover {
+	text-decoration: underline;
+}
+
+.iftp-btn-more:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+	border-radius: var(--iftp-r-sm, 4px);
+}
+
+/* --------------------------------------------------------------------------
+   Welcome: starter buttons
+   -------------------------------------------------------------------------- */
+.iftp-btn-welcome__starters {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: 12px;
+	width: min(720px, 100%);
+	margin: 8px 0 6px;
+	padding: 0;
+	list-style: none;
+}
+
+.iftp-btn-welcome__starters li {
+	margin: 0;
+}
+
+.iftp-btn-welcome__starter {
+	display: grid;
+	justify-items: center;
+	gap: 6px;
+	height: 100%;
+	padding: 20px 16px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-inset);
+	color: var(--iftp-muted);
+	font-size: 13px;
+	text-align: center;
+	text-decoration: none;
+	transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.iftp-btn-welcome__starter strong {
+	color: var(--iftp-ink);
+	font-size: 15px;
+}
+
+.iftp-btn-welcome__starter:hover,
+.iftp-btn-welcome__starter:focus-visible {
+	border-color: var(--iftp-brand);
+	box-shadow: var(--iftp-shadow-2);
+	transform: translateY(-1px);
+}
+
+.iftp-btn-welcome__icon {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: var(--iftp-surface);
+	color: var(--iftp-brand);
+}
+
+.iftp-btn-welcome .iftp-btn-empty__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.iftp-btn-welcome__starter {
+		transition: none;
+	}
+}
+
+/* The "?" beside the title and its popup. */
+.iftp-btn-help {
+	display: inline-grid;
+	place-items: center;
+	flex: none;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: 50%;
+	background: var(--iftp-surface);
+	color: var(--iftp-muted);
+	font: 700 14px/1 var(--iftp-font);
+	cursor: pointer;
+	transition: border-color 0.15s, color 0.15s;
+}
+
+.iftp-btn-help:hover,
+.iftp-btn-help:focus-visible {
+	border-color: var(--iftp-brand);
+	color: var(--iftp-brand);
+}
+
+body.iftp-btn-screen .iftp-btn-helpdialog {
+	width: min(720px, calc(100vw - 32px));
+}
+
+.iftp-btn-helpdialog .iftp-btn-welcome__starters {
+	width: 100%;
+	margin: 14px 0;
+}
+
+/* --------------------------------------------------------------------------
+   Guided tour: the screen dims, the step's target stays lit inside a ring
+   -------------------------------------------------------------------------- */
+.iftp-btn-helpdialog__tour {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	margin: 6px 0 14px;
+	padding: 12px 14px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-inset);
+	color: var(--iftp-muted);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.iftp-btn-helpdialog__tour:hover,
+.iftp-btn-helpdialog__tour:focus-visible {
+	border-color: var(--iftp-brand);
+}
+
+.iftp-btn-helpdialog__tour strong {
+	display: block;
+	color: var(--iftp-ink);
+}
+
+.iftp-btn-tour__shade {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	background: rgb(10 16 30 / 42%);
+}
+
+.iftp-btn-tour__ring {
+	position: fixed;
+	z-index: 100001;
+	box-sizing: border-box;
+	border: 2px solid var(--iftp-brand);
+	border-radius: 14px;
+	box-shadow: 0 0 0 4px rgb(255 255 255 / 25%), 0 0 24px rgb(0 0 0 / 25%);
+	pointer-events: none;
+	transition: left 0.25s, top 0.25s, width 0.25s, height 0.25s;
+}
+
+.iftp-btn-tour__card {
+	position: fixed;
+	z-index: 100002;
+	box-sizing: border-box;
+	width: min(280px, calc(100vw - 24px));
+	padding: 12px 14px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-surface);
+	color: var(--iftp-ink-2);
+	font-family: var(--iftp-font);
+	font-size: 12.5px;
+	line-height: 1.45;
+	box-shadow: var(--iftp-shadow-4);
+}
+
+.iftp-btn-tour__count {
+	color: var(--iftp-muted);
+	font-size: 11px;
+	font-weight: 600;
+}
+
+body.iftp-btn-screen .iftp-btn-tour__title {
+	margin: 1px 0 4px;
+	padding: 0;
+	color: var(--iftp-ink);
+	font-size: 14px;
+	font-weight: 750;
+}
+
+.iftp-btn-tour__text {
+	margin: 0 0 10px;
+}
+
+.iftp-btn-tour__hint {
+	margin: 0 0 10px;
+	color: var(--iftp-brand);
+	font-weight: 650;
+}
+
+.iftp-btn-tour__ring.is-live {
+	animation: iftp-btn-tour-pulse 1.4s ease-in-out infinite;
+}
+
+.iftp-btn-tour-glow {
+	outline: 2px solid var(--iftp-brand);
+	outline-offset: 2px;
+	animation: iftp-btn-tour-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes iftp-btn-tour-glow {
+	50% {
+		box-shadow: 0 0 0 5px color-mix(in srgb, var(--iftp-brand) 25%, transparent), 0 0 18px 2px var(--iftp-brand);
+	}
+}
+
+@keyframes iftp-btn-tour-pulse {
+	50% {
+		box-shadow: 0 0 0 8px rgb(255 255 255 / 10%), 0 0 24px rgb(0 0 0 / 25%);
+	}
+}
+
+.iftp-btn-tour__actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.iftp-btn-tour__nav {
+	display: flex;
+	gap: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.iftp-btn-tour__ring {
+		transition: none;
+	}
+
+	.iftp-btn-tour__ring.is-live,
+	.iftp-btn-tour-glow {
+		animation: none;
+	}
+}
+
+/* The checkout the AI "presents" in the studio's preview: the checkout preview's own stage, filling the frame. */
+.iftp-btn-tour-checkout {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	overflow: auto;
+	border-radius: inherit;
+	animation: iftp-btn-tour-rise 0.45s ease-out both;
+}
+
+.iftp-btn-tour-checkout .iftp-btn-look-preview__stage {
+	min-height: 100%;
+	border-radius: 0;
+}
+
+/* On a phone there is no room beside it: the checkout is drawn smaller and from the top, so the lit part holds it whole. */
+@media (max-width: 600px) {
+	.iftp-btn-tour-checkout > .iftp-btn-look-preview__stage {
+		align-content: start;
+		min-height: calc(100% / 0.6);
+		padding: 10px 6px;
+		place-items: start center;
+		zoom: 0.6;
+	}
+}
+
+@keyframes iftp-btn-tour-rise {
+	from {
+		opacity: 0;
+		transform: translateY(10px) scale(0.98);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.iftp-btn-tour-checkout {
+		animation: none;
+	}
+}

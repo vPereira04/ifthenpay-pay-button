@@ -21,7 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WebhookValidator {
 
-	private const AMOUNT_TOLERANCE = 0.01;
+	// In cents, since comparing floats against 0.01 rejects some amounts that are exactly a cent apart.
+	private const AMOUNT_TOLERANCE_CENTS = 1;
 
 	/**
 	 * Settings storage, holding the anti-phishing key per Gateway Key.
@@ -61,6 +62,6 @@ class WebhookValidator {
 			return false;
 		}
 
-		return abs( $payload->amount() - (float) ( $record['amount'] ?? 0 ) ) <= self::AMOUNT_TOLERANCE;
+		return abs( (int) round( $payload->amount() * 100 ) - (int) round( (float) ( $record['amount'] ?? 0 ) * 100 ) ) <= self::AMOUNT_TOLERANCE_CENTS;
 	}
 }

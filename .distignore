@@ -14,3 +14,8 @@ phpcs.xml.dist
 phpstan.neon
 phpstan.neon.dist
 composer.lock
+build-assets.sh
+zz-*.txt
+phpunit.xml.dist
+phpunit.integration.xml.dist
+.phpunit.cache

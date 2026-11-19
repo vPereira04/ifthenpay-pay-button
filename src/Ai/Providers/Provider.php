@@ -25,10 +25,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 abstract class Provider {
 
-	// A reply that takes a while to think still fits; most come back in 5–20 seconds.
+	// How long a call waits when nothing says otherwise; most replies come back in 5–20 seconds.
 	protected const TIMEOUT = 90;
 
-	// The most output tokens an answer may use. A whole button fits in a fraction of it.
+	// The longest a call may ever be told to wait: a drawn button and checkout can take a couple of minutes to write.
+	protected const LONGEST = 300;
+
+	// The most output tokens an answer may use when nothing says otherwise. Configuration › AI sets it.
 	protected const MAX_TOKENS = 8192;
 
 	/**
@@ -37,6 +40,13 @@ abstract class Provider {
 	 * @var int
 	 */
 	private int $timeout = self::TIMEOUT;
+
+	/**
+	 * The most tokens one answer may use.
+	 *
+	 * @var int
+	 */
+	protected int $answer = self::MAX_TOKENS;
 
 	/**
 	 * How hard it thinks before it answers: quick, balanced or deep.
@@ -53,12 +63,35 @@ abstract class Provider {
 	protected float $temperature = 0.7;
 
 	/**
+	 * Seconds the provider said to wait before asking again, after its last refusal; 0 when it didn't say.
+	 *
+	 * @var int
+	 */
+	private int $retry_after = 0;
+
+	/**
 	 * Shortens the wait, so a fallback still fits in what's left of the request.
 	 *
 	 * @param int $seconds At most this long.
 	 */
 	public function set_timeout( int $seconds ): void {
-		$this->timeout = max( 10, min( self::TIMEOUT, $seconds ) );
+		$this->timeout = max( 10, min( self::LONGEST, $seconds ) );
+	}
+
+	/**
+	 * How long an answer may be, in tokens, from Configuration › AI. It also caps the bill of one message.
+	 *
+	 * @param int $tokens At most this many.
+	 */
+	public function set_answer_size( int $tokens ): void {
+		$this->answer = max( 1024, min( 64000, $tokens ) );
+	}
+
+	/**
+	 * How long the provider asked us to wait after it last refused, in seconds.
+	 */
+	public function retry_after(): int {
+		return $this->retry_after;
 	}
 
 	/**
@@ -113,6 +146,24 @@ abstract class Provider {
 	abstract public function complete( string $key, string $model, string $system, array $messages, array $schema );
 
 	/**
+	 * Whether the answer may hold only what changed. Providers that need every property in the answer say no.
+	 */
+	public function patches(): bool {
+		return true;
+	}
+
+	/**
+	 * The models to try, in this order, when the picked one fails: the others the key has.
+	 *
+	 * @param array<string, string> $models What models() gave.
+	 * @param string                $picked The model that failed.
+	 * @return array<int, string> Model ids.
+	 */
+	public function fallbacks( array $models, string $picked ): array {
+		return array_values( array_diff( array_keys( $models ), array( $picked ) ) );
+	}
+
+	/**
 	 * The model a new connection starts on: the newest fast, stable one, since the chat waits on it.
 	 *
 	 * @param array<string, string> $models What models() gave.
@@ -144,7 +195,8 @@ abstract class Provider {
 			$args['body']                    = (string) wp_json_encode( $body );
 		}
 
-		$response = wp_remote_request( $url, $args );
+		$this->retry_after = 0;
+		$response          = wp_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
 			$timeout = false !== stripos( $response->get_error_message(), 'timed out' );
@@ -167,7 +219,31 @@ abstract class Provider {
 			return $decoded;
 		}
 
+		$this->retry_after = self::wait_asked( $response, $decoded );
+
 		return $this->http_error( $code, is_string( $decoded['error']['message'] ?? null ) ? $decoded['error']['message'] : '' );
+	}
+
+	/**
+	 * How long a refusal asks to wait: a Retry-After header, or the "retryDelay" Gemini puts in the error's details ("12s").
+	 *
+	 * @param array<string, mixed>|\WP_Error $response The HTTP response.
+	 * @param array<string, mixed>           $decoded  Its decoded body.
+	 */
+	private static function wait_asked( $response, array $decoded ): int {
+		$header = wp_remote_retrieve_header( $response, 'retry-after' );
+
+		if ( is_string( $header ) && ctype_digit( $header ) ) {
+			return min( 120, (int) $header );
+		}
+
+		foreach ( is_array( $decoded['error']['details'] ?? null ) ? $decoded['error']['details'] : array() as $detail ) {
+			if ( is_array( $detail ) && is_string( $detail['retryDelay'] ?? null ) && 1 === preg_match( '/^(\d+(?:\.\d+)?)s$/', $detail['retryDelay'], $match ) ) {
+				return min( 120, (int) ceil( (float) $match[1] ) );
+			}
+		}
+
+		return 0;
 	}
 
 	/**
@@ -194,6 +270,12 @@ abstract class Provider {
 			return new WP_Error( 'iftp_btn_ai_quota', sprintf( __( '%s says this key is over its limit or out of credit. Wait a minute, or check the billing on your account.', 'ifthenpay-pay-button' ), $this->label() ) );
 		}
 
+		// Over the plan's size for one request (a provider's tokens per minute): another model, with its own limit, may take it.
+		if ( 413 === $code ) {
+			/* translators: %s: the AI provider, e.g. Gemini */
+			return new WP_Error( 'iftp_btn_ai_big', sprintf( __( '%s says this request is too big for the limit of this model on your plan. Pick another model in Configuration › AI, or upgrade the plan.', 'ifthenpay-pay-button' ), $this->label() ) );
+		}
+
 		// Google's 504: the model ran out of its own time, so it's a slow answer, not an overload.
 		if ( 504 === $code ) {
 			/* translators: %s: the AI provider, e.g. Gemini */
@@ -216,20 +298,32 @@ abstract class Provider {
 	}
 
 	/**
-	 * Decodes the JSON a model wrote as text, forgiving a Markdown fence around it.
+	 * Decodes the JSON a model wrote as text. Weaker models wrap it in a Markdown fence or a sentence, or leave a comma before
+	 * a closing bracket; all of that is forgiven, since the content is fine.
 	 *
 	 * @param string $text The model's text.
 	 * @return array<string, mixed>|WP_Error
 	 */
 	protected function decode_text( string $text ) {
-		$text    = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $text ) ) );
+		$text    = trim( $text );
 		$decoded = json_decode( $text, true );
 
 		if ( ! is_array( $decoded ) ) {
-			return $this->cut_off();
+			$open  = strpos( $text, '{' );
+			$close = strrpos( $text, '}' );
+
+			if ( false !== $open && false !== $close && $close > $open ) {
+				$text    = substr( $text, $open, $close - $open + 1 );
+				$decoded = json_decode( $text, true );
+
+				// A trailing comma, the commonest slip.
+				if ( ! is_array( $decoded ) ) {
+					$decoded = json_decode( (string) preg_replace( '/,\s*([}\]])/', '$1', $text ), true );
+				}
+			}
 		}
 
-		return $decoded;
+		return is_array( $decoded ) ? $decoded : $this->cut_off();
 	}
 
 	/**

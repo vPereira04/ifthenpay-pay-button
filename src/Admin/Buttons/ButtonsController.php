@@ -16,6 +16,7 @@ use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
 use Ifthenpay\PayButton\Buttons\Templates;
+use Ifthenpay\PayButton\Checkout\CustomCode;
 use Ifthenpay\PayButton\Plugin;
 use Ifthenpay\PayButton\Repository\CheckoutSettings;
 
@@ -57,6 +58,7 @@ class ButtonsController {
 		add_action( 'admin_post_' . ButtonsPage::SKIP_ACTION, array( $this, 'skip_welcome' ) );
 		add_action( 'wp_ajax_iftp_btn_tour_seen', array( $this, 'tour_seen' ) );
 		add_action( 'wp_ajax_iftp_btn_toggle_button', array( $this, 'toggle' ) );
+		add_action( 'wp_ajax_iftp_btn_batch_buttons', array( $this, 'batch' ) );
 		add_action( 'wp_ajax_iftp_btn_test_webhook', array( $this, 'test_webhook' ) );
 		add_action( 'wp_ajax_iftp_btn_test_invoice', array( $this, 'test_invoice' ) );
 	}
@@ -81,6 +83,7 @@ class ButtonsController {
 		$rotate = isset( $_POST['rotate_secret'] );
 		$tab    = isset( $_POST['tab'] ) ? sanitize_key( wp_unslash( $_POST['tab'] ) ) : '';
 		$by_ai  = isset( $_POST[ AiStudioPage::DRAFT_VAR ] );
+		$chat   = $by_ai && is_string( $_POST[ AiStudioPage::DRAFT_VAR ] ) ? sanitize_key( wp_unslash( $_POST[ AiStudioPage::DRAFT_VAR ] ) ) : '';
 		// The "make it the default" button submits the form too.
 		$make_default = isset( $_POST['make_default'] );
 		// Button::sanitize_config() cleans every key by its own rules, so here it's only unslashed.
@@ -95,28 +98,71 @@ class ButtonsController {
 			$config['webhook_secret'] = '';
 		}
 
+		// Custom code is as powerful as unfiltered HTML, so only those who may post that can change it. The button's CSS is the
+		// exception: the AI writes it, and a stylesheet that passes the checks can't run anything. A box that fails its checks
+		// keeps the last good version, and the notice says which and why.
+		$previous = $id > 0 ? $this->buttons->find( $id ) : null;
+		$kept     = null !== $previous ? $previous->config['code'] : CustomCode::defaults();
+		$sent     = is_array( $config['code'] ?? null ) ? $config['code'] : array();
+		$rejected = array();
+
+		foreach ( CustomCode::FIELDS as $field ) {
+			$value = is_string( $sent[ $field ] ?? null ) ? trim( $sent[ $field ] ) : '';
+			$may   = current_user_can( 'unfiltered_html' ) || 'button_css' === $field;
+			$error = $may ? ( str_ends_with( $field, '_css' ) ? CustomCode::css_error( $value, true ) : CustomCode::js_error( $value ) ) : null;
+
+			if ( null !== $error ) {
+				$rejected[ $field ] = $error;
+			}
+
+			$sent[ $field ] = $may && null === $error ? $value : $kept[ $field ];
+		}
+
+		$config['code'] = $sent;
+
+		// A title or message left as the site's own isn't kept as the button's, so it keeps following Default Design.
+		if ( is_array( $config['confirmation'] ?? null ) ) {
+			$site_words = ( new CheckoutSettings() )->get_confirmation();
+
+			foreach ( array( 'titles', 'messages' ) as $part ) {
+				foreach ( CheckoutSettings::OUTCOMES as $outcome ) {
+					$own = $config['confirmation'][ $part ][ $outcome ] ?? null;
+
+					if ( is_string( $own ) && trim( $own ) === trim( $site_words[ $part ][ $outcome ] ) ) {
+						$config['confirmation'][ $part ][ $outcome ] = '';
+					}
+				}
+			}
+		}
+
 		// "Save and make it the default": its design becomes the site's, and it follows that from now on.
 		if ( $make_default ) {
 			( new CheckoutSettings() )->set_button_design( ButtonDesign::sanitize( $config['design'] ?? array() ) );
 			$config['design'] = array( 'source' => ButtonDesign::SOURCE_SITE ) + ( is_array( $config['design'] ?? null ) ? $config['design'] : array() );
 		}
 
-		// The chat that built this version is done with once it's kept; read the button before it changes.
-		$chatted = $by_ai && $id > 0 ? $this->buttons->find( $id ) : null;
-		$saved   = $this->buttons->save( $id, $title, $slug, $active, $config );
+		$saved = $this->buttons->save( $id, $title, $slug, $active, $config );
 
 		if ( 0 === $saved ) {
 			$this->back( ButtonsPage::list_url( array( 'iftp_notice' => 'error' ) ) );
 		}
 
+		// Once the version the chat built is kept, the chat has no use left, so it goes.
 		if ( $by_ai ) {
-			( new Studio() )->forget( $chatted );
+			( new Studio() )->forget( $chat );
 		}
 
 		// Back to the tab they saved from.
 		$fragment = in_array( $tab, array( 'form', 'design', 'after', 'connect' ), true ) ? '#' . $tab : '';
 
-		$this->back( add_query_arg( 'iftp_notice', $make_default ? 'default' : ( $id > 0 ? 'saved' : 'created' ), ButtonsPage::edit_url( $saved ) ) . $fragment );
+		$args = array( 'iftp_notice' => $make_default ? 'default' : ( $id > 0 ? 'saved' : 'created' ) );
+
+		if ( array() !== $rejected ) {
+			// field:reason pairs; ButtonsPage::print_notice() words them.
+			$args['iftp_code'] = implode( ',', array_map( static fn( string $field, string $error ): string => $field . ':' . $error, array_keys( $rejected ), $rejected ) );
+		}
+
+		$this->back( add_query_arg( $args, ButtonsPage::edit_url( $saved ) ) . $fragment );
 	}
 
 	/**
@@ -126,7 +172,6 @@ class ButtonsController {
 		check_admin_referer( ButtonsPage::TEMPLATE_ACTION );
 		$this->guard();
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- checked by check_admin_referer() above.
 		$key      = isset( $_GET['template'] ) ? sanitize_key( wp_unslash( $_GET['template'] ) ) : '';
 		$template = Templates::get( $key );
 
@@ -213,7 +258,6 @@ class ButtonsController {
 		$this->guard();
 
 		$button = $this->buttons->find( $this->requested_id() );
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by check_ajax_referer() above.
 		$active = isset( $_POST['active'] ) && '1' === sanitize_key( wp_unslash( $_POST['active'] ) );
 
 		if ( null === $button || ! $this->buttons->set_active( $button, $active ) ) {
@@ -221,6 +265,67 @@ class ButtonsController {
 		}
 
 		wp_send_json_success( array( 'active' => $active ) );
+	}
+
+	/**
+	 * AJAX: does one thing to every button picked on the list, and says how many it worked for.
+	 */
+	public function batch(): void {
+		check_ajax_referer( ButtonsPage::AJAX_NONCE );
+		$this->guard();
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked by check_ajax_referer() above.
+		$op  = isset( $_POST['op'] ) ? sanitize_key( wp_unslash( $_POST['op'] ) ) : '';
+		$raw = isset( $_POST['ids'] ) && is_array( $_POST['ids'] ) ? array_map( 'absint', wp_unslash( $_POST['ids'] ) ) : array();
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$ids = array_slice( array_values( array_unique( array_filter( $raw ) ) ), 0, 200 );
+
+		if ( ! in_array( $op, array( 'activate', 'deactivate', 'duplicate', 'delete' ), true ) || array() === $ids ) {
+			wp_send_json_error( array( 'message' => __( 'Pick at least one button and an action.', 'ifthenpay-pay-button' ) ), 400 );
+		}
+
+		$done = 0;
+
+		foreach ( $ids as $id ) {
+			$button = $this->buttons->find( $id );
+
+			if ( null === $button ) {
+				continue;
+			}
+
+			switch ( $op ) {
+				case 'activate':
+				case 'deactivate':
+					$ok = $this->buttons->set_active( $button, 'activate' === $op );
+					break;
+				case 'duplicate':
+					$ok = $this->buttons->duplicate( $button ) > 0;
+					break;
+				default:
+					$ok = $this->buttons->delete( $button );
+			}
+
+			if ( $ok ) {
+				++$done;
+			}
+		}
+
+		if ( 0 === $done ) {
+			wp_send_json_error( array( 'message' => __( 'Could not change the buttons. Please try again.', 'ifthenpay-pay-button' ) ), 400 );
+		}
+
+		wp_send_json_success(
+			array(
+				'done' => $done,
+				'url'  => ButtonsPage::list_url(
+					array(
+						'iftp_notice' => 'batch',
+						'iftp_op'     => $op,
+						'iftp_n'      => (string) $done,
+					)
+				),
+			)
+		);
 	}
 
 	/**
@@ -278,7 +383,7 @@ class ButtonsController {
 		$this->guard();
 
 		$button = $this->buttons->find( $this->requested_id() );
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce checked above; InvoiceHook::sanitize() cleans each key by its own rules.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce checked above; InvoiceHook::sanitize() cleans each key by its own rules.
 		$raw = isset( $_POST['hook'] ) && is_array( $_POST['hook'] ) ? map_deep( wp_unslash( $_POST['hook'] ), static fn( $value ) => is_string( $value ) ? $value : '' ) : array();
 
 		if ( null === $button ) {

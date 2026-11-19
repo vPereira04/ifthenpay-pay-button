@@ -31,11 +31,11 @@ class Insights {
 	private const SECONDS_PER_DAY = 86400;
 
 	/**
-	 * Transactions storage.
+	 * The aggregate reads.
 	 *
-	 * @var TransactionStore
+	 * @var TransactionReports
 	 */
-	private TransactionStore $transactions;
+	private TransactionReports $reports;
 
 	/**
 	 * Built periods, per request.
@@ -47,10 +47,10 @@ class Insights {
 	/**
 	 * Sets up the reports.
 	 *
-	 * @param TransactionStore|null $transactions Transactions storage.
+	 * @param TransactionReports|null $reports The aggregate reads.
 	 */
-	public function __construct( ?TransactionStore $transactions = null ) {
-		$this->transactions = $transactions ?? new TransactionStore();
+	public function __construct( ?TransactionReports $reports = null ) {
+		$this->reports = $reports ?? new TransactionReports();
 	}
 
 	/**
@@ -90,7 +90,7 @@ class Insights {
 
 		$first = $buckets[0]['from'];
 		$last  = $buckets[ count( $buckets ) - 1 ]['to'];
-		$rows  = $this->transactions->daily_totals( $first * self::SECONDS_PER_DAY - $offset, ( $last + 1 ) * self::SECONDS_PER_DAY - $offset, $offset );
+		$rows  = $this->reports->daily_totals( $first * self::SECONDS_PER_DAY - $offset, ( $last + 1 ) * self::SECONDS_PER_DAY - $offset, $offset );
 
 		// The first half of the buckets is the previous period, the second half the current one.
 		$half     = intdiv( count( $buckets ), 2 );
@@ -127,8 +127,8 @@ class Insights {
 	 * @return array<int, MethodShare>
 	 */
 	private function methods( int $from, int $to, int $then_from ): array {
-		$now   = $this->group_methods( $this->transactions->method_totals( $from, $to ) );
-		$then  = $this->group_methods( $this->transactions->method_totals( $then_from, $from ) );
+		$now   = $this->group_methods( $this->reports->method_totals( $from, $to ) );
+		$then  = $this->group_methods( $this->reports->method_totals( $then_from, $from ) );
 		$total = array_sum( array_column( $now, 'amount' ) );
 
 		uasort( $now, static fn( array $a, array $b ): int => $b['amount'] <=> $a['amount'] );
@@ -169,7 +169,7 @@ class Insights {
 	/**
 	 * Folds spellings of one method together ("MB WAY", "MBWAY", "mbway"), keeping the first name seen.
 	 *
-	 * @param array<int, array{method: string, count: int, amount: float}> $rows From TransactionStore::method_totals().
+	 * @param array<int, array{method: string, count: int, amount: float}> $rows From TransactionReports::method_totals().
 	 * @return array<string, array{label: string, amount: float, count: int}>
 	 */
 	private function group_methods( array $rows ): array {

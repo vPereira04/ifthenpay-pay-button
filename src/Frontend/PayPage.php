@@ -23,6 +23,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * A page of its own for every active button, outside the theme: a link that works in an email, a QR code,
  * a social post, or as the redirect target of a form plugin ifthenpay has no integration with.
+ *
+ * @phpstan-import-type Look from CheckoutLook
  */
 class PayPage {
 
@@ -143,12 +145,15 @@ class PayPage {
 		$site      = (string) get_bloginfo( 'name' );
 		$look      = CheckoutLook::for_button( $button, $this->checkout_settings );
 		$own       = CheckoutLook::inline_style( $button );
+		// A button set to "My own code" gets none of our checkout styles here, only a tiny base and its own CSS.
+		$code_attr = $this->renderer->register_code( $button );
+		$bare      = Button::LOOK_CODE === $button->config['look_mode'];
 		$classes   = trim( 'iftp-btn-page-body ' . CheckoutLook::page_classes( $look ) . ' ' . CheckoutLook::dark_class( $look ) );
 		/* translators: 1: the button's title, 2: the site name */
 		$title = sprintf( __( '%1$s · %2$s', 'ifthenpay-pay-button' ), $button->title, $site );
 		?>
 <!DOCTYPE html>
-<html <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?><?php echo $code_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from an integer id in register_code(). ?>>
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -156,14 +161,15 @@ class PayPage {
 	<title><?php echo esc_html( $title ); ?></title>
 		<?php
 		wp_site_icon();
-		wp_print_styles( array( ButtonRenderer::STYLE_HANDLE ) );
+		$this->renderer->with_scenes();
+		wp_print_styles( array( $bare ? ButtonRenderer::BASE_HANDLE : ButtonRenderer::STYLE_HANDLE ) );
 		?>
 </head>
 <body class="<?php echo esc_attr( $classes ); ?>"<?php echo '' !== $own ? ' style="' . esc_attr( $own ) . '"' : ''; ?>>
 		<?php echo CheckoutLook::video_markup( $look, false ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in video_markup(). ?>
 	<main class="iftp-btn-page">
-		<?php if ( $look['pay_logo'] ) : ?>
-			<a class="iftp-btn-page__logo" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo self::site_mark(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in site_mark(). ?></a>
+		<?php if ( $look['pay_logo'] && 'above' === $look['pay_mark_place'] ) : ?>
+			<a class="iftp-btn-page__logo<?php echo 'image' === $look['pay_mark'] ? ' iftp-btn-page__logo--custom' : ''; ?>" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo self::site_mark( $look ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in site_mark(). ?></a>
 		<?php endif; ?>
 		<?php if ( is_wp_error( $available ) ) : ?>
 			<div class="iftp-btn-form iftp-btn-form--notice">
@@ -187,10 +193,25 @@ class PayPage {
 	}
 
 	/**
-	 * The site's logo for the top of the pay page: the theme's custom logo, else the site icon, else its name.
+	 * The picture for the top of the pay page: the image the look picked from the media library, else the site's logo
+	 * (the theme's custom logo, else the site icon, else its name).
+	 *
+	 * @param array<string, mixed>|null $look A sanitized look; null for the site's logo.
+	 * @phpstan-param Look|null $look
 	 */
-	public static function site_mark(): string {
+	public static function site_mark( ?array $look = null ): string {
 		$site = (string) get_bloginfo( 'name' );
+
+		if ( null !== $look && 'image' === $look['pay_mark'] ) {
+			$picked = wp_get_attachment_image_url( $look['pay_mark_id'], 'large' );
+
+			if ( is_string( $picked ) && '' !== $picked ) {
+				$alt = (string) get_post_meta( $look['pay_mark_id'], '_wp_attachment_image_alt', true );
+
+				return '<img class="iftp-btn-page__logo-image" src="' . esc_url( $picked ) . '" alt="' . esc_attr( '' !== $alt ? $alt : $site ) . '" />';
+			}
+		}
+
 		$logo = (int) get_theme_mod( 'custom_logo' );
 		$url  = $logo > 0 ? wp_get_attachment_image_url( $logo, 'medium' ) : false;
 		$url  = is_string( $url ) && '' !== $url ? $url : get_site_icon_url( 96 );

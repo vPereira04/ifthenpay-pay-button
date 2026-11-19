@@ -13,8 +13,10 @@
 
 	const i18n = data.i18n;
 	const demo = i18n.demo;
+	const GUARDED = [ 'click', 'mousedown', 'pointerdown', 'submit', 'keydown', 'keyup', 'dblclick', 'contextmenu' ];
 	let tour = null;
 	let actToken = 0;
+	let said = '';
 
 	function post( action ) {
 		const body = new URLSearchParams( { action: action, _ajax_nonce: data.nonce } );
@@ -29,47 +31,6 @@
 	function pause( ms ) {
 		return new Promise( function ( resolve ) {
 			window.setTimeout( resolve, ms );
-		} );
-	}
-
-	function setValue( field, value ) {
-		field.value = value;
-		field.dispatchEvent( new Event( 'input', { bubbles: true } ) );
-		field.dispatchEvent( new Event( 'change', { bubbles: true } ) );
-	}
-
-	// Types a letter at a time; if the step is left meanwhile, the rest lands at once.
-	function type( field, text, token ) {
-		return new Promise( function ( resolve ) {
-			let at = 0;
-
-			if ( ! field || field.value === text ) {
-				resolve();
-
-				return;
-			}
-
-			setValue( field, '' );
-
-			( function tick() {
-				if ( token !== actToken ) {
-					setValue( field, text );
-					resolve();
-
-					return;
-				}
-
-				at++;
-				setValue( field, text.slice( 0, at ) );
-
-				if ( at >= text.length ) {
-					resolve();
-
-					return;
-				}
-
-				window.setTimeout( tick, 40 );
-			}() );
 		} );
 	}
 
@@ -145,9 +106,12 @@
 			node.remove();
 		} );
 
-		if ( parts.input && aiBefore ) {
+		if ( parts.input ) {
 			parts.input.value = '';
 			parts.input.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		}
+
+		if ( parts.input && aiBefore ) {
 			parts.building.hidden = true;
 			parts.frame.classList.remove( 'is-building' );
 			parts.text.textContent = '';
@@ -211,53 +175,26 @@
 		parts.log.scrollTop = parts.log.scrollHeight;
 	}
 
-	function asked( parts ) {
+	function asked( parts, said ) {
 		const text = document.createElement( 'span' );
 
-		text.textContent = demo.prompt;
+		text.textContent = said || demo.prompt;
 		parts.input.value = '';
 		parts.log.append( bubble( 'user', text ) );
 		parts.log.scrollTop = parts.log.scrollHeight;
 	}
 
 	const acts = {
-		basics: function ( token ) {
-			return type( form.querySelector( '[name="title"]' ), demo.title, token ).then( function () {
-				return type( form.querySelector( '[name="config[summary]"]' ), demo.summary, token );
-			} );
-		},
-		amount: function ( token ) {
-			const mode = form.querySelector( '[name="config[amount_mode]"][value="fixed"]' );
-
-			if ( mode && ! mode.checked ) {
-				mode.checked = true;
-				mode.dispatchEvent( new Event( 'change', { bubbles: true } ) );
-			}
-
-			return type( form.querySelector( '[name="config[amount]"]' ), demo.amount, token );
-		},
-		fields: function () {
-			const phone = form.querySelector( '[name="config[fields][phone]"][value="optional"]' );
-
-			if ( phone && ! phone.checked ) {
-				phone.checked = true;
-				phone.dispatchEvent( new Event( 'change', { bubbles: true } ) );
-			}
-		},
-		reset: function () {
+		prompt: function () {
+			rememberAi();
 			resetAi();
-		},
-		prompt: function ( token ) {
-			resetAi();
-
-			return type( aiParts().input, demo.prompt, token );
 		},
 		build: function ( token ) {
 			const parts = aiParts();
 
 			rememberAi();
 			resetAi();
-			asked( parts );
+			asked( parts, said );
 			parts.building.hidden = false;
 			parts.frame.classList.add( 'is-building' );
 			parts.text.textContent = demo.working;
@@ -297,50 +234,7 @@
 			acts.checkout();
 			showReview( parts );
 		},
-		designButton: function ( token ) {
-			const custom = form.querySelector( '[name="config[design][source]"][value="custom"]' );
-
-			if ( custom && ! custom.checked ) {
-				custom.click();
-			}
-
-			const preset = form.querySelector( '[data-iftp-preset="sunset"]' ) || form.querySelector( '[data-iftp-preset]:not([data-iftp-preset="ifthenpay"])' );
-
-			if ( preset ) {
-				preset.click();
-			}
-
-			return type( form.querySelector( '[name="config[label]"]' ), demo.label, token );
-		},
-		designCheckout: function () {
-			const own = form.querySelector( '[name="config[look_mode]"][value="own"]' );
-
-			if ( own && ! own.checked ) {
-				own.click();
-			}
-
-			const preset = form.querySelector( '[data-iftp-look-preset="midnight"]' ) || form.querySelector( '[data-iftp-look-preset]:not([data-iftp-look-preset="ifthenpay"])' );
-
-			if ( preset ) {
-				preset.click();
-			}
-		},
-		designBackground: function () {
-			const fold = form.querySelector( '[data-iftp-look-section="page"]' );
-
-			if ( fold ) {
-				fold.open = true;
-			}
-
-			[ [ 'pay_bg', 'gradient' ], [ 'pay_grad', 'aurora' ], [ 'pay_fx', 'liquid' ] ].forEach( function ( pick ) {
-				const radio = form.querySelector( '[name="config[look][' + pick[ 0 ] + ']"][value="' + pick[ 1 ] + '"]' );
-
-				if ( radio && ! radio.checked ) {
-					radio.click();
-				}
-			} );
-		},
-	};
+		};
 
 	/* ---------------------------------------------------------------- The tour */
 
@@ -397,30 +291,64 @@
 			return '' === step.target ? null : document.querySelector( step.target );
 		}
 
+		// Where the page's own fixed chrome ends: the admin bar, and the editor's tab row while it sticks.
+		function topEdge( element ) {
+			const bar = ( document.getElementById( 'wpadminbar' ) || { offsetHeight: 0 } ).offsetHeight;
+			const tabs = document.querySelector( '[data-iftp-tabs]' );
+
+			if ( tabs && element && ! tabs.contains( element ) && visible( tabs ) && 'sticky' === window.getComputedStyle( tabs ).position ) {
+				return Math.max( bar, ( parseFloat( window.getComputedStyle( tabs ).top ) || 0 ) + tabs.offsetHeight );
+			}
+
+			return bar;
+		}
+
+		// Room beside a tall target for the card, so the whole target can stay lit: 'left', 'right' or ''.
+		function sideRoom( box ) {
+			const vw = document.documentElement.clientWidth;
+			const cw = card.offsetWidth + 28;
+
+			if ( box.height <= window.innerHeight * 0.5 ) {
+				return '';
+			}
+
+			if ( box.left >= cw ) {
+				return 'left';
+			}
+
+			return vw - box.right >= cw ? 'right' : '';
+		}
+
 		// Puts the target where the card can sit beside it: tall ones at the top, the rest in the middle.
 		function scrollToTarget( element ) {
-			const bar = ( document.getElementById( 'wpadminbar' ) || { offsetHeight: 0 } ).offsetHeight;
+			const edge = topEdge( element );
 			const vh = window.innerHeight;
 			const box = element.getBoundingClientRect();
 			const tall = box.height > vh * 0.5;
 
-			window.scrollBy( { top: tall ? box.top - ( bar + 24 ) : box.top + box.height / 2 - vh * 0.42, behavior: 'instant' } );
+			window.scrollBy( { top: tall ? box.top - ( edge + 24 ) : box.top + box.height / 2 - vh * 0.42, behavior: 'instant' } );
 		}
 
 		function layout() {
 			const vw = document.documentElement.clientWidth;
 			const vh = window.innerHeight;
-			const bar = ( document.getElementById( 'wpadminbar' ) || { offsetHeight: 0 } ).offsetHeight;
 			const element = target();
+			const bar = topEdge( element );
 			const pad = 8;
 			const r = 14;
+			let side = '';
 
 			rect = null;
 
 			if ( element ) {
 				const box = element.getBoundingClientRect();
 				const top = Math.max( bar, box.top - pad );
-				const bottom = Math.min( box.bottom + pad, top + vh * 0.5 );
+
+				side = sideRoom( box );
+
+				// With room beside it the whole target is lit; otherwise only its first half, so the card fits under it.
+				const fits = Math.max( vh * 0.35, vh - top - card.offsetHeight - 28 );
+				const bottom = Math.min( box.bottom + pad, top + ( side ? vh - top - 12 : fits ) );
 				const left = Math.max( 4, box.left - pad );
 
 				rect = { left: left, top: top, width: Math.min( vw - left - 4, box.width + pad * 2 ), height: Math.max( 24, bottom - top ) };
@@ -436,8 +364,11 @@
 			let left = ( vw - cw ) / 2;
 			let top = ( vh - ch ) / 2;
 
-			// Under the target when it fits, else over it, else along the bottom.
-			if ( rect ) {
+			// Beside a tall target when there is room, else under it, else over it, else along the bottom.
+			if ( rect && side ) {
+				left = 'left' === side ? rect.left - cw - 16 : rect.left + rect.width + 16;
+				top = Math.min( Math.max( bar + 8, rect.top ), vh - ch - 12 );
+			} else if ( rect ) {
 				left = Math.min( Math.max( 12, rect.left ), vw - cw - 12 );
 
 				if ( rect.top + rect.height + 16 + ch <= vh - 12 ) {
@@ -453,7 +384,82 @@
 			card.style.top = Math.max( 12, top ) + 'px';
 		}
 
-		function show() {
+		let glowing = null;
+
+	function unglow() {
+		if ( glowing ) {
+			glowing.classList.remove( 'iftp-btn-tour-glow' );
+			glowing = null;
+		}
+	}
+
+	function advance() {
+		if ( index < steps.length - 1 ) {
+			index++;
+			show();
+		} else if ( chapter.next ) {
+			leave( chapter.next );
+		} else {
+			finish();
+		}
+	}
+
+	// While the tour is up the page is look-only: the one thing the step asks for works, nothing else does,
+	// so nobody can wander off into the demo and leave it half-done. Scripted moves aren't trusted events.
+	function guard( event ) {
+		const step = steps[ index ];
+		const at = event.target instanceof Element ? event.target : null;
+
+		if ( ! event.isTrusted || ! at || card.contains( at ) ) {
+			return;
+		}
+
+		if ( 'send' === step.wait ) {
+			const typed = aiParts().input.value.trim();
+			const sends = 'submit' === event.type || at.closest( '[data-iftp-studio-send]' ) || ( 'keydown' === event.type && 'Enter' === event.key && ! event.shiftKey && at.closest( '[data-iftp-studio-input]' ) );
+
+			if ( sends ) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+
+				if ( typed && 'mousedown' !== event.type && 'pointerdown' !== event.type && 'keyup' !== event.type ) {
+					said = typed;
+					window.setTimeout( advance, 0 );
+				}
+
+				return;
+			}
+		}
+
+		if ( 'send' === step.wait && at.closest( step.target ) && 'submit' !== event.type ) {
+			return;
+		}
+
+		if ( 'send' !== step.wait && step.target && 'submit' !== event.type && at.closest( step.target ) ) {
+			if ( 'click' === event.type && 'click' === step.wait && step.on && at.closest( step.on ) ) {
+				// A link on the last step would leave the page its own way; the tour takes it there instead.
+				if ( index === steps.length - 1 && chapter.next ) {
+					event.preventDefault();
+					leave( chapter.next );
+
+					return;
+				}
+
+				window.setTimeout( advance, 0 );
+			}
+
+			return;
+		}
+
+		if ( 'keydown' === event.type && [ 'Tab', 'Shift', 'Escape' ].indexOf( event.key ) > -1 ) {
+			return;
+		}
+
+		event.preventDefault();
+		event.stopImmediatePropagation();
+	}
+
+	function show() {
 			const step = steps[ index ];
 			const last = index === steps.length - 1;
 			const token = ++actToken;
@@ -464,6 +470,7 @@
 			const skip = document.createElement( 'button' );
 			const nav = document.createElement( 'span' );
 			const next = document.createElement( 'button' );
+			const hint = document.createElement( 'p' );
 
 			if ( step.tab ) {
 				selectTab( step.tab );
@@ -478,11 +485,12 @@
 			}
 
 			count.className = 'iftp-btn-tour__count';
-			count.textContent = i18n.count.replace( '%1$s', chapter.label ).replace( '%2$s', index + 1 ).replace( '%3$s', steps.length );
+			count.textContent = i18n.count.replace( '%1$s', index + 1 ).replace( '%2$s', steps.length );
 			title.className = 'iftp-btn-tour__title';
 			title.textContent = step.title;
 			text.className = 'iftp-btn-tour__text';
 			text.textContent = step.text;
+			hint.className = 'iftp-btn-tour__hint';
 			actions.className = 'iftp-btn-tour__actions';
 			nav.className = 'iftp-btn-tour__nav';
 
@@ -508,23 +516,29 @@
 			next.type = 'button';
 			next.className = 'iftp-btn-btn iftp-btn-btn--primary';
 			next.textContent = last ? chapter.cta : i18n.next;
-			next.addEventListener( 'click', function () {
-				if ( ! last ) {
-					index++;
-					show();
-
-					return;
-				}
-
-				if ( chapter.next ) {
-					leave( chapter.next );
-				} else {
-					finish();
-				}
-			} );
+			next.addEventListener( 'click', advance );
 			nav.append( next );
 			actions.append( nav );
-			card.replaceChildren( count, title, text, actions );
+			card.replaceChildren( count, title, text );
+
+			// An interactive step invites the payer to do it (the field to use glows), but Next is always there to skip it.
+			ring.classList.toggle( 'is-live', !! step.wait );
+			unglow();
+
+			if ( 'fill' === step.wait || 'send' === step.wait ) {
+				glowing = document.querySelector( step.on );
+
+				if ( glowing ) {
+					glowing.classList.add( 'iftp-btn-tour-glow' );
+				}
+			}
+
+			if ( step.wait ) {
+				hint.textContent = i18n.hint[ step.wait ];
+				card.append( hint );
+			}
+
+			card.append( actions );
 
 			// The demo goes first: its first moves (opening a fold, showing a review) change what is measured.
 			const running = step.act && acts[ step.act ] ? Promise.resolve( acts[ step.act ]( token ) ) : null;
@@ -535,7 +549,7 @@
 			}
 
 			layout();
-			next.focus( { preventScroll: true } );
+			( step.wait ? card : next ).focus( { preventScroll: true } );
 
 			if ( running ) {
 				running.then( function () {
@@ -567,7 +581,11 @@
 			window.removeEventListener( 'resize', layout );
 			window.removeEventListener( 'scroll', layout );
 			document.removeEventListener( 'keydown', onKey, true );
-			actToken++;
+			GUARDED.forEach( function ( name ) {
+				document.removeEventListener( name, guard, true );
+			} );
+				actToken++;
+			unglow();
 			resetAi();
 			shade.remove();
 			ring.remove();
@@ -581,6 +599,9 @@
 		}
 
 		tour = { finish: finish };
+	GUARDED.forEach( function ( name ) {
+		document.addEventListener( name, guard, true );
+	} );
 		window.addEventListener( 'resize', layout );
 		window.addEventListener( 'scroll', layout, { passive: true } );
 		document.addEventListener( 'keydown', onKey, true );

@@ -18,6 +18,86 @@
 	const slowDelay = 10000;
 	const budget = 25 * 60 * 1000;
 
+	/* ---------------------------------------------------------------- Picture preview */
+
+	// The magnifier on a picture card opens the picture larger, in a dialog of its own over the checkout.
+	( function () {
+		let box = null;
+
+		function close() {
+			if ( box && box.open ) {
+				box.close();
+			}
+		}
+
+		function open( trigger ) {
+			close();
+
+			const alt = trigger.getAttribute( 'data-iftp-zoom-alt' ) || '';
+			const img = document.createElement( 'img' );
+			const closer = document.createElement( 'button' );
+			const caption = document.createElement( 'p' );
+			const dialog = document.createElement( 'dialog' );
+
+			dialog.className = 'iftp-btn-lightbox';
+			dialog.setAttribute( 'aria-label', alt );
+
+			img.className = 'iftp-btn-lightbox__img';
+			img.src = trigger.getAttribute( 'data-iftp-zoom' );
+			img.alt = alt;
+
+			closer.type = 'button';
+			closer.className = 'iftp-btn-lightbox__close';
+			closer.setAttribute( 'aria-label', i18n.close || 'Close' );
+			closer.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+			closer.addEventListener( 'click', close );
+
+			caption.className = 'iftp-btn-lightbox__caption';
+			caption.textContent = alt;
+
+			dialog.appendChild( img );
+			dialog.appendChild( caption );
+			dialog.appendChild( closer );
+
+			// A click on the dimmed backdrop (the dialog itself) closes it; one on the picture doesn't.
+			dialog.addEventListener( 'click', function ( event ) {
+				if ( event.target === dialog ) {
+					close();
+				}
+			} );
+
+			dialog.addEventListener( 'close', function () {
+				dialog.remove();
+				box = null;
+				trigger.focus();
+			} );
+
+			// Inside the checkout's own dialog when there is one, so it keeps the look and sits above it.
+			( trigger.closest( 'dialog' ) || document.body ).appendChild( dialog );
+			box = dialog;
+			dialog.showModal();
+		}
+
+		document.addEventListener( 'click', function ( event ) {
+			const trigger = event.target.closest ? event.target.closest( '[data-iftp-zoom]' ) : null;
+
+			if ( trigger ) {
+				// It sits inside the option's label, so it must not tick the option.
+				event.preventDefault();
+				open( trigger );
+			}
+		} );
+
+		document.addEventListener( 'keydown', function ( event ) {
+			const trigger = event.target.closest ? event.target.closest( '[data-iftp-zoom]' ) : null;
+
+			if ( trigger && ( event.key === 'Enter' || event.key === ' ' ) ) {
+				event.preventDefault();
+				open( trigger );
+			}
+		} );
+	}() );
+
 	/* ---------------------------------------------------------------- Checkout */
 
 	// Same shape as the server's format_money(): the site's separators, two decimals, then the euro sign.
@@ -42,11 +122,43 @@
 		return option && option.value ? [ option ] : [];
 	}
 
+	// The picked options of the other fields that have spots of their own, ticked or selected.
+	function pickedLimited( form ) {
+		const picked = Array.prototype.slice.call( form.querySelectorAll( 'input[data-extra-left]:checked:not(:disabled)' ) );
+
+		form.querySelectorAll( 'select:not(:disabled)' ).forEach( function ( select ) {
+			const option = select.selectedOptions[ 0 ];
+
+			if ( option && option.value && option.dataset.extraLeft !== undefined ) {
+				picked.push( option );
+			}
+		} );
+
+		return picked;
+	}
+
+	// What the picked options of the other fields add to every spot; a hidden field's inputs are disabled.
+	function pickedExtras( form ) {
+		let sum = 0;
+
+		form.querySelectorAll( 'input[data-extra]:checked:not(:disabled)' ).forEach( function ( input ) {
+			sum += parseFloat( input.dataset.extra ) || 0;
+		} );
+
+		form.querySelectorAll( 'select:not(:disabled)' ).forEach( function ( select ) {
+			const option = select.selectedOptions[ 0 ];
+
+			sum += option && option.dataset.extra ? parseFloat( option.dataset.extra ) || 0 : 0;
+		} );
+
+		return sum;
+	}
+
 	// A fixed amount is per spot: the total follows the option's price and the quantity.
 	function bindSpots( form ) {
 		const quantity = form.querySelector( '[data-iftp-btn-quantity]' );
 		const total = form.querySelector( '[data-iftp-btn-total]' );
-		if ( ! quantity && ! form.querySelector( '[data-left], [data-price]' ) ) {
+		if ( ! quantity && ! form.querySelector( '[data-left], [data-price], [data-extra], [data-extra-left]' ) ) {
 			return;
 		}
 
@@ -74,10 +186,12 @@
 		const update = function () {
 			const picked = pickedSpots( form );
 
-			// The most a payer can take is the button's own cap, or what's left on the tightest picked option.
+			// The most a payer can take is the button's own cap, or what's left on the tightest picked option, on any field.
 			if ( quantity ) {
-				const left = picked.reduce( function ( least, option ) {
-					return option.dataset.left !== undefined ? Math.min( least, parseInt( option.dataset.left, 10 ) ) : least;
+				const left = picked.concat( pickedLimited( form ) ).reduce( function ( least, option ) {
+					const own = option.dataset.left !== undefined ? option.dataset.left : option.dataset.extraLeft;
+
+					return own !== undefined ? Math.min( least, parseInt( own, 10 ) ) : least;
 				}, Infinity );
 
 				quantity.max = String( Math.max( 1, Math.min( parseInt( quantity.dataset.maxEach, 10 ) || 1, left ) ) );
@@ -94,7 +208,7 @@
 					: parseFloat( form.dataset.unit );
 
 				// Options with their own prices show "from …" until one is picked.
-				total.textContent = ! picked.length && form.querySelector( '[data-price]' ) ? startText : formatMoney( unit * count );
+				total.textContent = ! picked.length && form.querySelector( '[data-price]' ) ? startText : formatMoney( ( unit + pickedExtras( form ) ) * count );
 			}
 		};
 
@@ -157,6 +271,8 @@
 
 	// 'close' doesn't bubble, so this listens on the way down.
 	document.addEventListener( 'close', function ( event ) {
+		document.documentElement.style.removeProperty( '--iftp-btn-sbw' );
+
 		if ( event.target && event.target.querySelectorAll ) {
 			event.target.querySelectorAll( '[data-iftp-video] video' ).forEach( function ( video ) {
 				video.pause();
@@ -164,11 +280,52 @@
 		}
 	}, true );
 
-	function openDialog( dialog ) {
+	// The popup grows out of the button that was clicked: this sets where it grows from, relative to the popup itself.
+	function growFrom( dialog, opener ) {
+		dialog.style.removeProperty( '--iftp-btn-ox' );
+		dialog.style.removeProperty( '--iftp-btn-oy' );
+		dialog.style.removeProperty( '--iftp-btn-cx' );
+		dialog.style.removeProperty( '--iftp-btn-cy' );
+
+		if ( ! opener ) {
+			return;
+		}
+
+		// A full-screen scene grows its card; a plain popup grows itself. Layout offsets ignore the animation's own scale.
+		const scene = dialog.classList.contains( 'iftp-btn-sheet--scene' );
+		const card = scene ? dialog.querySelector( ':scope > .iftp-btn-form, :scope > .iftp-btn-result__box' ) : dialog;
+		const from = opener.getBoundingClientRect();
+
+		if ( ! card || ! from.width ) {
+			return;
+		}
+
+		// A scene's background opens like an iris from the button's centre on the screen.
+		dialog.style.setProperty( '--iftp-btn-cx', Math.round( from.left + from.width / 2 ) + 'px' );
+		dialog.style.setProperty( '--iftp-btn-cy', Math.round( from.top + from.height / 2 ) + 'px' );
+
+		const left = ( scene ? dialog.offsetLeft + card.offsetLeft : card.offsetLeft );
+		const top = ( scene ? dialog.offsetTop + card.offsetTop : card.offsetTop );
+
+		dialog.style.setProperty( '--iftp-btn-ox', Math.round( from.left + from.width / 2 - left ) + 'px' );
+		dialog.style.setProperty( '--iftp-btn-oy', Math.round( from.top + from.height / 2 - top ) + 'px' );
+	}
+
+	function openDialog( dialog, opener ) {
+		const root = document.documentElement;
+
+		root.style.setProperty( '--iftp-btn-sbw', Math.max( 0, window.innerWidth - root.clientWidth ) + 'px' );
+
 		if ( typeof dialog.showModal === 'function' ) {
 			dialog.showModal();
 		} else {
 			dialog.setAttribute( 'open', '' );
+		}
+
+		growFrom( dialog, opener );
+
+		if ( window.iftpBtnOpenFx ) {
+			window.iftpBtnOpenFx.open( dialog );
 		}
 
 		playVideo( dialog );
@@ -180,13 +337,41 @@
 		}
 	}
 
+	// Closing plays the opening backwards (the popup shrinks into the button), then really closes. Escape does the same.
 	function closeDialog( dialog ) {
-		if ( typeof dialog.close === 'function' ) {
-			dialog.close();
-		} else {
-			dialog.removeAttribute( 'open' );
+		if ( ! dialog || ! dialog.hasAttribute( 'open' ) || dialog.classList.contains( 'is-closing' ) ) {
+			return;
 		}
+
+		const finish = function () {
+			dialog.classList.remove( 'is-closing' );
+
+			if ( typeof dialog.close === 'function' ) {
+				dialog.close();
+			} else {
+				dialog.removeAttribute( 'open' );
+			}
+		};
+
+		// The animation says how long it needs (voxel and waves lay a layer over the popup first).
+		const wait = window.iftpBtnOpenFx ? window.iftpBtnOpenFx.close( dialog ) : 450;
+
+		if ( wait <= 0 ) {
+			finish();
+
+			return;
+		}
+
+		dialog.classList.add( 'is-closing' );
+		window.setTimeout( finish, wait );
 	}
+
+	document.addEventListener( 'cancel', function ( event ) {
+		if ( event.target && event.target.classList && event.target.classList.contains( 'iftp-btn-sheet' ) ) {
+			event.preventDefault();
+			closeDialog( event.target );
+		}
+	}, true );
 
 	function showError( form, message ) {
 		const box = form.querySelector( '[data-iftp-btn-error]' );
@@ -211,11 +396,12 @@
 	// Everything a payer answers in a scope (the form, or one step), minus the honeypot and what a condition hides.
 	function answerables( scope ) {
 		return Array.prototype.filter.call( scope.querySelectorAll( 'input, select, textarea' ), function ( input ) {
-			return input.type !== 'hidden' && ! input.closest( '.iftp-btn-form__trap' ) && ! input.closest( '[data-iftp-btn-when][hidden]' );
+			return input.type !== 'hidden' && ! input.closest( '.iftp-btn-form__trap' ) && ! input.closest( '[data-iftp-btn-when][hidden], [data-iftp-btn-skip="1"]' );
 		} );
 	}
 
-	// What a field holds, as the server's FormFields::answers() reads it: the picked options, or '1' for a ticked agreement.
+	// What a field holds, as the server's FormFields::answers() reads it: the picked options, '1' for a ticked agreement,
+	// or the one text or number typed (a number may use a decimal comma).
 	function answersOf( form, name ) {
 		const values = [];
 
@@ -224,53 +410,120 @@
 				if ( input.value ) {
 					values.push( input.value );
 				}
-			} else if ( input.checked ) {
-				values.push( input.value );
+			} else if ( input.type === 'checkbox' || input.type === 'radio' ) {
+				if ( input.checked ) {
+					values.push( input.value );
+				}
+			} else if ( input.value.trim() ) {
+				values.push( input.hasAttribute( 'data-iftp-btn-number' ) || input.inputMode === 'decimal' || input.inputMode === 'numeric' ? input.value.trim().replace( ',', '.' ) : input.value.trim() );
 			}
 		} );
 
 		return values;
 	}
 
-	// Fields and text blocks that show only for some answers. A hidden one's inputs are disabled, so the
-	// browser neither checks nor sends them; the ones a sold-out option disabled stay disabled.
-	function bindConditions( form ) {
-		const items = Array.prototype.slice.call( form.querySelectorAll( '[data-iftp-btn-when]' ) );
+	// The same test as FormFields::meets().
+	function meets( rule, picked, typed ) {
+		const op = rule.op;
+		const want = ( rule.values || [] )[ 0 ];
 
-		if ( ! items.length ) {
+		if ( op === 'filled' ) {
+			return picked.length > 0;
+		}
+
+		if ( op === 'empty' ) {
+			return picked.length === 0;
+		}
+
+		if ( op === 'gt' || op === 'lt' ) {
+			const have = parseFloat( picked[ 0 ] );
+			const limit = parseFloat( want );
+
+			if ( isNaN( have ) || isNaN( limit ) ) {
+				return false;
+			}
+
+			return op === 'gt' ? have > limit : have < limit;
+		}
+
+		if ( op === 'contains' ) {
+			return !! want && String( picked[ 0 ] || '' ).toLowerCase().indexOf( String( want ).toLowerCase() ) !== -1;
+		}
+
+		let match = picked.some( function ( value ) {
+			return rule.values.indexOf( value ) !== -1;
+		} );
+
+		// A typed answer is the same whatever its capitals.
+		if ( ! match && typed && picked.length && want !== undefined ) {
+			match = String( picked[ 0 ] ).toLowerCase() === String( want ).toLowerCase();
+		}
+
+		if ( ! match && picked.length && ! isNaN( Number( picked[ 0 ] ) ) ) {
+			match = rule.values.some( function ( value ) {
+				return value !== '' && ! isNaN( Number( value ) ) && Number( value ) === Number( picked[ 0 ] );
+			} );
+		}
+
+		return op === 'not' ? ! match : match;
+	}
+
+	// Fields, text blocks and whole pages that show only for some answers. A hidden one's inputs are disabled, so the
+	// browser neither checks nor sends them; the ones a sold-out option disabled stay disabled. A skipped page is marked
+	// data-iftp-btn-skip, and onSteps hears about it so the step bar and the walk follow.
+	function bindConditions( form, onSteps ) {
+		const nodes = Array.prototype.slice.call( form.querySelectorAll( '[data-iftp-btn-when], [data-iftp-btn-step-when]' ) );
+
+		if ( ! nodes.length ) {
 			return;
 		}
 
-		const rules = items.map( function ( item ) {
+		const rules = nodes.map( function ( node ) {
 			try {
-				return JSON.parse( item.dataset.iftpBtnWhen );
+				return JSON.parse( node.dataset.iftpBtnWhen || node.dataset.iftpBtnStepWhen );
 			} catch ( e ) {
 				return null;
 			}
 		} );
 
-		const toggle = function ( item, show ) {
-			if ( item.hidden === ! show ) {
-				return;
-			}
-
-			item.hidden = ! show;
-			item.classList.toggle( 'is-revealed', show );
-
-			item.querySelectorAll( 'input, select, textarea' ).forEach( function ( input ) {
-				if ( ! show && ! input.disabled ) {
+		// Off by a flag of its own, so an item hidden by its rule and a skipped page don't undo each other.
+		const switchInputs = function ( node, off, flag ) {
+			node.querySelectorAll( 'input, select, textarea' ).forEach( function ( input ) {
+				if ( off && ! input.disabled ) {
 					input.disabled = true;
-					input.dataset.iftpBtnOff = '1';
-				} else if ( show && input.dataset.iftpBtnOff ) {
+					input.dataset[ flag ] = '1';
+				} else if ( ! off && input.dataset[ flag ] ) {
 					input.disabled = false;
-					delete input.dataset.iftpBtnOff;
+					delete input.dataset[ flag ];
 				}
 			} );
 		};
 
+		const skipped = function ( node ) {
+			return !! node.closest( '[data-iftp-btn-skip="1"]' );
+		};
+
+		const toggle = function ( node, show ) {
+			if ( node.hasAttribute( 'data-iftp-btn-step-when' ) ) {
+				if ( show ) {
+					node.removeAttribute( 'data-iftp-btn-skip' );
+				} else {
+					node.setAttribute( 'data-iftp-btn-skip', '1' );
+				}
+
+				switchInputs( node, ! show, 'iftpBtnSkipOff' );
+
+				return;
+			}
+
+			node.hidden = ! show;
+			node.classList.toggle( 'is-revealed', show );
+			switchInputs( node, ! show, 'iftpBtnOff' );
+		};
+
 		const apply = function () {
 			// In form order, so a field hidden by its own condition hides the ones that hang on it.
-			items.forEach( function ( item, index ) {
+			nodes.forEach( function ( node, index ) {
 				const rule = rules[ index ];
 
 				if ( ! rule ) {
@@ -279,25 +532,100 @@
 
 				const controller = form.querySelector( '[name="' + rule.field + '"]' );
 				const holder = controller ? controller.closest( '[data-iftp-btn-when]' ) : null;
-				const live = ! holder || ! holder.hidden;
-				const match = live && answersOf( form, rule.field ).some( function ( value ) {
-					return rule.values.indexOf( value ) !== -1;
-				} );
+				const live = ! controller || ( ( ! holder || ! holder.hidden ) && ! skipped( controller ) );
+				const typed = !! controller && controller.tagName !== 'SELECT' && controller.type !== 'checkbox' && controller.type !== 'radio';
+				const show = live && meets( rule, answersOf( form, rule.field ), typed );
 
-				toggle( item, live && ( rule.op === 'not' ? ! match : match ) );
+				toggle( node, node.hasAttribute( 'data-iftp-btn-step-when' ) ? show : show && ! skipped( node ) );
 			} );
+
+			if ( onSteps ) {
+				onSteps();
+			}
 		};
 
-		items.forEach( function ( item ) {
+		nodes.forEach( function ( node ) {
 			// The server hid what the prefill didn't meet; its inputs still need switching off.
-			if ( item.hidden ) {
-				item.hidden = false;
-				toggle( item, false );
+			if ( node.hidden && node.hasAttribute( 'data-iftp-btn-when' ) ) {
+				node.hidden = false;
 			}
 		} );
 
+		// A text or number answer changes on every key, a choice on change.
 		form.addEventListener( 'change', apply );
+		form.addEventListener( 'input', apply );
 		apply();
+	}
+
+	// Live tags: {first_name} in a text block, a label or a help line shows what's typed in that field, or its fallback.
+	// Only textContent is ever set, so what's typed can't add markup. A field a rule hid counts as empty.
+	function bindTags( form ) {
+		const tags = Array.prototype.slice.call( form.querySelectorAll( '[data-iftp-btn-tag]' ) );
+
+		if ( ! tags.length ) {
+			return;
+		}
+
+		const update = function () {
+			tags.forEach( function ( tag ) {
+				const values = [];
+
+				form.querySelectorAll( '[name="' + tag.dataset.iftpBtnTag + '"]' ).forEach( function ( input ) {
+					if ( input.disabled ) {
+						return;
+					}
+
+					if ( input.type === 'checkbox' || input.type === 'radio' ) {
+						if ( input.checked && input.value !== '1' ) {
+							values.push( input.value );
+						}
+					} else if ( input.value.trim() ) {
+						values.push( input.value.trim() );
+					}
+				} );
+
+				const text = values.length ? values.join( ', ' ) : tag.dataset.iftpBtnFallback || '';
+
+				if ( tag.textContent !== text ) {
+					tag.textContent = text;
+				}
+			} );
+		};
+
+		form.addEventListener( 'input', update );
+		form.addEventListener( 'change', update );
+		update();
+	}
+
+	// A Number's limits, as messages in the payer's language with the field's own label. The server holds them too.
+	function bindNumbers( form ) {
+		const words = i18n.number || {};
+		const say = function ( text, input, extra ) {
+			return String( text || '' ).replace( '{field}', input.dataset.label || '' ).replace( '{min}', extra.min || '' ).replace( '{max}', extra.max || '' );
+		};
+
+		form.querySelectorAll( '[data-iftp-btn-number]' ).forEach( function ( input ) {
+			const check = function () {
+				const raw = input.value.trim().replace( ',', '.' );
+				const value = parseFloat( raw );
+				let message = '';
+
+				if ( raw !== '' && ! isNaN( Number( raw ) ) ) {
+					if ( input.dataset.whole && value !== Math.floor( value ) ) {
+						message = say( words.whole, input, {} );
+					} else if ( input.dataset.min !== undefined && value < parseFloat( input.dataset.min ) ) {
+						message = say( words.min, input, { min: input.dataset.min } );
+					} else if ( input.dataset.max !== undefined && value > parseFloat( input.dataset.max ) ) {
+						message = say( words.max, input, { max: input.dataset.max } );
+					}
+				}
+
+				input.setCustomValidity( message );
+			};
+
+			input.addEventListener( 'input', check );
+			check();
+		} );
 	}
 
 	// The browser's own checks, so the messages come in the payer's language for free. A required
@@ -395,7 +723,75 @@
 		const back = form.querySelector( '[data-iftp-btn-back]' );
 		const submit = form.querySelector( '[data-iftp-btn-submit]' );
 		const body = form.querySelector( '[data-iftp-btn-body]' );
+		const strip = form.querySelector( '.iftp-btn-steps' );
+		const track = strip ? strip.querySelector( '.iftp-btn-steps__track' ) : null;
 		let current = 0;
+
+		// A page the answers skip is left out of the walk, the step bar and the count.
+		const skipped = function ( index ) {
+			return steps[ index ].getAttribute( 'data-iftp-btn-skip' ) === '1';
+		};
+
+		const lastStep = function () {
+			for ( let i = steps.length - 1; i > 0; i-- ) {
+				if ( ! skipped( i ) ) {
+					return i;
+				}
+			}
+
+			return 0;
+		};
+
+		// The next page to show from here, going forward or back, or -1.
+		const neighbour = function ( dir ) {
+			for ( let i = current + dir; i >= 0 && i < steps.length; i += dir ) {
+				if ( ! skipped( i ) ) {
+					return i;
+				}
+			}
+
+			return -1;
+		};
+
+		const position = function ( index ) {
+			let at = 0;
+
+			for ( let i = 0; i < index; i++ ) {
+				at += skipped( i ) ? 0 : 1;
+			}
+
+			return at;
+		};
+
+		const total = function () {
+			return position( steps.length );
+		};
+
+		// With many pages the pills and dots scroll: the current one stays in view, and the edge with more behind it fades.
+		const edges = function () {
+			strip.classList.toggle( 'has-before', track.scrollLeft > 2 );
+			strip.classList.toggle( 'has-after', track.scrollLeft + track.clientWidth < track.scrollWidth - 2 );
+		};
+
+		const keepInView = function ( smooth ) {
+			const bar = track && track.querySelector( '.is-current' );
+
+			if ( ! bar ) {
+				return;
+			}
+
+			// The bar's offsetParent isn't the track, so measure against the track's own box.
+			const at = bar.getBoundingClientRect();
+			const left = track.scrollLeft + at.left - track.getBoundingClientRect().left - ( track.clientWidth - at.width ) / 2;
+
+			track.scrollTo( { left: Math.max( 0, left ), behavior: smooth && ! window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ? 'smooth' : 'auto' } );
+		};
+
+		if ( track ) {
+			track.addEventListener( 'scroll', edges, { passive: true } );
+			window.addEventListener( 'resize', edges );
+			edges();
+		}
 
 		// The current step's segment fills as its fields get answered.
 		const progress = function () {
@@ -422,7 +818,7 @@
 
 			// The whole form's share, for the One line style.
 			if ( pct ) {
-				pct.textContent = Math.round( ( current + fill ) / bars.length * 100 ) + '%';
+				pct.textContent = Math.round( ( position( current ) + fill ) / total() * 100 ) + '%';
 			}
 		};
 
@@ -452,6 +848,15 @@
 				}
 			} );
 
+			if ( track ) {
+				keepInView( true );
+				// The current chip is still opening up for a moment; centre it again once it has.
+				window.setTimeout( function () {
+					keepInView( true );
+					edges();
+				}, 450 );
+			}
+
 			const title = form.querySelector( '[data-iftp-btn-step-title]' );
 			const now = form.querySelector( '[data-iftp-btn-step-now]' );
 
@@ -460,14 +865,14 @@
 			}
 
 			if ( now ) {
-				now.textContent = String( index + 1 );
+				now.textContent = String( position( index ) + 1 );
 			}
 
 			if ( back ) {
 				back.hidden = index === 0;
 			}
 
-			submit.querySelector( '.iftp-btn-form__submit-text' ).textContent = index === steps.length - 1 ? submit.dataset.pay : submit.dataset.next;
+			submit.querySelector( '.iftp-btn-form__submit-text' ).textContent = index === lastStep() ? submit.dataset.pay : submit.dataset.next;
 			showError( form, '' );
 			progress();
 
@@ -494,7 +899,7 @@
 		form.addEventListener( 'submit', function ( event ) {
 			event.preventDefault();
 
-			if ( current < steps.length - 1 ) {
+			if ( current < lastStep() ) {
 				const invalid = firstInvalid( steps[ current ] );
 
 				if ( invalid ) {
@@ -504,7 +909,7 @@
 					return;
 				}
 
-				show( current + 1 );
+				show( neighbour( 1 ) );
 
 				return;
 			}
@@ -514,12 +919,59 @@
 
 		if ( back ) {
 			back.addEventListener( 'click', function () {
-				show( current - 1 );
+				show( neighbour( -1 ) );
 			} );
 		}
 
+		// The bar follows the pages the answers skip: they vanish, and the rest are numbered again.
+		const refresh = function () {
+			if ( steps.length < 2 ) {
+				return;
+			}
+
+			let place = 0;
+
+			bars.forEach( function ( bar, at ) {
+				const gone = skipped( at );
+
+				bar.hidden = gone;
+
+				if ( ! gone ) {
+					bar.style.setProperty( '--iftp-i', String( place ) );
+
+					const num = bar.querySelector( '.iftp-btn-steps__num' );
+
+					if ( num ) {
+						num.textContent = String( place + 1 );
+					}
+
+					place++;
+				}
+			} );
+
+			if ( strip ) {
+				strip.style.setProperty( '--iftp-steps', String( place ) );
+			}
+
+			const all = form.querySelector( '[data-iftp-btn-step-total]' );
+
+			if ( all ) {
+				all.textContent = String( place );
+			}
+
+			const now = form.querySelector( '[data-iftp-btn-step-now]' );
+
+			if ( now ) {
+				now.textContent = String( position( current ) + 1 );
+			}
+
+			submit.querySelector( '.iftp-btn-form__submit-text' ).textContent = current === lastStep() ? submit.dataset.pay : submit.dataset.next;
+		};
+
 		// Before progress, so the step bar counts only what shows.
-		bindConditions( form );
+		bindConditions( form, refresh );
+		bindNumbers( form );
+		bindTags( form );
 		form.addEventListener( 'input', progress );
 		form.addEventListener( 'change', progress );
 		progress();
@@ -571,7 +1023,7 @@
 		opener.addEventListener( 'click', function () {
 			const form = dialog.querySelector( '[data-iftp-btn-form]' );
 
-			openDialog( dialog );
+			openDialog( dialog, opener );
 			countOpen( form ? form.dataset.button : '' );
 		} );
 	} );

@@ -247,8 +247,8 @@ class RestController {
 
 		// The popup's words, with this payment's merge tags filled in. Expired reads as failed, like the popup does.
 		$outcome      = in_array( $status, CheckoutSettings::OUTCOMES, true ) ? $status : 'failed';
-		$confirmation = $this->checkout_settings->get_confirmation();
 		$button       = $record['button_id'] > 0 ? $this->buttons->find( $record['button_id'] ) : null;
+		$confirmation = $this->checkout_settings->get_confirmation_for( $button );
 		$values       = MergeTags::values( $record, $button );
 
 		$response = rest_ensure_response(

@@ -53,8 +53,8 @@ class AiPanel {
 		$js  = 'assets/js/ai.js';
 		$css = 'assets/css/ai.css';
 
-		wp_enqueue_style( self::STYLE_HANDLE, IFTP_BTN_URL . $css, array( Plugin::ADMIN_STYLE_HANDLE ), Plugin::asset_version( $css ) );
-		wp_enqueue_script( self::SCRIPT_HANDLE, IFTP_BTN_URL . $js, array( Plugin::UI_SCRIPT_HANDLE ), Plugin::asset_version( $js ), true );
+		wp_enqueue_style( self::STYLE_HANDLE, Plugin::asset_url( $css ), array( Plugin::ADMIN_STYLE_HANDLE ), Plugin::asset_version( $css ) );
+		wp_enqueue_script( self::SCRIPT_HANDLE, Plugin::asset_url( $js ), array( Plugin::UI_SCRIPT_HANDLE ), Plugin::asset_version( $js ), true );
 
 		$providers = array();
 
@@ -297,6 +297,19 @@ class AiPanel {
 			/* translators: %s: the AI model, e.g. Gemini 2.5 Flash */
 			'stageFallback' => __( 'Switching to %s…', 'ifthenpay-pay-button' ),
 			'retry'         => __( 'Try again', 'ifthenpay-pay-button' ),
+			'expandChats'   => __( 'Expand the list of chats', 'ifthenpay-pay-button' ),
+			'collapseChats' => __( 'Collapse the list of chats', 'ifthenpay-pay-button' ),
+			'newChat'       => __( 'New chat', 'ifthenpay-pay-button' ),
+			'untitled'      => __( 'Untitled chat', 'ifthenpay-pay-button' ),
+			'noChats'       => __( 'Your chats show up here, so you can pick one up again later.', 'ifthenpay-pay-button' ),
+			'rename'        => __( 'Rename', 'ifthenpay-pay-button' ),
+			'delete'        => __( 'Delete', 'ifthenpay-pay-button' ),
+			'renameLabel'   => __( 'Chat name', 'ifthenpay-pay-button' ),
+			'chatsBusy'     => __( 'Wait for the answer first.', 'ifthenpay-pay-button' ),
+			'chatDeleted'   => __( 'Chat deleted.', 'ifthenpay-pay-button' ),
+			/* translators: %d: how many days a chat is kept */
+			'keptFor'       => __( 'Chats are kept for %d days.', 'ifthenpay-pay-button' ),
+			'keptForOne'    => __( 'Chats are kept for a day.', 'ifthenpay-pay-button' ),
 			'undone'        => __( 'Went back one step.', 'ifthenpay-pay-button' ),
 			'checkPrices'   => __( 'Check the prices', 'ifthenpay-pay-button' ),
 			'checkMoney'    => __( 'Price set by the AI: check it', 'ifthenpay-pay-button' ),

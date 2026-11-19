@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Repository;
 
+use Ifthenpay\PayButton\Ai\Vault;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -23,15 +25,17 @@ class SettingsRepository {
 	// The hosted payment page description until it's set; merge tags fill it per payment.
 	public const DEFAULT_DESCRIPTION = '{button}';
 
-	private const OPTION_BACKOFFICE_KEY = 'iftp_btn_backoffice_key';
-	private const OPTION_GATEWAY_KEY    = 'iftp_btn_gateway_key';
-	private const OPTION_GATEWAY_KEYS   = 'iftp_btn_gateway_keys';
-	private const OPTION_APK_KEYS       = 'iftp_btn_anti_phishing_keys';
-	private const OPTION_CALLBACK_HASH  = 'iftp_btn_callback_hash';
-	private const OPTION_METHODS        = 'iftp_btn_methods';
-	private const OPTION_DEFAULT_METHOD = 'iftp_btn_default_method';
-	private const OPTION_DESCRIPTION    = 'iftp_btn_description';
-	private const OPTION_EXPIRY_DAYS    = 'iftp_btn_expiry_days';
+	private const OPTION_BACKOFFICE_KEY  = 'iftp_btn_backoffice_key';
+	private const OPTION_GATEWAY_KEY     = 'iftp_btn_gateway_key';
+	private const OPTION_GATEWAY_KEYS    = 'iftp_btn_gateway_keys';
+	private const OPTION_APK_KEYS        = 'iftp_btn_anti_phishing_keys';
+	private const OPTION_CALLBACK_HASH   = 'iftp_btn_callback_hash';
+	private const OPTION_METHODS         = 'iftp_btn_methods';
+	private const OPTION_METHODS_BY_KEY  = 'iftp_btn_methods_by_key';
+	private const OPTION_CALLBACK_HASHES = 'iftp_btn_callback_hashes';
+	private const OPTION_DEFAULT_METHOD  = 'iftp_btn_default_method';
+	private const OPTION_DESCRIPTION     = 'iftp_btn_description';
+	private const OPTION_EXPIRY_DAYS     = 'iftp_btn_expiry_days';
 
 	private const OPTION_SUMMARY_ON = 'iftp_btn_summary_enabled';
 	private const OPTION_SUMMARY_TO = 'iftp_btn_summary_email';
@@ -43,7 +47,14 @@ class SettingsRepository {
 	 * The stored Backoffice Key, or '' when not connected.
 	 */
 	public function get_backoffice_key(): string {
-		return (string) get_option( self::OPTION_BACKOFFICE_KEY, '' );
+		$stored = (string) get_option( self::OPTION_BACKOFFICE_KEY, '' );
+
+		// A key saved before keys were sealed is sealed on its first read.
+		if ( '' !== $stored && ! Vault::is_sealed( $stored ) ) {
+			$this->set_backoffice_key( $stored );
+		}
+
+		return Vault::reveal( $stored );
 	}
 
 	/**
@@ -52,7 +63,7 @@ class SettingsRepository {
 	 * @param string $key The Backoffice Key.
 	 */
 	public function set_backoffice_key( string $key ): void {
-		update_option( self::OPTION_BACKOFFICE_KEY, $key, false );
+		update_option( self::OPTION_BACKOFFICE_KEY, '' === $key ? '' : Vault::seal( $key ), false );
 	}
 
 	/**
@@ -63,14 +74,14 @@ class SettingsRepository {
 	}
 
 	/**
-	 * The currently selected Gateway Key.
+	 * The default Gateway Key: what a button without its own, and a payment added by hand, is made under.
 	 */
 	public function get_gateway_key(): string {
 		return (string) get_option( self::OPTION_GATEWAY_KEY, '' );
 	}
 
 	/**
-	 * Stores the currently selected Gateway Key.
+	 * Stores the default Gateway Key.
 	 *
 	 * @param string $gateway_key The Gateway Key.
 	 */
@@ -90,6 +101,15 @@ class SettingsRepository {
 	}
 
 	/**
+	 * The Gateway Key to use for a wanted one: itself when it's on this account, else the default.
+	 *
+	 * @param string $wanted A button's Gateway Key, or '' for none.
+	 */
+	public function resolve_gateway_key( string $wanted ): string {
+		return '' !== $wanted && in_array( $wanted, $this->get_gateway_keys(), true ) ? $wanted : $this->get_gateway_key();
+	}
+
+	/**
 	 * Stores the full list of available Gateway Keys.
 	 *
 	 * @param array<int, string> $gateway_keys The Gateway Keys to store.
@@ -106,7 +126,15 @@ class SettingsRepository {
 	public function get_anti_phishing_key( string $gateway_key ): string {
 		$keys = get_option( self::OPTION_APK_KEYS, array() );
 
-		return is_array( $keys ) ? (string) ( $keys[ $gateway_key ] ?? '' ) : '';
+		$keys = is_array( $keys ) ? $keys : array();
+		$key  = (string) ( $keys[ $gateway_key ] ?? '' );
+
+		// A key saved before keys were sealed is sealed on its first read.
+		if ( '' !== $key && ! Vault::is_sealed( $key ) ) {
+			$this->set_anti_phishing_key( $gateway_key, $key );
+		}
+
+		return Vault::reveal( $key );
 	}
 
 	/**
@@ -119,7 +147,7 @@ class SettingsRepository {
 		$keys = get_option( self::OPTION_APK_KEYS, array() );
 		$keys = is_array( $keys ) ? $keys : array();
 
-		$keys[ $gateway_key ] = $anti_phishing_key;
+		$keys[ $gateway_key ] = '' === $anti_phishing_key ? '' : Vault::seal( $anti_phishing_key );
 
 		update_option( self::OPTION_APK_KEYS, $keys, false );
 	}
@@ -132,28 +160,45 @@ class SettingsRepository {
 	}
 
 	/**
-	 * Hash of the Gateway Key + callback URL ifthenpay last accepted, or '' when none yet.
+	 * Hash of the Gateway Key + callback URL ifthenpay last accepted for it, or '' when none yet.
+	 *
+	 * @param string $gateway_key The Gateway Key.
 	 */
-	public function get_callback_hash(): string {
-		return (string) get_option( self::OPTION_CALLBACK_HASH, '' );
+	public function get_callback_hash( string $gateway_key ): string {
+		$hashes = get_option( self::OPTION_CALLBACK_HASHES, array() );
+		$hashes = is_array( $hashes ) ? $hashes : array();
+
+		if ( isset( $hashes[ $gateway_key ] ) ) {
+			return (string) $hashes[ $gateway_key ];
+		}
+
+		// Before gateways were per button there was one hash, for the default key.
+		return $gateway_key === $this->get_gateway_key() ? (string) get_option( self::OPTION_CALLBACK_HASH, '' ) : '';
 	}
 
 	/**
-	 * Stores the hash of the callback ifthenpay just accepted.
+	 * Stores the hash of the callback ifthenpay just accepted for a Gateway Key.
 	 *
-	 * @param string $hash Hash of the Gateway Key + callback URL.
+	 * @param string $gateway_key The Gateway Key.
+	 * @param string $hash        Hash of the Gateway Key + callback URL.
 	 */
-	public function set_callback_hash( string $hash ): void {
-		update_option( self::OPTION_CALLBACK_HASH, $hash, false );
+	public function set_callback_hash( string $gateway_key, string $hash ): void {
+		$hashes = get_option( self::OPTION_CALLBACK_HASHES, array() );
+		$hashes = is_array( $hashes ) ? $hashes : array();
+
+		$hashes[ $gateway_key ] = $hash;
+
+		update_option( self::OPTION_CALLBACK_HASHES, $hashes, false );
 	}
 
 	/**
-	 * The full payment methods catalog for the current Gateway Key.
+	 * The full payment methods catalog of a Gateway Key.
 	 *
+	 * @param string|null $gateway_key The Gateway Key, or null for the default one.
 	 * @return array<int, Method>
 	 */
-	public function get_methods(): array {
-		$methods = get_option( self::OPTION_METHODS, array() );
+	public function get_methods( ?string $gateway_key = null ): array {
+		$methods = $this->methods_by_key()[ $gateway_key ?? $this->get_gateway_key() ] ?? array();
 
 		if ( ! is_array( $methods ) ) {
 			return array();
@@ -178,32 +223,71 @@ class SettingsRepository {
 	}
 
 	/**
-	 * Stores the payment methods catalog.
+	 * Stores the payment methods catalog of a Gateway Key.
 	 *
-	 * @param array<int, Method> $methods The methods to store.
+	 * @param array<int, Method> $methods     The methods to store.
+	 * @param string|null        $gateway_key The Gateway Key, or null for the default one.
 	 */
-	public function set_methods( array $methods ): void {
-		update_option( self::OPTION_METHODS, $methods, false );
+	public function set_methods( array $methods, ?string $gateway_key = null ): void {
+		$gateway_key = $gateway_key ?? $this->get_gateway_key();
+
+		if ( '' === $gateway_key ) {
+			return;
+		}
+
+		$map                 = $this->methods_by_key();
+		$map[ $gateway_key ] = $methods;
+
+		update_option( self::OPTION_METHODS_BY_KEY, $map, false );
 	}
 
 	/**
-	 * The subset of get_methods() that are enabled and provisioned.
+	 * Every catalog, by Gateway Key. Before gateways were per button there was one catalog, the selected key's.
 	 *
+	 * @return array<string, mixed>
+	 */
+	private function methods_by_key(): array {
+		$map = get_option( self::OPTION_METHODS_BY_KEY, null );
+
+		if ( is_array( $map ) ) {
+			return $map;
+		}
+
+		$legacy = get_option( self::OPTION_METHODS, array() );
+		$key    = $this->get_gateway_key();
+
+		return is_array( $legacy ) && array() !== $legacy && '' !== $key ? array( $key => $legacy ) : array();
+	}
+
+	/**
+	 * What a Gateway Key can offer: the provisioned, visible methods. If any were switched on before methods
+	 * became a choice per button, only those, so nothing a merchant turned off comes back.
+	 *
+	 * @param string|null $gateway_key The Gateway Key, or null for the default one.
 	 * @return array<int, array{entity: string, account: string}>
 	 */
-	public function get_enabled_methods(): array {
-		$enabled = array();
+	public function get_enabled_methods( ?string $gateway_key = null ): array {
+		$offered = array();
+		$flagged = array();
 
-		foreach ( $this->get_methods() as $method ) {
-			if ( ! empty( $method['enabled'] ) && '' !== $method['account'] ) {
-				$enabled[] = array(
-					'entity'  => $method['entity'],
-					'account' => $method['account'],
-				);
+		foreach ( $this->get_methods( $gateway_key ) as $method ) {
+			if ( '' === $method['account'] || ! ( $method['visible'] ?? true ) ) {
+				continue;
+			}
+
+			$row = array(
+				'entity'  => $method['entity'],
+				'account' => $method['account'],
+			);
+
+			$offered[] = $row;
+
+			if ( ! empty( $method['enabled'] ) ) {
+				$flagged[] = $row;
 			}
 		}
 
-		return $enabled;
+		return array() !== $flagged ? $flagged : $offered;
 	}
 
 	/**
@@ -217,15 +301,29 @@ class SettingsRepository {
 	 * The default method's catalog Position (what the payload's `selected_method` expects), or ''.
 	 */
 	public function get_default_method_position(): string {
-		$default = $this->get_default_method();
+		return $this->method_position( $this->get_gateway_key(), $this->get_default_method() );
+	}
 
-		if ( '' === $default ) {
+	/**
+	 * A method's catalog Position on a Gateway Key, or '' when it isn't offered there.
+	 *
+	 * @param string $gateway_key The Gateway Key.
+	 * @param string $entity      The method entity.
+	 */
+	public function method_position( string $gateway_key, string $entity ): string {
+		if ( '' === $entity ) {
 			return '';
 		}
 
-		foreach ( $this->get_methods() as $method ) {
-			if ( $method['entity'] === $default && ! empty( $method['enabled'] ) ) {
-				return (string) $method['position'];
+		foreach ( $this->get_enabled_methods( $gateway_key ) as $offered ) {
+			if ( $offered['entity'] !== $entity ) {
+				continue;
+			}
+
+			foreach ( $this->get_methods( $gateway_key ) as $method ) {
+				if ( $method['entity'] === $entity ) {
+					return (string) $method['position'];
+				}
 			}
 		}
 
@@ -358,7 +456,9 @@ class SettingsRepository {
 		delete_option( self::OPTION_GATEWAY_KEY );
 		delete_option( self::OPTION_GATEWAY_KEYS );
 		delete_option( self::OPTION_CALLBACK_HASH );
+		delete_option( self::OPTION_CALLBACK_HASHES );
 		delete_option( self::OPTION_METHODS );
+		delete_option( self::OPTION_METHODS_BY_KEY );
 		delete_option( self::OPTION_DEFAULT_METHOD );
 		delete_option( self::OPTION_DESCRIPTION );
 		delete_option( self::OPTION_EXPIRY_DAYS );

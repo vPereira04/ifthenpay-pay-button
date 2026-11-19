@@ -1,0 +1,7018 @@
+# Copyright (C) 2026 ifthenpay
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: ifthenpay | Pay Button 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ifthenpay-pay-button\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-09T11:22:47+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: ifthenpay-pay-button\n"
+
+#. Plugin Name of the plugin
+#: ifthenpay-pay-button.php
+msgid "ifthenpay | Pay Button"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: ifthenpay-pay-button.php
+msgid "https://ifthenpay.com"
+msgstr ""
+
+#. Description of the plugin
+#: ifthenpay-pay-button.php
+msgid "Take ifthenpay payments anywhere: pay buttons for any page, shareable payment links, and a link builder for plugins ifthenpay has no integration with."
+msgstr ""
+
+#. Author of the plugin
+#: ifthenpay-pay-button.php
+#: src/Admin/DashboardWidget.php:79
+#: src/Admin/Entries/SingleEntryView.php:65
+#: src/Buttons/ButtonDesign.php:110
+#: src/Checkout/CheckoutLook.php:151
+msgid "ifthenpay"
+msgstr ""
+
+#: ifthenpay-pay-button.php:47
+msgid "ifthenpay | Pay Button could not load its classes. Run \"composer install\" in the plugin folder."
+msgstr ""
+
+#: src/Admin/AiPanel.php:91
+#: src/Admin/ConfigurationForm.php:420
+msgid "AI assistant"
+msgstr ""
+
+#: src/Admin/AiPanel.php:92
+msgid "Connect your own Gemini, Claude or ChatGPT key, then describe a button in a chat and watch it being built. Each message is billed to your own account with that provider."
+msgstr ""
+
+#. translators: 1: the AI provider, e.g. Gemini, 2: the key's last characters, e.g. ••••1a2B
+#: src/Admin/AiPanel.php:125
+#, php-format
+msgid "Connected to %1$s · key %2$s"
+msgstr ""
+
+#: src/Admin/AiPanel.php:127
+msgid "Connect again: this site's secret keys changed, so the saved key can't be opened."
+msgstr ""
+
+#: src/Admin/AiPanel.php:129
+#: src/Admin/ConfigurationPage.php:285
+msgid "Not connected"
+msgstr ""
+
+#: src/Admin/AiPanel.php:135
+msgid "Model"
+msgstr ""
+
+#: src/Admin/AiPanel.php:141
+msgid "The first one is quick and good at this. Bigger models think longer and cost more."
+msgstr ""
+
+#: src/Admin/AiPanel.php:143
+#: src/Admin/AiPanel.php:234
+#: src/Admin/ConfigurationPage.php:171
+#: src/Admin/ConfigurationPage.php:289
+#: src/Admin/ConfigurationPage.php:418
+msgid "Disconnect"
+msgstr ""
+
+#: src/Admin/AiPanel.php:145
+#: src/Admin/AiPanel.php:164
+msgid "Connect an AI"
+msgstr ""
+
+#: src/Admin/AiPanel.php:165
+msgid "Pick the AI you have a key for and paste it. It builds your buttons from a chat; each message is billed to your own account with that provider."
+msgstr ""
+
+#: src/Admin/AiPanel.php:168
+msgid "AI provider"
+msgstr ""
+
+#: src/Admin/AiPanel.php:180
+msgid "API key"
+msgstr ""
+
+#: src/Admin/AiPanel.php:183
+#: src/Admin/Buttons/AiStudioPage.php:247
+#: src/Admin/Buttons/ButtonEditor.php:93
+#: src/Admin/Entries/SingleEntryView.php:130
+#: src/Admin/Entries/SingleEntryView.php:361
+msgid "(opens in a new tab)"
+msgstr ""
+
+#: src/Admin/AiPanel.php:190
+msgid "Encrypted with this site's secret keys before it's saved, and never shown again. Only administrators can use it, and only to build buttons."
+msgstr ""
+
+#: src/Admin/AiPanel.php:193
+msgid "This site's wp-config.php has no secret keys of its own, so WordPress keeps them in the database, next to the encrypted key. Add them to wp-config.php for full protection."
+msgstr ""
+
+#: src/Admin/AiPanel.php:198
+#: src/Admin/AiPanel.php:233
+#: src/Admin/ConfigurationPage.php:399
+#: src/Admin/ConfigurationPage.php:417
+#: src/Admin/Entries/EntriesPage.php:449
+#: src/Admin/Entries/EntriesPage.php:614
+#: src/Admin/Entries/EntriesPage.php:929
+#: src/Admin/Entries/PaymentEmailSettings.php:161
+msgid "Cancel"
+msgstr ""
+
+#: src/Admin/AiPanel.php:200
+#: src/Admin/AiPanel.php:259
+#: src/Admin/Buttons/ButtonEditor.php:99
+#: src/Admin/ConfigurationPage.php:168
+#: src/Admin/ConfigurationPage.php:293
+#: src/Admin/ConfigurationPage.php:400
+msgid "Connect"
+msgstr ""
+
+#: src/Admin/AiPanel.php:230
+msgid "Disconnect the AI?"
+msgstr ""
+
+#: src/Admin/AiPanel.php:231
+msgid "The key is deleted from this site. Your buttons stay as they are, and you can connect again at any time."
+msgstr ""
+
+#. translators: %s: the AI provider, e.g. Gemini
+#: src/Admin/AiPanel.php:247
+#: src/Admin/AiPanel.php:258
+#, php-format
+msgid "Get a %s key"
+msgstr ""
+
+#: src/Admin/AiPanel.php:260
+msgid "Checking the key…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:261
+msgid "Paste your API key."
+msgstr ""
+
+#: src/Admin/AiPanel.php:262
+msgid "Model saved."
+msgstr ""
+
+#: src/Admin/AiPanel.php:263
+#: src/Admin/Buttons/ButtonsPage.php:223
+#: src/Admin/ConfigurationPage.php:179
+#: src/Admin/Entries/EntriesPage.php:407
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: src/Admin/AiPanel.php:264
+msgid "You"
+msgstr ""
+
+#: src/Admin/AiPanel.php:265
+#: src/Admin/ConfigurationPage.php:207
+msgid "AI"
+msgstr ""
+
+#: src/Admin/AiPanel.php:266
+msgid "Hi! Tell me what you're selling or collecting for, and I'll build the whole button: the form, the prices and the look. Then keep chatting to change anything."
+msgstr ""
+
+#. translators: %s: the button's title
+#: src/Admin/AiPanel.php:268
+#, php-format
+msgid "What should change on “%s”? I can add or remove fields, change prices or spots, or give it a whole new look."
+msgstr ""
+
+#: src/Admin/AiPanel.php:270
+msgid "A bouquet order with sizes and delivery"
+msgstr ""
+
+#: src/Admin/AiPanel.php:271
+msgid "A yoga class with 12 spots"
+msgstr ""
+
+#: src/Admin/AiPanel.php:272
+msgid "A donation with quick amounts"
+msgstr ""
+
+#: src/Admin/AiPanel.php:273
+msgid "Workshop tickets: early bird and regular"
+msgstr ""
+
+#: src/Admin/AiPanel.php:276
+msgid "Give it a fresh look"
+msgstr ""
+
+#: src/Admin/AiPanel.php:277
+msgid "Split the form into steps"
+msgstr ""
+
+#: src/Admin/AiPanel.php:278
+msgid "Limit it to 20 spots"
+msgstr ""
+
+#: src/Admin/AiPanel.php:279
+msgid "Also ask for a phone number"
+msgstr ""
+
+#: src/Admin/AiPanel.php:282
+msgid "Reading what you asked…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:283
+msgid "Laying out the fields…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:284
+msgid "Setting the prices…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:285
+msgid "Picking the colours…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:286
+msgid "Polishing the pay page…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:290
+msgid "Bigger buttons take a little longer…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:291
+msgid "Still on it, checking every detail…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:292
+msgid "The AI is slower than usual right now…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:293
+msgid "Still waiting for it. Your message is safe…"
+msgstr ""
+
+#. translators: %s: the AI model, e.g. Gemini 3.5 Flash
+#: src/Admin/AiPanel.php:296
+#, php-format
+msgid "%s is overloaded. Trying again…"
+msgstr ""
+
+#. translators: %s: the AI model, e.g. Gemini 2.5 Flash
+#: src/Admin/AiPanel.php:298
+#, php-format
+msgid "Switching to %s…"
+msgstr ""
+
+#: src/Admin/AiPanel.php:299
+msgid "Try again"
+msgstr ""
+
+#: src/Admin/AiPanel.php:300
+msgid "Expand the list of chats"
+msgstr ""
+
+#: src/Admin/AiPanel.php:301
+#: src/Admin/Buttons/AiStudioPage.php:190
+msgid "Collapse the list of chats"
+msgstr ""
+
+#: src/Admin/AiPanel.php:302
+#: src/Admin/Buttons/AiStudioPage.php:199
+msgid "New chat"
+msgstr ""
+
+#: src/Admin/AiPanel.php:303
+#: src/Ai/AiController.php:316
+msgid "Untitled chat"
+msgstr ""
+
+#: src/Admin/AiPanel.php:304
+msgid "Your chats show up here, so you can pick one up again later."
+msgstr ""
+
+#: src/Admin/AiPanel.php:305
+msgid "Rename"
+msgstr ""
+
+#: src/Admin/AiPanel.php:306
+#: src/Admin/Buttons/AiStudioPage.php:316
+#: src/Admin/Buttons/ButtonEditor.php:186
+#: src/Admin/Buttons/ButtonsPage.php:1135
+#: src/Admin/Entries/EntriesPage.php:332
+#: src/Admin/Entries/EntriesPage.php:704
+#: src/Admin/Entries/EntriesPage.php:1139
+#: src/Admin/Entries/SingleEntryView.php:80
+msgid "Delete"
+msgstr ""
+
+#: src/Admin/AiPanel.php:307
+msgid "Chat name"
+msgstr ""
+
+#: src/Admin/AiPanel.php:308
+msgid "Wait for the answer first."
+msgstr ""
+
+#: src/Admin/AiPanel.php:309
+msgid "Chat deleted."
+msgstr ""
+
+#. translators: %d: how many days a chat is kept
+#: src/Admin/AiPanel.php:311
+#, php-format
+msgid "Chats are kept for %d days."
+msgstr ""
+
+#: src/Admin/AiPanel.php:312
+msgid "Chats are kept for a day."
+msgstr ""
+
+#: src/Admin/AiPanel.php:313
+msgid "Went back one step."
+msgstr ""
+
+#: src/Admin/AiPanel.php:314
+msgid "Check the prices"
+msgstr ""
+
+#: src/Admin/AiPanel.php:315
+msgid "Price set by the AI: check it"
+msgstr ""
+
+#: src/Admin/AiPanel.php:316
+msgid "That message is too long. Keep it under 2,000 characters."
+msgstr ""
+
+#: src/Admin/AiPanel.php:317
+msgid "Preview updated."
+msgstr ""
+
+#. translators: %s: the button's title
+#: src/Admin/Buttons/AiStudioPage.php:159
+#, php-format
+msgid "Edit “%s” with AI"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:160
+msgid "Build a button with AI"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:166
+#: src/Admin/Buttons/AiStudioPage.php:307
+msgid "Start over"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:175
+msgid "Back to the editor"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:175
+#: src/Admin/Buttons/ButtonEditor.php:109
+#: src/Admin/Entries/EntriesPage.php:729
+msgid "All buttons"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:185
+msgid "Chat"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:187
+msgid "Your chats"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:189
+#: src/Admin/Buttons/AiStudioPage.php:209
+msgid "Chats"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:193
+msgid "Close the list of chats"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:214
+msgid "Ideas to start from"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:216
+msgid "Your message"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:217
+msgid "What should change?"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:217
+msgid "Describe your button…"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:220
+msgid "Send"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:225
+msgid "uses your own key. Enter sends, Shift+Enter starts a new line."
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:230
+#: src/Admin/DesignControls.php:562
+#: src/Admin/Entries/PaymentEmailSettings.php:144
+#: src/Admin/LookControls.php:671
+msgid "Preview"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:233
+msgid "Preview size"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:236
+msgid "Desktop"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:240
+#: src/Admin/Buttons/ButtonEditor.php:833
+#: src/Buttons/FormFields.php:72
+#: src/Checkout/CheckoutTexts.php:52
+#: src/Checkout/MergeTags.php:39
+msgid "Phone"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:246
+msgid "Full page"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:250
+#: src/Admin/Buttons/ButtonEditor.php:153
+msgid "The button"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:264
+msgid "Pay page preview"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:268
+msgid "Your pay page appears here"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:269
+msgid "Live, as payers will see it. Try the form in it: everything works except paying."
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:293
+#: src/Admin/Buttons/ButtonsPage.php:536
+msgid "Undo"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:295
+msgid "Review and save"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:297
+msgid "Nothing changes on your live button until you save it in the editor."
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:297
+msgid "Nothing is saved until you create it in the editor. It starts switched off, so you can check it first."
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:303
+msgid "Start over?"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:304
+msgid "The chat and its changes are cleared, and you start again from the saved button."
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:304
+msgid "The chat and the button it built are cleared."
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:306
+msgid "Keep chatting"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:312
+msgid "Delete this chat?"
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:313
+msgid "is removed for good. Buttons you already saved are not touched."
+msgstr ""
+
+#: src/Admin/Buttons/AiStudioPage.php:315
+#: src/Admin/Buttons/ButtonsPage.php:1151
+msgid "Keep it"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:91
+msgid "New pay button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:92
+#: src/Admin/Buttons/ButtonsPage.php:574
+#: src/Admin/Buttons/ButtonsPage.php:637
+msgid "Build with AI"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:92
+msgid "Edit with AI"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:93
+#: src/Admin/Buttons/ButtonsPage.php:1133
+msgid "Open pay page"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:95
+#: src/Admin/Buttons/ButtonEditor.php:275
+msgid "Basics"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:96
+msgid "Form"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:97
+#: src/Admin/Buttons/ButtonEditor.php:151
+msgid "Design"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:98
+#: src/Admin/Buttons/ButtonEditor.php:697
+msgid "After payment"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:129
+msgid "Button settings"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:154
+msgid "How it looks on your page."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:157
+#: src/Admin/CheckoutSettingsPage.php:244
+msgid "Checkout & pay page"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:158
+msgid "The form and page payers get after they click."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:182
+#: src/Admin/CheckoutSettingsPage.php:284
+#: src/Admin/ConfigurationPage.php:232
+msgid "Unsaved changes"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:184
+msgid "Create button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:184
+msgid "Save button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:219
+msgid "The AI's changes, not saved yet"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:219
+msgid "Built with AI, not saved yet"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:223
+msgid "Look it over and save to put it live. Leave without saving and your button stays as it was."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:224
+msgid "Look it over, then create it. It starts switched off, so nothing is charged until you check the prices and turn on Take payments."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:227
+msgid "Prices the AI set"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:234
+msgid "Back to the chat"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:275
+msgid "What the payer sees first, and the address of its pay page."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:278
+#: src/Admin/ConfigurationForm.php:246
+msgid "Title"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:279
+msgid "e.g. Consultation, Donation, Booking deposit"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:282
+#: src/Admin/ConfigurationPage.php:347
+#: src/Admin/Entries/EntriesController.php:486
+msgid "Description"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:282
+#: src/Admin/Buttons/ButtonEditor.php:288
+#: src/Admin/Buttons/ButtonEditor.php:460
+#: src/Admin/Buttons/ButtonEditor.php:610
+#: src/Admin/Buttons/ButtonEditor.php:780
+#: src/Admin/Buttons/ButtonEditor.php:923
+#: src/Checkout/CheckoutTexts.php:55
+msgid "(optional)"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:284
+msgid "Shown under the title in the checkout."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:286
+#: src/Admin/Buttons/ButtonEditor.php:288
+msgid "Hosted payment page description"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:286
+msgid "What the payer reads on the ifthenpay page, just for this button."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:291
+msgid "Only for this button. Empty uses the one in Configuration › Gateway."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:292
+msgid "Edit it there"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:298
+#: src/Admin/Buttons/ButtonEditor.php:1004
+msgid "Pay link"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:301
+msgid "from the title"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:308
+msgid "Take payments"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:309
+msgid "When off, the button shows disabled and its pay page is not found."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:326
+msgid "The site's look"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:326
+msgid "Same as every other button, from Default Design › Checkout."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:327
+msgid "Its own look"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:327
+msgid "Colours, shape, pay page and popups just for this button."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:328
+#: src/Admin/DesignControls.php:103
+msgid "My own code"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:328
+msgid "No styles from us on the checkout and pay page. Your CSS and JavaScript do it."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:331
+msgid "Checkout design"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:331
+msgid "How this button's checkout, its pay page and the popups after paying look. Their words are in Configuration › Messages."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:334
+msgid "Whose look it uses"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:344
+msgid "Change the site's look for every button at once:"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:345
+msgid "Default Design › Checkout"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:352
+msgid "Checkout and pay page code"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:352
+msgid "Checked before it is saved; a mistake keeps the last good version live."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:378
+msgid "Button design"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:378
+msgid "How the button looks on your pages. A block's own colour settings still win over these."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:381
+msgid "Button text"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:383
+msgid "A fixed amount is added after it when \"Show the amount on the button\" is on."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:390
+msgid "Like it? Make it the default design: every button set to Default design wears it, and this one switches to it."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:391
+msgid "Save and make it the default"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:406
+#: src/Admin/Buttons/ButtonsPage.php:919
+#: src/Admin/Buttons/ButtonsPage.php:1267
+msgid "Fixed"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:406
+msgid "Everyone pays the same."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:407
+#: src/Admin/Buttons/ButtonsPage.php:920
+#: src/Admin/Buttons/ButtonsPage.php:1268
+msgid "Payer chooses"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:407
+msgid "Donations, tips, top-ups."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:408
+#: src/Admin/Buttons/ButtonsPage.php:921
+#: src/Admin/Buttons/ButtonsPage.php:1269
+msgid "From the link"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:408
+msgid "Another plugin sends the total."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:411
+#: src/Admin/Buttons/ButtonEditor.php:830
+#: src/Admin/Buttons/ButtonsPage.php:291
+#: src/Admin/Entries/EntriesController.php:575
+#: src/Admin/Entries/EntriesPage.php:869
+#: src/Admin/Entries/EntriesPage.php:1609
+#: src/Checkout/CheckoutTexts.php:46
+#: src/Checkout/MergeTags.php:42
+#: src/Privacy.php:99
+msgid "Amount"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:411
+msgid "In euros. A signed link can always set its own amount."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:414
+msgid "How the amount is set"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:426
+#: src/Admin/Entries/EntriesPage.php:747
+msgid "Amount (€)"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:432
+msgid "Show the amount on the button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:438
+msgid "Smallest (€)"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:442
+msgid "Largest (€)"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:449
+msgid "Save the button first; the link for the other plugin appears here."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:451
+msgid "Link for the other plugin"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:453
+msgid "Paste it into the other plugin's \"redirect after submit\" and swap each {tag} for that plugin's own merge tag."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:454
+msgid "Choose the fields in Connect"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:460
+#: src/Checkout/CheckoutTexts.php:107
+msgid "Suggested amounts"
+msgstr ""
+
+#. translators: %d: how many suggestions are allowed
+#: src/Admin/Buttons/ButtonEditor.php:465
+#, php-format
+msgid "Up to %d, separated by commas. The payer taps one or types their own."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:482
+#: src/Admin/Buttons/ButtonsPage.php:893
+#: src/Admin/LookControls.php:277
+msgid "Off"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:483
+#: src/Admin/Buttons/ButtonsPage.php:270
+msgid "Optional"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:484
+#: src/Admin/Buttons/ButtonsPage.php:269
+msgid "Required"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:487
+msgid "Payer details"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:487
+msgid "Ask only what you need. With an email, the payer gets a receipt."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:494
+msgid "Label for the free-text field"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:528
+#: src/Checkout/CheckoutTexts.php:121
+msgid "Checkout form"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:528
+msgid "Ask your own questions and split a long checkout into pages. Amount and Your details move like any other item."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:534
+msgid "First page title"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:541
+msgid "Add"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:547
+msgid "Each field's answer shows in Payments, goes out with the webhook, and has a tag like {field:company} for the description and the popups. A pay link can fill one in with f_company=…."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:563
+#: src/Admin/Buttons/ButtonsPage.php:232
+msgid "No limit"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:563
+msgid "Anyone can pay, as often as they like."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:564
+msgid "Limited spots"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:564
+msgid "One number for everyone."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:565
+#: src/Ai/ButtonSchema.php:672
+msgid "Spots per option"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:565
+msgid "Spots and prices for each choice, e.g. each date."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:568
+#: src/Admin/Buttons/ButtonEditor.php:592
+#: src/Admin/Buttons/ButtonEditor.php:609
+#: src/Admin/Buttons/ButtonsPage.php:230
+#: src/Admin/Buttons/ButtonsPage.php:622
+#: src/Checkout/CheckoutTexts.php:149
+msgid "Spots"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:568
+msgid "Sell a fixed number of places, in total or per option, all from one button."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:571
+msgid "How many people can pay"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:583
+msgid "Split by"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:585
+msgid "A Dropdown, Single choice or Multiple choice field from the checkout form. The payer always has to pick, so it is required. With Multiple choice, each ticked option takes its own spot and adds its own price. Need more than one field? Add the others below."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:587
+msgid "Add a Dropdown, Single choice or Multiple choice field to the checkout form above, with one option per date, session or ticket type. It shows up here straight away."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:591
+#: src/Admin/Buttons/ButtonsPage.php:241
+#: src/Admin/Buttons/ButtonsPage.php:281
+msgid "Option"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:593
+#: src/Admin/Buttons/ButtonsPage.php:242
+msgid "Price (€)"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:601
+msgid "Other fields with spots or prices"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:602
+msgid "Give the options of more fields their own spots and price, e.g. accessories or extra nights. A payment takes a spot from every option it picks, and their prices add to the total."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:604
+msgid "Add a field"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:610
+msgid "Total spots"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:614
+msgid "Once they are all taken, the button shows Sold out."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:615
+msgid "A cap across every option, e.g. the size of the venue. Leave it empty to just add the options up."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:623
+msgid "Payer picks how many"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:624
+msgid "Each one takes a spot, and a fixed amount is charged for each."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:628
+msgid "Most in one payment"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:637
+msgid "Say when few are left"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:638
+msgid "The checkout shows “Only 4 spots left”. Sold-out options always show."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:642
+msgid "From this many left"
+msgstr ""
+
+#. translators: %d: how many days a payment link stays open
+#: src/Admin/Buttons/ButtonEditor.php:648
+#, php-format
+msgid "A spot is taken as soon as the payer goes to ifthenpay. If they never pay, it opens again when their link expires, after %d day (Configuration › Gateway › Expiry days)."
+msgid_plural "A spot is taken as soon as the payer goes to ifthenpay. If they never pay, it opens again when their link expires, after %d days (Configuration › Gateway › Expiry days)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Buttons/ButtonEditor.php:664
+#: src/Admin/ConfigurationPage.php:332
+#: src/Checkout/CheckoutTexts.php:108
+msgid "Payment methods"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:664
+msgid "Leave all unticked to offer every method switched on in Configuration › Gateway."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:667
+msgid "No payment method is switched on yet."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:667
+msgid "Open Configuration"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:697
+msgid "Failed, cancelled and pending outcomes always show the popup set in Configuration › Messages."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:700
+msgid "When paid"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:702
+msgid "Use the Default Design setting"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:703
+msgid "Show the thank-you popup"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:704
+msgid "Go to a page on this site"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:705
+msgid "Go to an address"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:707
+msgid "Edit the popup messages in Configuration"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:710
+#: src/Admin/ConfigurationForm.php:224
+msgid "Page"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:718
+#: src/Admin/ConfigurationForm.php:232
+msgid "Choose a page…"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:725
+#: src/Admin/Buttons/ButtonEditor.php:756
+#: src/Admin/ConfigurationForm.php:239
+msgid "Address"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:743
+msgid "Send to your invoicing app"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:743
+msgid "The moment a payment is paid, its details go straight to InvoiceXpress, Moloni, Vendus, TOConline or any app with an API, so nobody copies them by hand."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:749
+msgid "Send each paid payment"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:750
+msgid "Only paid ones. If the app is down, I try again after 5 minutes, 30 minutes and 3 hours."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:758
+msgid "Where the app's API creates an invoice or invoice-receipt; its API docs give it. Some apps take the API key in the address, others in a header."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:763
+#: src/Admin/Entries/EntriesController.php:490
+#: src/Admin/Entries/EntriesController.php:574
+#: src/Admin/Entries/EntriesPage.php:737
+#: src/Admin/Entries/EntriesPage.php:1608
+#: src/Admin/Entries/SingleEntryView.php:96
+#: src/Admin/MethodsTable.php:74
+#: src/Checkout/CheckoutTexts.php:71
+#: src/Mail/ReceiptEmail.php:177
+msgid "Method"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:771
+msgid "Body"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:773
+#: src/Admin/Entries/EntriesPage.php:1021
+msgid "JSON"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:774
+msgid "Form fields (name=value)"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:780
+msgid "Headers"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:782
+msgid "One per line, as Name: value. The content type follows the body you picked."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:786
+msgid "What to send"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:788
+msgid "Shape it the way the app's API asks. Tags fill in each payment: put text tags inside quotes (\"{name}\"); {amount_raw}, {unit_price} and {quantity} are plain numbers. For form fields, write one name=value per line."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:793
+#: src/Admin/Buttons/ButtonEditor.php:926
+msgid "Send a test"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:794
+msgid "Save the button first to send a test."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:794
+msgid "Sends what's above, saved or not, with this button's latest paid payment (or a made-up one). It may create a real invoice, so use the app's test mode if it has one."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:800
+msgid "Last sent"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:806
+msgid "Not sent"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:817
+msgid "Prefer Zapier, Make or n8n? The webhook in the Connect tab sends every payment to them as it is. Both can be on."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:831
+#: src/Admin/Entries/EntriesPage.php:891
+#: src/Admin/Entries/SingleEntryView.php:149
+#: src/Checkout/CheckoutTexts.php:50
+msgid "Name"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:832
+#: src/Admin/Entries/EntriesPage.php:895
+#: src/Admin/Entries/SingleEntryView.php:151
+#: src/Buttons/FormFields.php:71
+#: src/Checkout/CheckoutTexts.php:51
+msgid "Email"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:834
+#: src/Checkout/MergeTags.php:40
+msgid "Tax number"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:835
+#: src/Checkout/CheckoutTexts.php:54
+#: src/Checkout/MergeTags.php:41
+msgid "Note"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:836
+#: src/Admin/Entries/EntriesController.php:485
+#: src/Admin/Entries/EntriesController.php:569
+#: src/Admin/Entries/EntriesPage.php:587
+#: src/Admin/Entries/EntriesPage.php:972
+#: src/Admin/Entries/SingleEntryView.php:114
+#: src/Checkout/CheckoutTexts.php:70
+#: src/Mail/PaymentEmailTemplate.php:117
+#: src/Mail/ReceiptEmail.php:173
+#: src/Privacy.php:95
+msgid "Reference"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:881
+msgid "Connect another plugin"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:881
+msgid "For a form or booking plugin ifthenpay has no integration with: it sends the payer here after submit, and hears back when they pay."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:884
+msgid "In the other plugin, set \"redirect after submit\" to the link below."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:885
+msgid "Swap each {tag} for that plugin's own merge tag for the field. Leave out any you don't need."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:886
+msgid "The reference comes back in Payments, the receipt and the webhook, so you can match the payment to its entry."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:890
+msgid "Save the button first; its link builder appears here."
+msgstr ""
+
+#. translators: %s: a field, e.g. "Email"
+#: src/Admin/Buttons/ButtonEditor.php:903
+#, php-format
+msgid "Merge tag for %s"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:909
+msgid "Redirect link"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:910
+msgid "This button's amount is fixed, so the amount in the link is ignored. Switch Amount to \"From the link\" to take the form's total."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:917
+msgid "Go straight to ifthenpay"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:918
+msgid "When the link already fills in everything required, the payer skips the form."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:923
+msgid "Webhook"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:928
+msgid "We POST a JSON event here when a payment is paid, fails or is cancelled. Zapier, Make and n8n take it as it is."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:933
+msgid "Verify the webhook signature"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:934
+msgid "Each request carries X-Iftp-Signature: t={timestamp},v1={signature}. The signature is the HMAC-SHA256 of \"{timestamp}.{body}\" with this secret."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:935
+msgid "Signing secret"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:938
+msgid "Make a new secret when I save (the old one stops working)"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:942
+msgid "For developers: signed links"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:943
+msgid "A signed link locks its amount and reference, so nobody can edit them in the address bar. Build one in PHP:"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:974
+#: src/Ai/AiController.php:244
+msgid "Your title"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:1002
+msgid "Place it"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:1003
+msgid "Shortcode"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:1006
+#: src/Admin/Buttons/ButtonsPage.php:1132
+#: src/Admin/Buttons/ButtonsPage.php:1157
+msgid "QR code for the pay link"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonEditor.php:1008
+msgid "In the block editor, add the \"ifthenpay Pay Button\" block and pick this button."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsController.php:94
+#: src/Ai/Studio.php:242
+#: src/Buttons/ButtonRepository.php:35
+#: blocks/pay-button/editor.js:26
+msgid "Pay button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsController.php:249
+msgid "Could not change the button. Please try again."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsController.php:269
+#: src/Admin/Buttons/ButtonsPage.php:247
+msgid "Pick at least one button and an action."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsController.php:299
+msgid "Could not change the buttons. Please try again."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsController.php:338
+msgid "Save a webhook address first."
+msgstr ""
+
+#. translators: %s: the error message
+#: src/Admin/Buttons/ButtonsController.php:348
+#, php-format
+msgid "Could not reach it: %s"
+msgstr ""
+
+#. translators: 1: HTTP status code, 2: HTTP status text
+#: src/Admin/Buttons/ButtonsController.php:350
+#: src/Admin/Buttons/ButtonsController.php:387
+#, php-format
+msgid "It answered %1$d %2$s."
+msgstr ""
+
+#. translators: %d: HTTP status code
+#: src/Admin/Buttons/ButtonsController.php:358
+#, php-format
+msgid "Test sent. It answered %d."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsController.php:375
+msgid "Save the button first."
+msgstr ""
+
+#. translators: %s: the error message
+#: src/Admin/Buttons/ButtonsController.php:385
+#, php-format
+msgid "Not sent: %s"
+msgstr ""
+
+#. translators: %d: HTTP status code
+#: src/Admin/Buttons/ButtonsController.php:396
+#, php-format
+msgid "Sent. It answered %d."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsController.php:407
+#: src/Admin/CheckoutSettingsPage.php:169
+#: src/Admin/ConfigurationForm.php:105
+#: src/Ai/AiController.php:238
+#: src/Ai/AiController.php:257
+msgid "Sorry, you are not allowed to do that."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:210
+#: src/Admin/CheckoutSettingsPage.php:128
+msgid "Looks good."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:211
+#: src/Admin/CheckoutSettingsPage.php:129
+msgid "Too long: 20,000 characters at most."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:212
+#: src/Admin/CheckoutSettingsPage.php:130
+msgid "A bracket or a quote is never closed."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:213
+#: src/Admin/CheckoutSettingsPage.php:131
+msgid "Not allowed here: @import, expression(), javascript: links, other data: links or a closing script tag."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:214
+msgid "@keyframes, @font-face and similar at-rules cannot sit inside one button's scope. Use @media or @supports."
+msgstr ""
+
+#. translators: %s: the browser's description of the mistake
+#: src/Admin/Buttons/ButtonsPage.php:216
+#: src/Admin/CheckoutSettingsPage.php:133
+#, php-format
+msgid "JavaScript mistake: %s"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:217
+#: src/Admin/CheckoutSettingsPage.php:118
+#: src/Admin/ConfigurationPage.php:149
+msgid "Copied."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:218
+#: src/Admin/CheckoutSettingsPage.php:119
+#: src/Admin/ConfigurationPage.php:150
+msgid "Could not copy. Select the text and copy it yourself."
+msgstr ""
+
+#. translators: %s: the button's title
+#: src/Admin/Buttons/ButtonsPage.php:220
+#, php-format
+msgid "Delete “%s”?"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:221
+msgid "Could not make the QR code. Copy the pay link instead."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:222
+#: src/Admin/ConfigurationPage.php:177
+#: src/Admin/Entries/EntriesPage.php:365
+msgid "Sending…"
+msgstr ""
+
+#. translators: 1: the button text, 2: the amount
+#. translators: 1: the button's title, 2: the site name
+#: src/Admin/Buttons/ButtonsPage.php:227
+#: src/Buttons/Button.php:282
+#: src/Frontend/PayPage.php:151
+#, php-format
+msgid "%1$s · %2$s"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:231
+msgid "Price"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:233
+msgid "Button amount"
+msgstr ""
+
+#. translators: %d: how many spots the options have together
+#: src/Admin/Buttons/ButtonsPage.php:235
+#, php-format
+msgid "The options add up to %d spots."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:236
+msgid "Options with no number of their own share the total spots."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:237
+msgid "Options with no number of their own have no limit."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:238
+msgid "No choice field in the checkout form yet"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:239
+msgid "Add a Dropdown, Single choice or Multiple choice field to the checkout form, then pick it here."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:240
+msgid "Enter how many spots there are."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:243
+msgid "Free"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:244
+msgid "Choose a field"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:245
+msgid "Remove this field"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:249
+msgid "1 selected"
+msgstr ""
+
+#. translators: %s: how many buttons are picked
+#. translators: %s: number of selected entries
+#: src/Admin/Buttons/ButtonsPage.php:251
+#: src/Admin/Entries/EntriesPage.php:353
+#, php-format
+msgid "%s selected"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:252
+msgid "None selected"
+msgstr ""
+
+#. translators: %s: how many buttons
+#: src/Admin/Buttons/ButtonsPage.php:255
+#, php-format
+msgid "Move %s buttons to the trash?"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:256
+msgid "Button turned on. It takes payments again."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:257
+msgid "Button turned off. It shows disabled and its pay page is gone."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:258
+#: src/Admin/Buttons/ButtonsPage.php:1036
+msgid "Active"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:259
+#: src/Admin/Buttons/ButtonsPage.php:1036
+msgid "Inactive"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:260
+#: src/Admin/CheckoutSettingsPage.php:120
+msgid "Pill"
+msgstr ""
+
+#. translators: %d: corner radius in pixels
+#: src/Admin/Buttons/ButtonsPage.php:262
+#: src/Admin/CheckoutSettingsPage.php:122
+#, php-format
+msgid "%d px"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:263
+#: src/Admin/CheckoutSettingsPage.php:123
+#: src/Admin/ConfigurationPage.php:152
+msgid "You have unsaved changes. Leave anyway?"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:264
+#: src/Admin/CheckoutSettingsPage.php:124
+msgid "Pay page background"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:265
+#: src/Admin/CheckoutSettingsPage.php:125
+msgid "Use this image"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:266
+#: src/Admin/CheckoutSettingsPage.php:126
+msgid "Pay page video"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:267
+#: src/Admin/CheckoutSettingsPage.php:127
+msgid "Use this video"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:272
+msgid "Half width"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:273
+msgid "Label"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:274
+msgid "Heading"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:275
+msgid "Type"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:276
+msgid "Merge tag"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:277
+msgid "Placeholder"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:278
+msgid "Text before a choice"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:279
+msgid "Options"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:280
+msgid "One per line"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:282
+msgid "Help text"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:283
+#: src/Admin/LookControls.php:165
+#: blocks/pay-button/editor.js:54
+msgid "Text"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:284
+msgid "The payer must answer"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:285
+#: src/Admin/DesignControls.php:185
+msgid "Full width"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:286
+msgid "Half"
+msgstr ""
+
+#. translators: %d: the page number
+#: src/Admin/Buttons/ButtonsPage.php:288
+#, php-format
+msgid "Page %d"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:289
+msgid "Page title"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:292
+msgid "Shown when the payer types the amount"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:293
+#: src/Admin/Buttons/Tour.php:146
+#: src/Admin/LookControls.php:695
+msgid "Your details"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:294
+msgid "Name, email and the rest, set in Payer details"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:295
+msgid "Move up"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:296
+msgid "Move down"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:297
+#: src/Admin/LookControls.php:438
+#: src/Admin/LookControls.php:479
+msgid "Remove"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:300
+msgid "Spots are split by this field, so the payer has to answer it."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:301
+msgid "Show this"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:302
+msgid "Always"
+msgstr ""
+
+#. translators: %s: the label of an earlier choice field, e.g. "Day"
+#: src/Admin/Buttons/ButtonsPage.php:304
+#, php-format
+msgid "Only when “%s”…"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:305
+msgid "is one of"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:306
+msgid "is none of"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:307
+msgid "Ticked"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:308
+msgid "Tick at least one answer, or this stays shown for everyone."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:309
+msgid "Add a Dropdown, Single choice, Multiple choice or Agreement above this one to show it only for some answers."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:310
+msgid "Spots are split by this field, so it always shows."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:311
+msgid "Conditional"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:489
+msgid "Button saved."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:490
+msgid "Button saved, and its design is now the default for every button set to Default design."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:491
+msgid "Here is your starter button. Change anything, then turn it on and save."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:492
+msgid "Button created. Place it with the block, the shortcode or its link."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:493
+msgid "Button copied. The copy is off until you turn it on."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:494
+msgid "Button moved to the trash. Its payments are still in Payments."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:495
+msgid "Button restored."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:496
+msgid "That did not work. Please try again."
+msgstr ""
+
+#. translators: %s: how many buttons
+#: src/Admin/Buttons/ButtonsPage.php:506
+#, php-format
+msgid "%s button turned on."
+msgid_plural "%s buttons turned on."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: how many buttons
+#: src/Admin/Buttons/ButtonsPage.php:508
+#, php-format
+msgid "%s button turned off."
+msgid_plural "%s buttons turned off."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: how many buttons
+#: src/Admin/Buttons/ButtonsPage.php:510
+#, php-format
+msgid "%s button copied. The copy is off until you turn it on."
+msgid_plural "%s buttons copied. The copies are off until you turn them on."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: how many buttons
+#: src/Admin/Buttons/ButtonsPage.php:512
+#, php-format
+msgid "%s button moved to the trash. Its payments are still in Payments."
+msgid_plural "%s buttons moved to the trash. Their payments are still in Payments."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Buttons/ButtonsPage.php:574
+#: src/Admin/Buttons/ButtonsPage.php:631
+#: src/Ai/AiController.php:319
+msgid "New button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:575
+msgid "Help: start from a template"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:578
+#: src/Admin/Menu.php:100
+#: src/Admin/Menu.php:110
+#: src/Buttons/ButtonRepository.php:34
+msgid "Pay buttons"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:584
+msgid "Connect your ifthenpay account first"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:585
+msgid "Buttons take payments through your ifthenpay Gateway Key. Connect it once, pick the payment methods, and come back here."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:586
+msgid "Connect ifthenpay"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:595
+#: src/Buttons/Templates.php:89
+#: src/Checkout/CheckoutTexts.php:39
+msgid "Pay now"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:598
+msgid "Make your first pay button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:599
+msgid "Set an amount (or let the payer choose), pick what to ask for and how it looks, and you get three ways to use it:"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:601
+msgid "A block or shortcode"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:601
+msgid "on any page or post."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:602
+msgid "A pay link"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:602
+msgid "for email, social posts or a QR code."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:603
+msgid "A link for other plugins"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:603
+msgid "so a form ifthenpay has no integration with can send its payer here."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:606
+msgid "Create a button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:607
+#: src/Admin/Buttons/ButtonsPage.php:739
+msgid "Or describe it to the AI"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:616
+#: src/Admin/CheckoutSettingsPage.php:245
+#: src/Admin/Entries/EntriesPage.php:727
+#: src/Admin/Entries/EntriesPage.php:1607
+#: src/Admin/Entries/SingleEntryView.php:348
+#: src/Checkout/CheckoutService.php:166
+#: blocks/pay-button/editor.js:51
+msgid "Button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:618
+#: src/Admin/Buttons/ButtonsPage.php:763
+#: src/Admin/Buttons/ButtonsPage.php:1072
+msgid "Collected"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:619
+#: src/Admin/Buttons/ButtonsPage.php:1076
+#: src/Admin/ConfigurationForm.php:177
+#: src/Admin/Entries/EntryPresenter.php:71
+#: src/Admin/LookControls.php:169
+#: src/Admin/LookControls.php:652
+msgid "Paid"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:620
+#: src/Admin/Buttons/ButtonsPage.php:1080
+msgid "Didn't pay"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:623
+#: src/Admin/Buttons/ButtonsPage.php:892
+msgid "On"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:632
+msgid "Set an amount, pick a look, place it anywhere."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:634
+msgid "or"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:638
+msgid "Describe it in a sentence; watch the form and the look appear."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:642
+msgid "Pages"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:643
+msgid "Previous"
+msgstr ""
+
+#. translators: 1: current page, 2: number of pages
+#: src/Admin/Buttons/ButtonsPage.php:644
+#, php-format
+msgctxt "pager"
+msgid "Page %1$s of %2$s"
+msgstr ""
+
+#. translators: 1: current page, 2: number of pages
+#: src/Admin/Buttons/ButtonsPage.php:645
+#: src/Admin/Buttons/Tour.php:87
+#: src/Checkout/CheckoutTexts.php:58
+msgid "Next"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:647
+msgid "No buttons match."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:666
+msgid "Welcome! Create your first button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:667
+msgid "Start from one of these and change anything you like in the editor. Nothing goes live until you turn it on."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:671
+#: src/Admin/Buttons/Tour.php:89
+msgid "Skip"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:683
+msgid "Need a hand?"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:686
+msgid "Take the tour again"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:686
+msgid "A quick walk through this screen, step by step."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:688
+msgid "Or start from a template and change anything you like in the editor. It starts turned off, so nothing goes live until you turn it on."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:692
+#: src/Admin/Buttons/ButtonsPage.php:1162
+#: src/Admin/Entries/EntriesPage.php:861
+#: src/Checkout/CheckoutTexts.php:72
+msgid "Close"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:703
+#: src/Buttons/Templates.php:45
+msgid "Donation"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:703
+msgid "The payer picks the amount, with quick suggestions."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:704
+#: src/Buttons/Templates.php:62
+msgid "Event ticket"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:704
+msgid "A fixed price, a quantity and a limited number of spots."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:705
+#: src/Buttons/Templates.php:85
+msgid "Fixed price"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:705
+msgid "One product or service at one price."
+msgstr ""
+
+#. translators: %s: how many payments were paid
+#: src/Admin/Buttons/ButtonsPage.php:766
+#, php-format
+msgid "from %s paid payment"
+msgid_plural "from %s paid payments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Buttons/ButtonsPage.php:774
+msgid "Conversion (paid ÷ opened)"
+msgstr ""
+
+#. translators: 1: paid payments, 2: how many times a checkout was opened
+#: src/Admin/Buttons/ButtonsPage.php:778
+#, php-format
+msgid "%1$s of %2$s checkout opened"
+msgid_plural "%1$s of %2$s checkouts opened"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Buttons/ButtonsPage.php:779
+#: src/Admin/Buttons/ButtonsPage.php:792
+msgid "counts from the next checkout opened"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:787
+msgid "Abandoned checkouts"
+msgstr ""
+
+#. translators: %s: a percentage, e.g. 20%
+#: src/Admin/Buttons/ButtonsPage.php:791
+#, php-format
+msgid "%s of checkouts opened"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:800
+#: src/Reports/Insights.php:334
+msgid "Average payment"
+msgstr ""
+
+#. translators: %s: how many payments were paid
+#: src/Admin/Buttons/ButtonsPage.php:803
+#, php-format
+msgid "across %s paid payment"
+msgid_plural "across %s paid payments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Buttons/ButtonsPage.php:819
+msgid "Last 30 days against the 30 before"
+msgstr ""
+
+#. translators: 1: ▲ or ▼, 2: a percentage change, e.g. 12%
+#: src/Admin/Buttons/ButtonsPage.php:822
+#, php-format
+msgid "%1$s %2$s"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:825
+msgid "last 30 days"
+msgstr ""
+
+#. translators: %s: a whole number
+#. translators: %s: a percentage number
+#: src/Admin/Buttons/ButtonsPage.php:877
+#: src/Admin/Entries/EntryPresenter.php:271
+#, php-format
+msgid "%s%%"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:891
+#: src/Admin/Entries/EntryPresenter.php:76
+msgid "All"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:894
+#: src/Admin/Buttons/ButtonsPage.php:1039
+#: src/Admin/Buttons/ButtonsPage.php:1053
+#: src/Checkout/CheckoutTexts.php:67
+msgid "Sold out"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:897
+msgid "Newest"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:898
+msgid "Recently edited"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:899
+msgid "Oldest"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:900
+msgid "Most collected"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:901
+msgid "Most paid"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:902
+msgid "Name (A–Z)"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:905
+msgid "Grid view"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:906
+msgid "List view"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:911
+#: src/Admin/Buttons/ButtonsPage.php:913
+msgid "Search buttons"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:916
+msgid "Amount type"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:918
+msgid "All types"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:925
+msgid "Sort by"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:932
+#: src/Admin/LookControls.php:678
+msgid "Show"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:940
+msgid "Select"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:941
+msgid "Layout"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:955
+msgid "Batch actions"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:957
+msgid "Select all shown"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:958
+msgid "Clear"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:961
+#: src/Admin/Buttons/ButtonsPage.php:963
+msgid "Batch action"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:964
+msgid "Turn on"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:965
+msgid "Turn off"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:966
+#: src/Admin/Buttons/ButtonsPage.php:1134
+msgid "Duplicate"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:967
+#: src/Admin/Buttons/ButtonsPage.php:978
+#: src/Admin/Buttons/ButtonsPage.php:1152
+msgid "Move to trash"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:970
+#: src/Admin/Entries/EntriesPage.php:706
+msgid "Apply"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:971
+#: src/Admin/Buttons/Tour.php:291
+#: src/Admin/Entries/EntriesPage.php:950
+msgid "Done"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:975
+msgid "Their payments stay in Payments, but every block, shortcode and link that uses them stops working. They go to the trash."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:977
+msgid "Keep them"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1018
+#: src/Admin/CheckoutSettingsPage.php:279
+#: src/Admin/DesignControls.php:100
+msgid "Default design"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1019
+msgid "Theme look"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1020
+msgid "Custom look"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1041
+#: src/Admin/Buttons/ButtonsPage.php:1055
+msgid "Almost full"
+msgstr ""
+
+#. translators: %s: the button's title
+#: src/Admin/Buttons/ButtonsPage.php:1063
+#, php-format
+msgid "Take payments with %s"
+msgstr ""
+
+#. translators: 1: a date, e.g. 23 Oct, 2: checkouts opened, 3: of those, how many were paid
+#: src/Admin/Buttons/ButtonsPage.php:1086
+#, php-format
+msgid "Since %1$s: %2$s checkout opened, %3$s paid."
+msgid_plural "Since %1$s: %2$s checkouts opened, %3$s paid."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1087
+msgid "Nobody has opened its checkout since this started counting."
+msgstr ""
+
+#. translators: %s: how many opens it takes, e.g. 10
+#: src/Admin/Buttons/ButtonsPage.php:1091
+#, php-format
+msgid "The rate shows from %s opens."
+msgstr ""
+
+#. translators: %s: a date, e.g. 23 Oct
+#: src/Admin/Buttons/ButtonsPage.php:1099
+#, php-format
+msgid "since %s"
+msgstr ""
+
+#. translators: %s: a percentage, e.g. 80%
+#: src/Admin/Buttons/ButtonsPage.php:1111
+#, php-format
+msgid "%s of spots taken"
+msgstr ""
+
+#. translators: 1: spots taken, paid or waiting for payment, 2: how many there are
+#. translators: 1: current step, 2: number of steps
+#: src/Admin/Buttons/ButtonsPage.php:1117
+#: src/Admin/Buttons/Tour.php:92
+#, php-format
+msgid "%1$s of %2$s"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1127
+msgid "Edit"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1128
+msgid "Activate button"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1130
+msgid "Shortcode copied."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1130
+msgid "Copy shortcode"
+msgstr ""
+
+#. translators: %s: the shortcode
+#: src/Admin/Buttons/ButtonsPage.php:1130
+#, php-format
+msgid "Copy shortcode %s"
+msgstr ""
+
+#. translators: %s: the shortcode
+#: src/Admin/Buttons/ButtonsPage.php:1131
+msgid "Pay link copied."
+msgstr ""
+
+#. translators: %s: the shortcode
+#: src/Admin/Buttons/ButtonsPage.php:1131
+msgid "Copy pay link"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1132
+#: src/Admin/Buttons/ButtonsPage.php:1158
+msgid "QR code"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1133
+msgid "Open pay page (opens in a new tab)"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1148
+msgid "Delete this button?"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1149
+msgid "Its payments stay in Payments, but every block, shortcode and link that uses it stops working. It goes to the trash, so you can undo it right after."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1160
+msgid "Print it or put it on a flyer: scanning it opens the pay page. It always points to this button, so it keeps working if you change the button."
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1163
+msgid "Download PNG"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1164
+msgid "Download SVG"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1181
+#: src/Admin/Entries/PaymentEmailSettings.php:118
+msgid "Insert a tag"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1182
+msgid "Tags"
+msgstr ""
+
+#: src/Admin/Buttons/ButtonsPage.php:1235
+#: src/Admin/Entries/SingleEntryView.php:117
+msgid "Copy"
+msgstr ""
+
+#. translators: 1: smallest amount, 2: largest amount
+#. translators: 1: lower bound, 2: upper bound
+#: src/Admin/Buttons/ButtonsPage.php:1286
+#: src/Admin/Entries/EntriesPage.php:1551
+#, php-format
+msgid "%1$s – %2$s"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:88
+#: src/Checkout/CheckoutTexts.php:57
+msgid "Back"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:90
+msgid "Guided tour"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:94
+msgid "Your turn: click the highlighted part, or skip ahead"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:95
+msgid "Your turn: type in the glowing field, or skip ahead"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:96
+msgid "Your turn: type your idea and press send, or skip ahead"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:99
+#: src/Admin/CheckoutSettingsPage.php:156
+#: src/Admin/LookControls.php:706
+msgid "Consultation"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:100
+msgid "One hour with our team"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:102
+msgid "A ticket for our Saturday workshop, 25 euros, 30 spots. Ask for name and email."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:103
+msgid "Book now"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:104
+msgid "Building your button…"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:106
+msgid "Ticket: 25.00 €"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:107
+msgid "Check the prices:"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:108
+msgid "Done. Here is your workshop ticket, ready to look over."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:110
+msgid "Title: Saturday workshop"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:111
+msgid "Amount: 25.00 €"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:112
+msgid "Spots: 30 in total"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:113
+msgid "Asks for name and email"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:146
+#: src/Admin/Entries/EntriesPage.php:450
+#: src/Admin/LookControls.php:695
+#: src/Admin/LookControls.php:923
+msgid "Confirm"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:157
+msgid "Saturday workshop"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:158
+msgid "A hands-on morning with our team"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:207
+msgid "Show me"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:212
+msgid "Make your first button"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:213
+msgid "A pay button takes a payment on a page, in an email or from a QR code. Let's make one, it takes a minute."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:219
+msgid "Start here"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:220
+msgid "New button opens the editor."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:225
+msgid "Now the AI"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:233
+msgid "Name it"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:234
+msgid "Give the button a title, like Consultation. Nothing you do in this tour is saved."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:239
+msgid "Set the price"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:240
+msgid "Type a fixed amount, or let the payer choose it. Try it, then press Next."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:246
+msgid "Make it yours"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:247
+msgid "Open the Design tab."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:253
+msgid "Pick a look"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:254
+msgid "Choose Custom to see the ready-made styles and pick one, or build your own. The checkout has its own design too, just below. Press Next when you are done."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:259
+msgid "Create it"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:260
+msgid "This is where you press Create button. Nothing was saved here, so there is nothing to clean up."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:265
+msgid "Finish"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:273
+msgid "Or just ask the AI"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:274
+msgid "Describe the button in plain words, then press send. In this tour nothing is really sent."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:279
+msgid "It builds, you watch"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:280
+msgid "The form, the look and the pay page appear here, with a list of what changed. Anything about money is marked."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:285
+msgid "You stay in charge"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:286
+msgid "Review it in the editor and save. The new button starts switched off, so nothing goes live by surprise."
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:296
+msgid "Need this again?"
+msgstr ""
+
+#: src/Admin/Buttons/Tour.php:297
+msgid "Click the question mark any time to replay the tour or start from a template."
+msgstr ""
+
+#: src/Admin/CheckoutSettingsPage.php:73
+#: src/Admin/CheckoutSettingsPage.php:249
+msgid "Default Design"
+msgstr ""
+
+#: src/Admin/CheckoutSettingsPage.php:150
+#: src/Repository/CheckoutSettings.php:52
+msgid "Thank you!"
+msgstr ""
+
+#: src/Admin/CheckoutSettingsPage.php:254
+msgid "The other settings were saved."
+msgstr ""
+
+#: src/Admin/CheckoutSettingsPage.php:254
+#: src/Admin/ConfigurationPage.php:178
+#: src/Admin/ConfigurationPage.php:217
+msgid "Settings saved."
+msgstr ""
+
+#: src/Admin/CheckoutSettingsPage.php:285
+#: src/Admin/ConfigurationPage.php:234
+#: src/Admin/ConfigurationPage.php:361
+msgid "Save Settings"
+msgstr ""
+
+#: src/Admin/CheckoutSettingsPage.php:320
+msgid "Default button design"
+msgstr ""
+
+#: src/Admin/CheckoutSettingsPage.php:321
+msgid "Every button set to Default design wears this, so many buttons across your site look the same and change together. A button can still have its own in its editor, under Design."
+msgstr ""
+
+#: src/Admin/CodeFields.php:39
+msgid "Only users who may post unfiltered HTML can change custom code."
+msgstr ""
+
+#: src/Admin/CodeFields.php:54
+msgid "The button comes with no styles at all, so write them here. They only touch this button."
+msgstr ""
+
+#: src/Admin/CodeFields.php:55
+msgid "Start from .iftp-btn-pay__button (the button), .iftp-btn-pay__group and .iftp-btn-pay__logos. The preview can't show your code; the page does once it is saved."
+msgstr ""
+
+#: src/Admin/CodeFields.php:71
+msgid "The checkout popup and this button's pay page load none of our styles, so only this and a tiny base apply. The popups after paying keep the site's look."
+msgstr ""
+
+#: src/Admin/CodeFields.php:72
+msgid "Style .iftp-btn-sheet (the popup), .iftp-btn-form (the card), .iftp-btn-steps (page progress), .iftp-btn-form__input (fields), .iftp-btn-form__submit and .iftp-btn-page-body (the pay page background)."
+msgstr ""
+
+#: src/Admin/CodeFields.php:94
+msgid "CSS"
+msgstr ""
+
+#: src/Admin/CodeFields.php:95
+#: src/Admin/LookControls.php:608
+#: src/Admin/LookControls.php:612
+msgid "Custom CSS"
+msgstr ""
+
+#: src/Admin/CodeFields.php:96
+msgid "Anything you write is scoped to this button. No @import, expression(), javascript: links, @keyframes or @font-face."
+msgstr ""
+
+#: src/Admin/CodeFields.php:99
+msgid "JavaScript"
+msgstr ""
+
+#: src/Admin/CodeFields.php:100
+msgid "Custom JavaScript"
+msgstr ""
+
+#: src/Admin/CodeFields.php:101
+msgid "Runs only on pages where this button is, in its own scope, after the checkout script. scope is the list of this button's elements. An error shows in the browser console and stops nothing else."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:178
+#: src/Admin/Entries/EntryPresenter.php:70
+#: src/Admin/LookControls.php:170
+#: src/Admin/LookControls.php:653
+msgid "Pending"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:179
+#: src/Admin/Entries/EntryPresenter.php:72
+#: src/Admin/LookControls.php:654
+msgid "Failed"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:180
+#: src/Admin/LookControls.php:655
+msgid "Cancelled"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:183
+msgid "ifthenpay confirmed the payment."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:184
+msgid "Back from ifthenpay, but not confirmed yet: a Multibanco or Payshop reference waiting to be paid."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:185
+msgid "Declined, or the link expired."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:186
+msgid "The payer cancelled on the ifthenpay page."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:191
+msgid "Confirmation type"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:192
+msgid "Back from ifthenpay, the payer lands on the page they paid from and sees one of these. If it changes later (pending turns paid), the popup comes back even if they closed it. Click a tag to drop in that payment's detail."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:196
+msgid "Outcome"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:211
+msgid "Popup message"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:212
+msgid "WordPress page"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:213
+msgid "Custom URL"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:251
+msgid "Formatting"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:252
+msgid "Bold"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:253
+msgid "Italic"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:254
+msgid "Link"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:257
+msgid "Editor view"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:258
+msgid "Normal"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:259
+msgid "Raw"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:274
+msgid "Show the payment details (amount, reference, method) under the message"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:288
+msgid "Write any of these in your own words or language. Blank keeps the original, which follows the site's language. Keep words in {braces}: the payer sees the number, price or name there."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:325
+msgid "Payment emails"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:326
+msgid "Sent once ifthenpay confirms a payment, never before."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:332
+msgid "Receipt to the payer"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:333
+msgid "Only when the button asks for an email."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:339
+msgid "Tell me about every payment"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:340
+msgid "With the amount, the payer and a link to it."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:344
+#: src/Admin/ConfigurationForm.php:364
+msgid "Send it to"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:352
+msgid "Weekly summary"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:353
+msgid "Every Monday at 08:00: last week's revenue and its change, the top methods and customers, and the money still waiting."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:359
+msgid "Send the weekly summary"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:360
+msgid "An email in the same look as these screens."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:368
+msgid "Send a test now"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:385
+#: src/Admin/ConfigurationPage.php:206
+msgid "Pay links"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:386
+msgid "Every button has its own pay page. Changing the base breaks links you already shared."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:390
+msgid "Link base"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:394
+msgid "button"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:399
+msgid "Make a new signing secret (every signed link made so far stops working)"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:421
+msgid "It builds pay buttons, so it opens once your ifthenpay account is connected."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:424
+msgid "Connect ifthenpay first"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:432
+msgid "Limits"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:433
+msgid "Every message is billed to your own key, so cap how many go out. A stuck key or a held-down Enter can never run up the bill past these."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:438
+msgid "Messages per hour, per admin"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:442
+msgid "Messages per day, whole site"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:444
+msgid "0 means no daily limit. Counted from midnight UTC."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:448
+msgid "Chat memory"
+msgstr ""
+
+#. translators: %d: how many earlier chat messages go along with each new one
+#: src/Admin/ConfigurationForm.php:452
+#, php-format
+msgid "The last %d message"
+msgid_plural "The last %d messages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/ConfigurationForm.php:455
+msgid "How much of the chat goes along with each message. The button itself always goes in full; a shorter memory costs less."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:458
+msgid "Keep chats for"
+msgstr ""
+
+#. translators: %d: number of days
+#: src/Admin/ConfigurationForm.php:462
+#, php-format
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/ConfigurationForm.php:465
+msgid "After that, a button's chat starts fresh. Saved buttons are never touched."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:472
+msgid "How it works"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:473
+msgid "Faster or more careful, safer or more surprising. Change these any time; the next message uses them."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:479
+msgid "Thinking"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:482
+msgid "Quick"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:482
+msgid "Answers in seconds."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:483
+#: src/Admin/ConfigurationForm.php:494
+msgid "Balanced"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:483
+msgid "A little slower, more careful."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:484
+msgid "Deep"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:484
+msgid "Slowest and dearest, for big forms."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:486
+msgid "Gemini and ChatGPT only. Claude always answers straight away."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:490
+msgid "Creativity"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:493
+msgid "Focused"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:493
+msgid "Sticks closely to what you ask."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:494
+msgid "Good ideas, no surprises."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:495
+msgid "Creative"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:495
+msgid "Bolder looks and wording."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:497
+msgid "Not used by ChatGPT's reasoning models, which pick their own."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:503
+msgid "Try other models when yours is busy"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:504
+msgid "Up to two more from your key, so a busy moment doesn't stop you. Off, it only ever uses the model you picked."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:510
+msgid "Let the AI set prices"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:511
+msgid "The amount, its range and the price of each option. Off, it keeps your prices and you set new ones in the editor."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:151
+msgid "Link address"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:169
+msgid "Connecting…"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:170
+#: src/Ajax/SettingsController.php:105
+msgid "Invalid Backoffice Key..."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:172
+msgid "Requesting…"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:173
+#: src/Admin/MethodsTable.php:177
+msgid "Requested"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:174
+msgid "Activation request sent. ifthenpay will get back to you by email."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:175
+msgid "Loading the payment methods…"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:176
+#: src/Admin/Entries/EntriesPage.php:401
+msgid "Saving…"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:202
+msgid "Gateway"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:203
+msgid "Messages"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:204
+msgid "Texts"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:205
+msgid "Emails"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:212
+#: src/Admin/ConfigurationPage.php:227
+#: src/Admin/DashboardWidget.php:179
+#: src/Admin/Menu.php:120
+#: src/Admin/Menu.php:121
+msgid "Configuration"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:247
+msgid "Drawn in your checkout's look."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:248
+msgid "Change it in Default Design"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:279
+msgid "ifthenpay account"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:280
+msgid "Your Backoffice Key unlocks the Gateway Keys and payment methods on your ifthenpay contract."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:285
+msgid "Connected"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:315
+#: src/Admin/ConfigurationPage.php:320
+msgid "Gateway Key"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:316
+msgid "The Gateway Key payments are created under. Switching it reloads its payment methods."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:333
+msgid "Choose which methods to offer, and star the one the hosted payment page opens on."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:342
+msgid "Hosted payment page"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:343
+msgid "What the payer reads on the ifthenpay page, and how long an unpaid link stays open."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:349
+msgid "Shown on the ifthenpay page while paying. Tags fill in each payment's details, e.g. \"{button} · {payment_id}\". A button can set its own in its editor. Empty shows the site name."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:353
+msgid "Expiry days"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:355
+msgid "After this many days an unpaid payment is marked Expired, and any spot it held opens again. Every button uses it."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:375
+msgid "Connect to ifthenpay"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:376
+msgid "Paste the Backoffice Key from your ifthenpay account. It stays on this site and is never shown again."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:379
+msgid "Backoffice Key"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:385
+msgid "Insert your backoffice key here.."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:394
+msgid "The key from your ifthenpay Backoffice account."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:413
+msgid "Disconnect ifthenpay?"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:414
+msgid "This clears the Backoffice Key, Gateway Key and payment methods. Your entries stay, and you can connect again at any time."
+msgstr ""
+
+#: src/Admin/DashboardWidget.php:116
+msgid "Revenue · last 30 days"
+msgstr ""
+
+#. translators: %s: number of payments
+#: src/Admin/DashboardWidget.php:130
+#, php-format
+msgid "Payments by status · %s payment"
+msgid_plural "Payments by status · %s payments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/DashboardWidget.php:155
+msgid "Latest payments"
+msgstr ""
+
+#: src/Admin/DashboardWidget.php:157
+msgid "No payments yet."
+msgstr ""
+
+#: src/Admin/DashboardWidget.php:178
+msgid "View all entries"
+msgstr ""
+
+#: src/Admin/DesignControls.php:100
+msgid "The same as every button set to it."
+msgstr ""
+
+#: src/Admin/DesignControls.php:101
+msgid "Match my theme"
+msgstr ""
+
+#: src/Admin/DesignControls.php:101
+msgid "Looks like the other buttons on your site."
+msgstr ""
+
+#: src/Admin/DesignControls.php:102
+msgid "Custom"
+msgstr ""
+
+#: src/Admin/DesignControls.php:102
+msgid "Your own colour, shape and size."
+msgstr ""
+
+#: src/Admin/DesignControls.php:103
+msgid "No styles from us. Your CSS and JavaScript do it."
+msgstr ""
+
+#: src/Admin/DesignControls.php:107
+#: src/Admin/LookControls.php:323
+msgid "Filled"
+msgstr ""
+
+#: src/Admin/DesignControls.php:108
+#: src/Buttons/ButtonDesign.php:138
+msgid "Outline"
+msgstr ""
+
+#: src/Admin/DesignControls.php:109
+#: src/Admin/LookControls.php:496
+#: src/Admin/LookControls.php:517
+#: src/Admin/LookControls.php:569
+#: src/Buttons/ButtonDesign.php:152
+msgid "Soft"
+msgstr ""
+
+#: src/Admin/DesignControls.php:110
+#: src/Admin/LookControls.php:399
+msgid "Gradient"
+msgstr ""
+
+#: src/Admin/DesignControls.php:111
+#: src/Admin/LookControls.php:518
+msgid "Aurora"
+msgstr ""
+
+#: src/Admin/DesignControls.php:112
+#: src/Buttons/ButtonDesign.php:254
+msgid "Split"
+msgstr ""
+
+#: src/Admin/DesignControls.php:113
+#: src/Buttons/ButtonDesign.php:268
+msgid "Halo"
+msgstr ""
+
+#: src/Admin/DesignControls.php:114
+#: src/Buttons/ButtonDesign.php:195
+msgid "Glass"
+msgstr ""
+
+#: src/Admin/DesignControls.php:115
+msgid "3D"
+msgstr ""
+
+#: src/Admin/DesignControls.php:116
+#: src/Buttons/ButtonDesign.php:224
+#: src/Checkout/CheckoutLook.php:276
+msgid "Neon"
+msgstr ""
+
+#: src/Admin/DesignControls.php:117
+#: src/Buttons/ButtonDesign.php:239
+#: src/Checkout/CheckoutLook.php:366
+msgid "Brutal"
+msgstr ""
+
+#: src/Admin/DesignControls.php:118
+msgid "Ghost"
+msgstr ""
+
+#: src/Admin/DesignControls.php:119
+msgid "Luxe"
+msgstr ""
+
+#: src/Admin/DesignControls.php:120
+#: src/Buttons/ButtonDesign.php:298
+msgid "Beam"
+msgstr ""
+
+#: src/Admin/DesignControls.php:121
+#: src/Buttons/ButtonDesign.php:312
+msgid "Clay"
+msgstr ""
+
+#: src/Admin/DesignControls.php:122
+#: src/Admin/DesignControls.php:175
+#: src/Buttons/ButtonDesign.php:326
+msgid "Ticket"
+msgstr ""
+
+#: src/Admin/DesignControls.php:123
+msgid "Gloss"
+msgstr ""
+
+#: src/Admin/DesignControls.php:124
+#: src/Admin/LookControls.php:911
+msgid "Ring"
+msgstr ""
+
+#: src/Admin/DesignControls.php:125
+msgid "Stripe"
+msgstr ""
+
+#: src/Admin/DesignControls.php:126
+msgid "Cut"
+msgstr ""
+
+#: src/Admin/DesignControls.php:127
+msgid "Checker"
+msgstr ""
+
+#: src/Admin/DesignControls.php:128
+msgid "Hazard"
+msgstr ""
+
+#: src/Admin/DesignControls.php:129
+msgid "Scanline"
+msgstr ""
+
+#: src/Admin/DesignControls.php:130
+msgid "Marquee"
+msgstr ""
+
+#: src/Admin/DesignControls.php:131
+#: src/Admin/LookControls.php:325
+#: src/Admin/LookControls.php:339
+#: src/Admin/LookControls.php:918
+#: src/Checkout/CheckoutLook.php:323
+msgid "Pixel"
+msgstr ""
+
+#: src/Admin/DesignControls.php:132
+msgid "Blueprint"
+msgstr ""
+
+#: src/Admin/DesignControls.php:135
+#: src/Admin/DesignControls.php:146
+#: src/Admin/DesignControls.php:168
+#: src/Admin/LookControls.php:495
+#: src/Admin/LookControls.php:965
+msgid "None"
+msgstr ""
+
+#: src/Admin/DesignControls.php:136
+msgid "Lift"
+msgstr ""
+
+#: src/Admin/DesignControls.php:137
+msgid "Grow"
+msgstr ""
+
+#: src/Admin/DesignControls.php:138
+msgid "Shine"
+msgstr ""
+
+#: src/Admin/DesignControls.php:139
+#: src/Admin/LookControls.php:341
+msgid "Glow"
+msgstr ""
+
+#: src/Admin/DesignControls.php:140
+msgid "Fill"
+msgstr ""
+
+#: src/Admin/DesignControls.php:141
+msgid "Nudge"
+msgstr ""
+
+#: src/Admin/DesignControls.php:142
+msgid "Gild"
+msgstr ""
+
+#: src/Admin/DesignControls.php:143
+msgid "Tilt"
+msgstr ""
+
+#: src/Admin/DesignControls.php:147
+msgid "Pulse"
+msgstr ""
+
+#: src/Admin/DesignControls.php:148
+msgid "Ripple"
+msgstr ""
+
+#: src/Admin/DesignControls.php:149
+msgid "Heartbeat"
+msgstr ""
+
+#: src/Admin/DesignControls.php:150
+msgid "Wiggle"
+msgstr ""
+
+#: src/Admin/DesignControls.php:151
+msgid "Bounce"
+msgstr ""
+
+#: src/Admin/DesignControls.php:152
+msgid "Shimmer"
+msgstr ""
+
+#: src/Admin/DesignControls.php:153
+msgid "Breathe"
+msgstr ""
+
+#: src/Admin/DesignControls.php:154
+msgid "Orbit"
+msgstr ""
+
+#: src/Admin/DesignControls.php:157
+#: src/Admin/LookControls.php:570
+msgid "Solid"
+msgstr ""
+
+#: src/Admin/DesignControls.php:158
+msgid "Dashed"
+msgstr ""
+
+#: src/Admin/DesignControls.php:159
+msgid "Dotted"
+msgstr ""
+
+#: src/Admin/DesignControls.php:160
+msgid "Double"
+msgstr ""
+
+#: src/Admin/DesignControls.php:163
+msgid "Small"
+msgstr ""
+
+#: src/Admin/DesignControls.php:164
+msgid "Medium"
+msgstr ""
+
+#: src/Admin/DesignControls.php:165
+msgid "Large"
+msgstr ""
+
+#: src/Admin/DesignControls.php:169
+msgid "Lock"
+msgstr ""
+
+#: src/Admin/DesignControls.php:170
+msgid "Card"
+msgstr ""
+
+#: src/Admin/DesignControls.php:171
+#: src/Checkout/CheckoutLook.php:593
+msgid "Arrow"
+msgstr ""
+
+#: src/Admin/DesignControls.php:172
+msgid "Heart"
+msgstr ""
+
+#: src/Admin/DesignControls.php:173
+msgid "Cart"
+msgstr ""
+
+#: src/Admin/DesignControls.php:174
+msgid "Gift"
+msgstr ""
+
+#: src/Admin/DesignControls.php:176
+msgid "Calendar"
+msgstr ""
+
+#: src/Admin/DesignControls.php:177
+msgid "Star"
+msgstr ""
+
+#: src/Admin/DesignControls.php:178
+msgid "Sparkles"
+msgstr ""
+
+#: src/Admin/DesignControls.php:179
+msgid "Paw"
+msgstr ""
+
+#: src/Admin/DesignControls.php:180
+msgid "Leaf"
+msgstr ""
+
+#: src/Admin/DesignControls.php:181
+msgid "Bolt"
+msgstr ""
+
+#: src/Admin/DesignControls.php:184
+msgid "Fit the text"
+msgstr ""
+
+#: src/Admin/DesignControls.php:189
+msgid "Where the look comes from"
+msgstr ""
+
+#: src/Admin/DesignControls.php:201
+msgid "Change it for every button that uses it at once:"
+msgstr ""
+
+#: src/Admin/DesignControls.php:202
+msgid "Default Design › Button"
+msgstr ""
+
+#: src/Admin/DesignControls.php:207
+msgid "Start from a preset"
+msgstr ""
+
+#: src/Admin/DesignControls.php:207
+msgid "One click sets the style, colours and effects. Tweak anything after."
+msgstr ""
+
+#: src/Admin/DesignControls.php:209
+msgid "Start from"
+msgstr ""
+
+#: src/Admin/DesignControls.php:215
+#: src/Admin/DesignControls.php:225
+#: src/Admin/DesignControls.php:245
+#: src/Admin/DesignControls.php:535
+msgid "Pay"
+msgstr ""
+
+#: src/Admin/DesignControls.php:218
+#: src/Admin/LookControls.php:181
+msgid "Default look"
+msgstr ""
+
+#: src/Admin/DesignControls.php:228
+#: src/Admin/LookControls.php:184
+msgid "This button's look"
+msgstr ""
+
+#: src/Admin/DesignControls.php:256
+msgid "Style and colour"
+msgstr ""
+
+#: src/Admin/DesignControls.php:256
+msgid "Filled, outline, gradient, glass and more, in your colours."
+msgstr ""
+
+#: src/Admin/DesignControls.php:258
+msgid "Style"
+msgstr ""
+
+#: src/Admin/DesignControls.php:261
+msgid "Colour"
+msgstr ""
+
+#: src/Admin/DesignControls.php:263
+#: src/Admin/LookControls.php:228
+#: src/Admin/LookControls.php:294
+#: src/Admin/LookControls.php:410
+#: src/Admin/LookControls.php:526
+#: src/Admin/LookControls.php:801
+msgid "Pick the colour"
+msgstr ""
+
+#: src/Admin/DesignControls.php:269
+#: src/Admin/LookControls.php:524
+msgid "Second colour"
+msgstr ""
+
+#: src/Admin/DesignControls.php:271
+msgid "Pick the second colour"
+msgstr ""
+
+#: src/Admin/DesignControls.php:276
+msgid "Pick it for me (a neighbouring shade)"
+msgstr ""
+
+#: src/Admin/DesignControls.php:281
+msgid "Text colour"
+msgstr ""
+
+#: src/Admin/DesignControls.php:283
+msgid "Pick the text colour"
+msgstr ""
+
+#: src/Admin/DesignControls.php:288
+#: src/Admin/LookControls.php:233
+msgid "Pick it for me (best contrast)"
+msgstr ""
+
+#: src/Admin/DesignControls.php:295
+msgid "Shape, size and border"
+msgstr ""
+
+#: src/Admin/DesignControls.php:295
+msgid "Corners, size, an outline and a soft shadow."
+msgstr ""
+
+#: src/Admin/DesignControls.php:298
+msgid "Corners"
+msgstr ""
+
+#: src/Admin/DesignControls.php:307
+#: src/Admin/LookControls.php:539
+msgid "Size"
+msgstr ""
+
+#: src/Admin/DesignControls.php:321
+msgid "Border"
+msgstr ""
+
+#: src/Admin/DesignControls.php:328
+msgid "Border line"
+msgstr ""
+
+#: src/Admin/DesignControls.php:337
+msgid "Double shows from 3 px."
+msgstr ""
+
+#: src/Admin/DesignControls.php:341
+msgid "Border colour"
+msgstr ""
+
+#: src/Admin/DesignControls.php:343
+msgid "Pick the border colour"
+msgstr ""
+
+#: src/Admin/DesignControls.php:348
+msgid "Use the style's own"
+msgstr ""
+
+#: src/Admin/DesignControls.php:357
+msgid "Soft shadow"
+msgstr ""
+
+#: src/Admin/DesignControls.php:358
+msgid "A glow in the button's colour that lifts a little on hover."
+msgstr ""
+
+#: src/Admin/DesignControls.php:367
+#: src/Admin/LookControls.php:545
+msgid "Pause the animation"
+msgstr ""
+
+#: src/Admin/DesignControls.php:368
+msgid "Holds the moving background of this style (Aurora, Beam, Stripe, Checker, Hazard, Scanline, Marquee, Pixel, Blueprint) still. Payers whose device asks for less motion always get it still."
+msgstr ""
+
+#: src/Admin/DesignControls.php:374
+msgid "Effects"
+msgstr ""
+
+#: src/Admin/DesignControls.php:374
+msgid "What it does on hover, and a gentle move that catches the eye."
+msgstr ""
+
+#: src/Admin/DesignControls.php:376
+msgid "On hover"
+msgstr ""
+
+#: src/Admin/DesignControls.php:376
+msgid "What it does when the pointer is on it. Point at a sample to see it. Nudge moves the icon, so pick one below."
+msgstr ""
+
+#: src/Admin/DesignControls.php:377
+msgid "Catch the eye"
+msgstr ""
+
+#: src/Admin/DesignControls.php:377
+msgid "Keeps going on its own to draw attention, and rests while the button is hovered. Payers who turn motion off get a still button."
+msgstr ""
+
+#: src/Admin/DesignControls.php:384
+msgid "Capital letters"
+msgstr ""
+
+#: src/Admin/DesignControls.php:385
+msgid "PAY NOW, a little spaced out."
+msgstr ""
+
+#: src/Admin/DesignControls.php:390
+msgid "Button font"
+msgstr ""
+
+#: src/Admin/DesignControls.php:392
+msgid "The style's own"
+msgstr ""
+
+#: src/Admin/DesignControls.php:402
+msgid "Icon, width and logos"
+msgstr ""
+
+#: src/Admin/DesignControls.php:402
+msgid "These work with your theme's look too."
+msgstr ""
+
+#: src/Admin/DesignControls.php:405
+msgid "Icon"
+msgstr ""
+
+#: src/Admin/DesignControls.php:420
+#: src/Admin/LookControls.php:347
+msgid "Width"
+msgstr ""
+
+#: src/Admin/DesignControls.php:436
+msgid "Show the payment logos under the button"
+msgstr ""
+
+#: src/Admin/DesignControls.php:437
+msgid "Payers see how they can pay before they click. Uses the methods this button offers."
+msgstr ""
+
+#. translators: %s: number of tiles
+#: src/Admin/DesignControls.php:485
+#, php-format
+msgid "Show all %s"
+msgstr ""
+
+#: src/Admin/DesignControls.php:488
+msgid "Show fewer"
+msgstr ""
+
+#: src/Admin/DesignControls.php:563
+msgid "Preview background"
+msgstr ""
+
+#: src/Admin/DesignControls.php:564
+msgid "Light background"
+msgstr ""
+
+#: src/Admin/DesignControls.php:565
+#: src/Admin/LookControls.php:284
+msgid "Dark background"
+msgstr ""
+
+#: src/Admin/DesignControls.php:576
+msgid "A close guess: on your pages it takes your theme's exact button style."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:130
+#: src/Admin/Entries/EntriesController.php:165
+msgid "Unknown status."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:153
+#: src/Admin/Entries/EntriesPage.php:410
+msgid "Enter an amount greater than zero."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:159
+#: src/Admin/Entries/EntriesPage.php:411
+msgid "Enter a valid email, or leave it blank."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:176
+msgid "Could not save the payment. Please try again."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:196
+#: src/Admin/Entries/EntriesPage.php:355
+msgid "Payment created."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:209
+msgid "Payment recorded"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:212
+msgid "Payment link ready"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:212
+msgid "Payment created"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:226
+msgid "It's in your entries, filed as \"Ad Hoc\"."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:230
+msgid "ifthenpay didn't return a link yet: check the enabled payment methods. Sending the payment email from the entry retries it."
+msgstr ""
+
+#. translators: %s: customer email address
+#: src/Admin/Entries/EntriesController.php:235
+#, php-format
+msgid "Emailed to %s. You can also share the link yourself:"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:239
+msgid "The email couldn't be sent, so share the link yourself:"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:242
+msgid "Share it with your customer:"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:275
+msgid "This payment is no longer pending, or has no customer email to send to."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:279
+msgid "Could not create a payment link. Check the ifthenpay connection and the enabled methods."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:283
+msgid "Could not send the payment email. Check that this site can send mail."
+msgstr ""
+
+#. translators: %s: customer email address
+#: src/Admin/Entries/EntriesController.php:289
+#, php-format
+msgid "Payment email sent to %s."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:381
+#: src/Admin/Entries/EntriesController.php:744
+#: src/Admin/Entries/PaymentEmailSettings.php:324
+#: src/Ajax/SettingsController.php:280
+msgid "You are not allowed to do this."
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:484
+msgid "Date paid"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:487
+#: src/Admin/Entries/EntriesController.php:570
+#: src/Admin/Entries/PaymentEmailSettings.php:239
+#: src/Mail/PaymentEmailTemplate.php:50
+#: src/Repository/TransactionStore.php:784
+msgid "Customer name"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:488
+#: src/Checkout/CheckoutTexts.php:53
+msgid "Tax number (NIF)"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:489
+#: src/Admin/Entries/EntriesController.php:571
+#: src/Admin/Entries/PaymentEmailSettings.php:243
+#: src/Mail/PaymentEmailTemplate.php:51
+#: src/Repository/TransactionStore.php:791
+msgid "Customer email"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:491
+msgid "Amount (EUR)"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:492
+#: src/Admin/Entries/EntriesController.php:580
+#: src/Admin/Entries/SingleEntryView.php:122
+msgid "Transaction ID"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:530
+msgid "Entries"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:572
+msgid "Button ID"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:573
+#: src/Admin/Entries/SingleEntryView.php:123
+msgid "External reference"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:576
+#: src/Admin/Entries/EntriesPage.php:903
+#: src/Admin/Entries/EntriesPage.php:1610
+#: src/Admin/MethodsTable.php:76
+#: src/Privacy.php:103
+msgid "Status"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:577
+#: src/Admin/Entries/EntriesPage.php:758
+#: src/Admin/Entries/EntriesPage.php:1611
+#: src/Admin/Entries/SingleEntryView.php:169
+#: src/Admin/Entries/SingleEntryView.php:195
+#: src/Privacy.php:107
+msgid "Created"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:578
+#: src/Admin/Entries/SingleEntryView.php:173
+msgid "Last updated"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:579
+#: src/Admin/Entries/SingleEntryView.php:121
+msgid "Request ID"
+msgstr ""
+
+#: src/Admin/Entries/EntriesController.php:581
+#: src/Admin/Entries/EntriesPage.php:943
+#: src/Admin/Entries/SingleEntryView.php:127
+msgid "Payment link"
+msgstr ""
+
+#. translators: %s: maximum entries per request
+#: src/Admin/Entries/EntriesController.php:704
+#, php-format
+msgid "Too many entries in one request (the limit is %s)."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:174
+#: src/Admin/Entries/EntriesPage.php:175
+#: src/Admin/Entries/EntriesPage.php:489
+msgid "Payments"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:327
+msgid "Delete selected entries?"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:328
+msgid "Delete this entry?"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:329
+msgid "This removes the payment record for good. A customer who still has the link can no longer pay through it here."
+msgstr ""
+
+#. translators: %s: number of paid entries in the selection
+#: src/Admin/Entries/EntriesPage.php:331
+#, php-format
+msgid "Paid entries are payment history, so the %s paid ones in your selection are kept."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:333
+msgid "Change status?"
+msgstr ""
+
+#. translators: %s: target status label, e.g. "Paid"
+#: src/Admin/Entries/EntriesPage.php:335
+#, php-format
+msgid "Mark the selected entries as \"%s\"."
+msgstr ""
+
+#. translators: %s: target status label, e.g. "Paid"
+#: src/Admin/Entries/EntriesPage.php:337
+#, php-format
+msgid "Mark this entry as \"%s\"."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:338
+#: src/Admin/Entries/SingleEntryView.php:299
+msgid "Change status"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:339
+msgid "Could not delete the selected entries. Please try again."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:340
+msgid "Could not update the selected entries. Please try again."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:341
+msgid "Selected entries deleted."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:342
+msgid "Selected entries updated."
+msgstr ""
+
+#. translators: 1: entries done so far, 2: entries selected
+#: src/Admin/Entries/EntriesPage.php:344
+#, php-format
+msgid "Deleting… %1$s of %2$s"
+msgstr ""
+
+#. translators: 1: entries done so far, 2: entries selected
+#: src/Admin/Entries/EntriesPage.php:346
+#, php-format
+msgid "Updating… %1$s of %2$s"
+msgstr ""
+
+#. translators: 1: entries done before the error, 2: entries selected
+#: src/Admin/Entries/EntriesPage.php:348
+#, php-format
+msgid "Stopped after %1$s of %2$s entries. The rest are still selected — try again."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:349
+msgid "A bulk action is still running. Leave anyway?"
+msgstr ""
+
+#. translators: 1: number of selected entries, 2: total number of entries
+#: src/Admin/Entries/EntriesPage.php:351
+#, php-format
+msgid "%1$s selected out of %2$s"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:354
+msgid "Creating…"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:356
+msgid "Could not create the payment. Please try again."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:357
+msgid "Payment link copied."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:358
+msgid "Could not copy the link."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:359
+msgid "Reference copied."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:360
+msgid "Could not copy the reference."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:361
+msgid "Send payment email?"
+msgstr ""
+
+#. translators: %s: customer email address
+#: src/Admin/Entries/EntriesPage.php:363
+#, php-format
+msgid "%s will get an email with the payment button."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:364
+msgid "Send email"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:366
+msgid "Could not send the payment email. Please try again."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:367
+msgid "Resend the receipt?"
+msgstr ""
+
+#. translators: %s: customer email address
+#: src/Admin/Entries/EntriesPage.php:369
+#, php-format
+msgid "The payer will get their receipt again at %s."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:370
+msgid "Receipt sent."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:371
+msgid "Could not send the receipt. Check that this site can send mail."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:372
+msgid "Resend receipts?"
+msgstr ""
+
+#. translators: %s: number of selected entries
+#: src/Admin/Entries/EntriesPage.php:374
+#, php-format
+msgid "The payers of the %s selected paid payments will each get their receipt again. The notice to you is not sent again."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:375
+msgid "Resend receipts"
+msgstr ""
+
+#. translators: 1: entries handled so far, 2: entries in total
+#: src/Admin/Entries/EntriesPage.php:377
+#, php-format
+msgid "Sending receipts… %1$s of %2$s"
+msgstr ""
+
+#. translators: %s: number of receipts sent
+#: src/Admin/Entries/EntriesPage.php:379
+#, php-format
+msgid "Receipts sent: %s."
+msgstr ""
+
+#. translators: %s: number of entries skipped
+#: src/Admin/Entries/EntriesPage.php:381
+#, php-format
+msgid "Skipped (not paid, or no customer email): %s."
+msgstr ""
+
+#. translators: %s: number of entries that failed
+#. translators: %s: number of emails that failed
+#: src/Admin/Entries/EntriesPage.php:383
+#: src/Admin/Entries/EntriesPage.php:395
+#, php-format
+msgid "Failed: %s. They are still selected, so you can try again."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:384
+msgid "Send payment emails?"
+msgstr ""
+
+#. translators: %s: number of selected entries
+#: src/Admin/Entries/EntriesPage.php:386
+#, php-format
+msgid "The customers of the %s selected pending payments will each get an email with their payment button. Entries without a customer email are skipped."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:387
+msgid "Send emails"
+msgstr ""
+
+#. translators: 1: entries done so far, 2: entries selected
+#: src/Admin/Entries/EntriesPage.php:389
+#, php-format
+msgid "Sending emails… %1$s of %2$s"
+msgstr ""
+
+#. translators: %s: number of emails sent
+#: src/Admin/Entries/EntriesPage.php:391
+#, php-format
+msgid "Payment emails sent: %s."
+msgstr ""
+
+#. translators: %s: number of entries skipped
+#: src/Admin/Entries/EntriesPage.php:393
+#, php-format
+msgid "Skipped (no longer pending, or no customer email): %s."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:396
+msgid "Could not save your column choice."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:397
+msgid "Select at least one entry to export."
+msgstr ""
+
+#. translators: 1: column name, 2: new position, 3: number of movable columns
+#: src/Admin/Entries/EntriesPage.php:399
+#, php-format
+msgid "%1$s moved to position %2$s of %3$s."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:400
+msgid "Columns reset to the default order, all shown."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:402
+msgid "Could not save the payment email. Please try again."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:403
+msgid "Could not refresh the preview."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:404
+msgid "Default template restored. Save to keep it."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:405
+msgid "Choose an image for the email"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:406
+msgid "Insert image"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:408
+#: src/Admin/Entries/EntriesPage.php:930
+msgid "Create payment link"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:409
+msgid "Record payment"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:434
+msgid "That entry link is no longer valid, or the entry was deleted."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:446
+msgid "Are you sure?"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:447
+msgid "This action cannot be undone."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:495
+#: src/Admin/Entries/EntriesPage.php:858
+#: src/Mail/ReceiptEmail.php:86
+msgid "New payment"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:509
+msgid "Filter by status"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:537
+msgid "Search entries"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:538
+msgid "Search entries…"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:538
+msgid "Search by reference, customer or method"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:539
+msgid "Search"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:545
+msgid "Filters"
+msgstr ""
+
+#. translators: %s: number of active filters
+#: src/Admin/Entries/EntriesPage.php:551
+#, php-format
+msgid "(%s active)"
+msgid_plural "(%s active)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Entries/EntriesPage.php:560
+msgid "Columns"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:569
+msgid "Export"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:585
+msgid "Select all on this page"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:621
+msgid "Entries per page"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:626
+msgid "Custom…"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:630
+msgid "Custom entries per page"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:634
+msgid "Go"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:647
+msgid "Scroll to top"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:667
+msgid "Totals by status"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:681
+msgid "Clear selection"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:685
+#: src/Admin/Entries/EntriesPage.php:687
+msgid "Bulk actions"
+msgstr ""
+
+#. translators: %s: target status label, e.g. "Paid"
+#: src/Admin/Entries/EntriesPage.php:692
+#, php-format
+msgid "Mark as %s"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:697
+#: src/Admin/Entries/SingleEntryView.php:275
+msgid "Send payment email"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:699
+#: src/Admin/Entries/SingleEntryView.php:288
+msgid "Resend receipt"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:700
+msgid "Export selected as CSV"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:701
+msgid "Export selected as JSON"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:702
+msgid "Export selected as accounting CSV (paid only)"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:739
+msgid "All methods"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:749
+msgid "Minimum amount"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:750
+msgid "Min"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:752
+msgid "Maximum amount"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:753
+msgid "Max"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:760
+msgid "From date"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:763
+msgid "To date"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:766
+msgid "Quick date ranges"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:798
+#: src/Admin/Entries/EntriesPage.php:819
+msgid "Clear filters"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:800
+msgid "Apply filters"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:807
+msgid "Active filters"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:811
+msgid "Remove filter:"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:834
+msgid "Creates an ifthenpay link to pay"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:834
+msgid "Link waits until methods are enabled"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:838
+msgid "Already paid outside ifthenpay"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:842
+msgid "Record an attempt that failed"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:846
+msgid "Record one that ran out"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:859
+msgid "Ask a customer to pay through ifthenpay, or record a payment taken elsewhere."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:874
+msgid "In euros"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:875
+msgid "Quick amounts"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:883
+#: src/Admin/Entries/EntriesPage.php:1606
+#: src/Admin/Entries/SingleEntryView.php:100
+#: src/Admin/Entries/SingleEntryView.php:146
+msgid "Customer"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:892
+msgid "Ana Silva"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:896
+msgid "ana@example.com"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:921
+msgid "Email the payment link now"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:922
+msgid "Add the customer's email to send it."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:945
+#: src/Admin/Entries/EntriesPage.php:1165
+msgid "Copy link"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:948
+msgid "Open entry"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:949
+msgid "Create another"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:968
+msgid "Choose and order columns"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:973
+msgid "Always shown"
+msgstr ""
+
+#. translators: %s: column name
+#: src/Admin/Entries/EntriesPage.php:981
+#, php-format
+msgid "Move %s up"
+msgstr ""
+
+#. translators: %s: column name
+#: src/Admin/Entries/EntriesPage.php:983
+#, php-format
+msgid "Move %s down"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1006
+msgid "Reset columns"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1019
+msgid "XLS"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1019
+msgid "Opens directly in Excel"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1020
+msgid "CSV"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1020
+msgid "For Google Sheets or any tool"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1021
+msgid "For developers and integrations"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1022
+msgid "Accounting CSV"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1022
+msgid "Paid payments only, for your accountant"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1026
+msgid "Export this view as"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1097
+msgid "No ifthenpay payments match this view."
+msgstr ""
+
+#. translators: %s: payment reference
+#: src/Admin/Entries/EntriesPage.php:1127
+#, php-format
+msgid "Select %s"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1130
+msgid "Copy reference"
+msgstr ""
+
+#. translators: %s: payment reference
+#: src/Admin/Entries/EntriesPage.php:1130
+#, php-format
+msgid "Copy reference %s"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1134
+msgid "View"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1171
+msgid "No link yet"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1173
+msgid "Recorded by hand, so there's no payment link."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1174
+msgid "No payment link was created yet. Sending the payment email creates one."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1176
+msgid "Link expired"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1177
+msgid "This payment expired, so its link can no longer be paid."
+msgstr ""
+
+#. translators: %s: number of entries
+#: src/Admin/Entries/EntriesPage.php:1286
+#, php-format
+msgid "%s entry"
+msgid_plural "%s entries"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Entries/EntriesPage.php:1290
+msgid "Selected. Activate to show all entries."
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1314
+msgid "Entries pagination"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1316
+msgid "Previous page"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1342
+msgid "Next page"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1358
+msgid "Go to page"
+msgstr ""
+
+#. translators: 1: first entry number shown, 2: last entry number shown, 3: total number of entries
+#: src/Admin/Entries/EntriesPage.php:1441
+#, php-format
+msgid "%1$s – %2$s out of %3$s"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1459
+msgid "Button:"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1472
+msgid "Method:"
+msgstr ""
+
+#. translators: %s: an amount
+#: src/Admin/Entries/EntriesPage.php:1487
+#, php-format
+msgid "up to %s"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1492
+msgid "Amount:"
+msgstr ""
+
+#. translators: %s: a date
+#: src/Admin/Entries/EntriesPage.php:1520
+#, php-format
+msgid "until %s"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1526
+msgid "Created:"
+msgstr ""
+
+#. translators: %s: an amount or a date
+#: src/Admin/Entries/EntriesPage.php:1556
+#, php-format
+msgid "from %s"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1640
+msgid "Created here"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1648
+#: src/Admin/Entries/SingleEntryView.php:353
+msgid "Deleted button"
+msgstr ""
+
+#: src/Admin/Entries/EntriesPage.php:1654
+#: src/Checkout/MergeTags.php:45
+msgid "Reference from the link"
+msgstr ""
+
+#: src/Admin/Entries/EntryPresenter.php:73
+msgid "Expired"
+msgstr ""
+
+#. translators: compact date and time format for the payment entries table, see https://www.php.net/manual/datetime.format.php
+#: src/Admin/Entries/EntryPresenter.php:142
+msgctxt "short date and time format"
+msgid "d/m/Y H:i"
+msgstr ""
+
+#. translators: %s: time since the payment was created, e.g. "2 hours"
+#. translators: %s: how long ago, e.g. "3 hours"
+#: src/Admin/Entries/EntryPresenter.php:156
+#: src/Ai/AiController.php:321
+#, php-format
+msgid "%s ago"
+msgstr ""
+
+#: src/Admin/Entries/EntryPresenter.php:177
+msgid "No customer"
+msgstr ""
+
+#: src/Admin/Entries/EntryPresenter.php:267
+#: src/Mail/WeeklySummaryEmail.php:217
+msgid "New"
+msgstr ""
+
+#: src/Admin/Entries/EntryPresenter.php:268
+msgid "nothing to compare with yet"
+msgstr ""
+
+#. translators: 1: percentage, 2: e.g. "vs previous 7 days"
+#: src/Admin/Entries/EntryPresenter.php:275
+#, php-format
+msgid "up %1$s %2$s"
+msgstr ""
+
+#. translators: 1: percentage, 2: e.g. "vs previous 7 days"
+#: src/Admin/Entries/EntryPresenter.php:278
+#, php-format
+msgid "down %1$s %2$s"
+msgstr ""
+
+#. translators: %s: e.g. "vs previous 7 days"
+#: src/Admin/Entries/EntryPresenter.php:281
+#, php-format
+msgid "no change %s"
+msgstr ""
+
+#: src/Admin/Entries/EntryPresenter.php:318
+msgid "The customer hasn't picked a payment method yet."
+msgstr ""
+
+#: src/Admin/Entries/EntryPresenter.php:318
+msgid "Awaiting selection"
+msgstr ""
+
+#: src/Admin/Entries/EntryPresenter.php:325
+msgid "The payment expired before the customer picked a payment method."
+msgstr ""
+
+#: src/Admin/Entries/EntryPresenter.php:325
+msgid "Expired payment"
+msgstr ""
+
+#: src/Admin/Entries/EntryPresenter.php:331
+msgid "No payment method"
+msgstr ""
+
+#: src/Admin/Entries/InsightsView.php:94
+msgid "Performance"
+msgstr ""
+
+#: src/Admin/Entries/InsightsView.php:95
+msgid "Period"
+msgstr ""
+
+#: src/Admin/Entries/InsightsView.php:130
+msgid "Use the arrow keys to read each point."
+msgstr ""
+
+#: src/Admin/Entries/InsightsView.php:146
+#: src/Mail/WeeklySummaryEmail.php:152
+msgid "Revenue by method"
+msgstr ""
+
+#: src/Admin/Entries/InsightsView.php:151
+msgid "No paid payments in this period yet."
+msgstr ""
+
+#. translators: 1: share of revenue, e.g. "42.0", 2: number of payments
+#: src/Admin/Entries/InsightsView.php:163
+#, php-format
+msgid "%1$s%% · %2$s payment"
+msgid_plural "%1$s%% · %2$s payments"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: period, e.g. "7 days"
+#: src/Admin/Entries/InsightsView.php:191
+#, php-format
+msgid "Paid revenue, last %s"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:89
+msgid "Payment email settings"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:105
+msgid "Payment email"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:106
+msgid "What customers get from \"Send payment email\". Click a tag to drop a payment detail where your cursor is — it's filled in for each customer when the email goes out."
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:113
+msgid "Subject"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:126
+msgid "Hover or focus a tag to see what it becomes."
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:131
+msgid "Body (HTML)"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:134
+msgid "Add image"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:138
+msgid "Inline styles and tables work best in mail clients. Scripts, forms, embeds and event handlers are removed when you save."
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:145
+msgid "With sample data"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:149
+msgid "Subject:"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:153
+msgid "Email preview"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:159
+msgid "Reset to default"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:162
+msgid "Save"
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:183
+msgid "Enter a subject."
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:187
+msgid "The email body is empty."
+msgstr ""
+
+#. translators: %s: the {payment_url} tag
+#: src/Admin/Entries/PaymentEmailSettings.php:194
+#, php-format
+msgid "Add the %s tag to the body (e.g. as a button's link), or your customer has no way to pay."
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:215
+msgid "Payment email saved. Some HTML that isn't allowed in emails was removed — the editor now shows what will be sent."
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:216
+msgid "Payment email saved."
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:308
+msgid "The email body is too long."
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:65
+msgid "Ad Hoc"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:72
+msgid "Back to payments"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:75
+msgid "Entry"
+msgstr ""
+
+#. translators: 1: payment reference, 2: where it came from, e.g. "Ad Hoc"
+#: src/Admin/Entries/SingleEntryView.php:89
+#, php-format
+msgid "Entry %1$s · %2$s"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:111
+msgid "Transaction"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:117
+msgid "reference"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:121
+msgid "No request ID"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:122
+msgid "No transaction ID"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:123
+msgid "None in the link"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:132
+msgid "No payment link"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:142
+msgid "Entry summary"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:149
+msgid "No name"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:157
+msgid "No email"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:166
+msgid "Timestamps"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:201
+msgid "Link generated"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:207
+msgid "Status updated"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:213
+msgid "Payment progress"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:218
+msgid "(done)"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:218
+msgid "(not yet)"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:238
+msgid "Submitted data"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:240
+msgid "Nothing was submitted with this payment."
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:266
+msgid "Actions"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:269
+msgid "Copy payment link"
+msgstr ""
+
+#. translators: %s: customer email address
+#: src/Admin/Entries/SingleEntryView.php:280
+#, php-format
+msgid "Sends the payment button to %s"
+msgstr ""
+
+#. translators: %s: customer email address
+#: src/Admin/Entries/SingleEntryView.php:293
+#, php-format
+msgid "Sends the receipt again to %s"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:305
+msgid "Update"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:358
+msgid "Started on"
+msgstr ""
+
+#: src/Admin/Entries/SingleEntryView.php:363
+msgid "Unknown page"
+msgstr ""
+
+#: src/Admin/Entries/ViewState.php:241
+msgid "Today"
+msgstr ""
+
+#: src/Admin/Entries/ViewState.php:246
+msgid "Last 7 days"
+msgstr ""
+
+#: src/Admin/Entries/ViewState.php:251
+msgid "This month"
+msgstr ""
+
+#: src/Admin/Entries/ViewState.php:256
+msgid "Last month"
+msgstr ""
+
+#: src/Admin/LookControls.php:164
+#: src/Admin/LookControls.php:395
+msgid "Background"
+msgstr ""
+
+#: src/Admin/LookControls.php:164
+msgid "The sheet, the pay page card and the popups."
+msgstr ""
+
+#: src/Admin/LookControls.php:165
+msgid "Lighter shades and lines are mixed from it."
+msgstr ""
+
+#: src/Admin/LookControls.php:171
+msgid "Failed and cancelled"
+msgstr ""
+
+#: src/Admin/LookControls.php:176
+msgid "Start from a look"
+msgstr ""
+
+#: src/Admin/LookControls.php:177
+msgid "For the checkout, the pay page and the popups after paying: colours, shape and the background behind the card. Pick one, then tweak anything below."
+msgstr ""
+
+#: src/Admin/LookControls.php:215
+msgid "Colours"
+msgstr ""
+
+#: src/Admin/LookControls.php:216
+msgid "A dark background with light text works too; every shade follows."
+msgstr ""
+
+#: src/Admin/LookControls.php:221
+msgid "Accent"
+msgstr ""
+
+#: src/Admin/LookControls.php:223
+msgid "The pay button, the step bar, selected choices and focus."
+msgstr ""
+
+#: src/Admin/LookControls.php:226
+msgid "Text on the accent"
+msgstr ""
+
+#: src/Admin/LookControls.php:245
+msgid "Outcome colours"
+msgstr ""
+
+#: src/Admin/LookControls.php:257
+msgid "Checkout card opacity"
+msgstr ""
+
+#: src/Admin/LookControls.php:258
+msgid "Glass blur"
+msgstr ""
+
+#: src/Admin/LookControls.php:261
+msgid "Under 100%, the card turns to frosted glass and the background shows through. Lovely over an image, a video, Aurora or Bokeh."
+msgstr ""
+
+#: src/Admin/LookControls.php:267
+#: src/Admin/LookControls.php:274
+#: src/Admin/LookControls.php:674
+msgid "Dark mode"
+msgstr ""
+
+#: src/Admin/LookControls.php:268
+msgid "Payers whose phone or computer is set to dark get these colours instead. Try both with the sun and moon above the preview."
+msgstr ""
+
+#: src/Admin/LookControls.php:278
+msgid "Follow the payer's device"
+msgstr ""
+
+#: src/Admin/LookControls.php:288
+msgid "Dark text"
+msgstr ""
+
+#: src/Admin/LookControls.php:292
+msgid "Dark accent"
+msgstr ""
+
+#: src/Admin/LookControls.php:299
+msgid "Same as the light one"
+msgstr ""
+
+#: src/Admin/LookControls.php:303
+msgid "The lighter shades, the lines and the pay page's background are mixed from these, as in the light look."
+msgstr ""
+
+#: src/Admin/LookControls.php:309
+msgid "Shape and type"
+msgstr ""
+
+#: src/Admin/LookControls.php:310
+msgid "Long forms scroll inside the checkout, so it never grows past the screen."
+msgstr ""
+
+#: src/Admin/LookControls.php:314
+msgid "Checkout corners"
+msgstr ""
+
+#: src/Admin/LookControls.php:315
+msgid "Field corners"
+msgstr ""
+
+#: src/Admin/LookControls.php:319
+msgid "Fields"
+msgstr ""
+
+#: src/Admin/LookControls.php:322
+msgid "Outlined"
+msgstr ""
+
+#: src/Admin/LookControls.php:324
+msgid "Underlined"
+msgstr ""
+
+#: src/Admin/LookControls.php:326
+msgid "Well"
+msgstr ""
+
+#: src/Admin/LookControls.php:327
+msgid "Stamp"
+msgstr ""
+
+#: src/Admin/LookControls.php:328
+msgid "Marker"
+msgstr ""
+
+#: src/Admin/LookControls.php:333
+msgid "Card edge"
+msgstr ""
+
+#: src/Admin/LookControls.php:336
+#: src/Admin/LookControls.php:400
+msgid "Plain"
+msgstr ""
+
+#: src/Admin/LookControls.php:337
+msgid "Hairline"
+msgstr ""
+
+#: src/Admin/LookControls.php:338
+msgid "Gilded"
+msgstr ""
+
+#: src/Admin/LookControls.php:340
+msgid "Matte"
+msgstr ""
+
+#: src/Admin/LookControls.php:342
+msgid "Long shadow"
+msgstr ""
+
+#: src/Admin/LookControls.php:350
+msgid "Compact"
+msgstr ""
+
+#: src/Admin/LookControls.php:351
+msgid "Regular"
+msgstr ""
+
+#: src/Admin/LookControls.php:352
+msgid "Wide"
+msgstr ""
+
+#: src/Admin/LookControls.php:355
+msgid "Font"
+msgstr ""
+
+#: src/Admin/LookControls.php:361
+msgid "Behind the checkout"
+msgstr ""
+
+#: src/Admin/LookControls.php:364
+msgid "Blur"
+msgstr ""
+
+#: src/Admin/LookControls.php:365
+msgid "Dim"
+msgstr ""
+
+#: src/Admin/LookControls.php:366
+#: src/Admin/LookControls.php:497
+msgid "Frosted"
+msgstr ""
+
+#: src/Admin/LookControls.php:377
+#: src/Admin/LookControls.php:930
+msgid "Page progress"
+msgstr ""
+
+#: src/Admin/LookControls.php:378
+msgid "When a form has pages: how payers see how many there are, and how much of this one they've answered."
+msgstr ""
+
+#: src/Admin/LookControls.php:387
+#: src/Admin/LookControls.php:651
+msgid "Pay page"
+msgstr ""
+
+#: src/Admin/LookControls.php:388
+msgid "The page every pay link opens: what sits behind the checkout card, and around it."
+msgstr ""
+
+#: src/Admin/LookControls.php:392
+msgid "Open the checkout on this background"
+msgstr ""
+
+#: src/Admin/LookControls.php:392
+msgid "A click on the pay button opens the checkout, and the popups after paying, over this background instead of the dimmed page."
+msgstr ""
+
+#: src/Admin/LookControls.php:398
+msgid "Soft glow"
+msgstr ""
+
+#: src/Admin/LookControls.php:401
+msgid "Image"
+msgstr ""
+
+#: src/Admin/LookControls.php:402
+msgid "Video"
+msgstr ""
+
+#: src/Admin/LookControls.php:408
+msgid "Background colour"
+msgstr ""
+
+#: src/Admin/LookControls.php:415
+msgid "Match the checkout"
+msgstr ""
+
+#: src/Admin/LookControls.php:423
+msgid "Video from"
+msgstr ""
+
+#: src/Admin/LookControls.php:426
+msgid "Media Library"
+msgstr ""
+
+#: src/Admin/LookControls.php:427
+msgid "YouTube or Vimeo"
+msgstr ""
+
+#: src/Admin/LookControls.php:433
+msgid "Video file"
+msgstr ""
+
+#: src/Admin/LookControls.php:436
+msgid "No video yet"
+msgstr ""
+
+#: src/Admin/LookControls.php:437
+msgid "Choose video"
+msgstr ""
+
+#: src/Admin/LookControls.php:441
+msgid "An MP4 or WebM. Keep it short and light, a few MB: it loops, muted, behind the card."
+msgstr ""
+
+#: src/Admin/LookControls.php:444
+msgid "Video link"
+msgstr ""
+
+#: src/Admin/LookControls.php:446
+msgid "Plays muted, with no controls. It loads from YouTube or Vimeo, under their terms, and they see the payer's visit."
+msgstr ""
+
+#: src/Admin/LookControls.php:451
+msgid "Loop"
+msgstr ""
+
+#: src/Admin/LookControls.php:454
+msgid "The whole video"
+msgstr ""
+
+#: src/Admin/LookControls.php:455
+msgid "Part of it"
+msgstr ""
+
+#: src/Admin/LookControls.php:461
+msgid "From"
+msgstr ""
+
+#: src/Admin/LookControls.php:465
+msgid "To"
+msgstr ""
+
+#: src/Admin/LookControls.php:466
+msgid "The end"
+msgstr ""
+
+#: src/Admin/LookControls.php:468
+msgid "Minutes and seconds, like 0:12 to 0:45. Leave To empty to play on to the end, then start again at From."
+msgstr ""
+
+#: src/Admin/LookControls.php:470
+msgid "Blur the video"
+msgstr ""
+
+#: src/Admin/LookControls.php:474
+msgid "Background image"
+msgstr ""
+
+#: src/Admin/LookControls.php:478
+msgid "Choose image"
+msgstr ""
+
+#: src/Admin/LookControls.php:482
+msgid "Optional. Shows while the video loads, and to payers who turned motion off on their device."
+msgstr ""
+
+#: src/Admin/LookControls.php:485
+msgid "Darken it"
+msgstr ""
+
+#: src/Admin/LookControls.php:492
+msgid "Blur the image"
+msgstr ""
+
+#: src/Admin/LookControls.php:498
+msgid "Tilt-shift"
+msgstr ""
+
+#: src/Admin/LookControls.php:499
+msgid "Vignette"
+msgstr ""
+
+#: src/Admin/LookControls.php:505
+msgid "Blur amount"
+msgstr ""
+
+#: src/Admin/LookControls.php:506
+msgid "Frosted also lifts the colours. Tilt-shift keeps the middle sharp; Vignette keeps the centre sharp."
+msgstr ""
+
+#: src/Admin/LookControls.php:514
+msgid "Gradient style"
+msgstr ""
+
+#: src/Admin/LookControls.php:519
+msgid "Diagonal"
+msgstr ""
+
+#: src/Admin/LookControls.php:531
+msgid "Same as the accent"
+msgstr ""
+
+#: src/Admin/LookControls.php:542
+msgid "Strength"
+msgstr ""
+
+#: src/Admin/LookControls.php:545
+msgid "Every effect can move. Moving backgrounds are heavier on older phones, so this starts on; turn it off to bring the effect to life. Payers whose device asks for less motion always get it still."
+msgstr ""
+
+#: src/Admin/LookControls.php:547
+msgid "This effect takes the accent and the second colour from Gradient."
+msgstr ""
+
+#: src/Admin/LookControls.php:550
+msgid "Your logo above the card"
+msgstr ""
+
+#: src/Admin/LookControls.php:550
+msgid "The theme's logo, else the site icon, else the site name. It links home."
+msgstr ""
+
+#: src/Admin/LookControls.php:551
+msgid "A link back to your site under the card"
+msgstr ""
+
+#: src/Admin/LookControls.php:551
+msgid "For payers who opened the link and want to look around."
+msgstr ""
+
+#: src/Admin/LookControls.php:558
+msgid "Popups and footer"
+msgstr ""
+
+#: src/Admin/LookControls.php:559
+msgid "The paid, pending, failed and cancelled popups use the colours above. Their words are in Configuration › Messages."
+msgstr ""
+
+#: src/Admin/LookControls.php:566
+msgid "Popup icon"
+msgstr ""
+
+#: src/Admin/LookControls.php:575
+msgid "Popup text"
+msgstr ""
+
+#: src/Admin/LookControls.php:578
+msgid "Centred"
+msgstr ""
+
+#: src/Admin/LookControls.php:579
+msgid "Left"
+msgstr ""
+
+#: src/Admin/LookControls.php:585
+msgid "Payment logos at the bottom of the checkout"
+msgstr ""
+
+#: src/Admin/LookControls.php:585
+msgid "The methods the button offers."
+msgstr ""
+
+#: src/Admin/LookControls.php:586
+msgid "\"Secure payment by ifthenpay\""
+msgstr ""
+
+#: src/Admin/LookControls.php:586
+msgid "A small line that tells payers who handles the money."
+msgstr ""
+
+#: src/Admin/LookControls.php:609
+msgid "Loaded after everything above, on every page with a button. The preview shows it once you save."
+msgstr ""
+
+#: src/Admin/LookControls.php:614
+msgid "Classes you can style"
+msgstr ""
+
+#: src/Admin/LookControls.php:619
+msgid "The checkout popup"
+msgstr ""
+
+#: src/Admin/LookControls.php:620
+msgid "The checkout form, in the popup or on a pay page"
+msgstr ""
+
+#: src/Admin/LookControls.php:621
+msgid "The step bar"
+msgstr ""
+
+#: src/Admin/LookControls.php:622
+msgid "Every text box and dropdown"
+msgstr ""
+
+#: src/Admin/LookControls.php:623
+msgid "Each option of a choice"
+msgstr ""
+
+#: src/Admin/LookControls.php:624
+msgid "The pay and Next button"
+msgstr ""
+
+#: src/Admin/LookControls.php:625
+msgid "The outcome popups; add --paid, --pending, --failed or --cancelled"
+msgstr ""
+
+#: src/Admin/LookControls.php:626
+msgid "The pay page"
+msgstr ""
+
+#: src/Admin/LookControls.php:650
+msgid "Checkout"
+msgstr ""
+
+#: src/Admin/LookControls.php:672
+msgid "Preview as"
+msgstr ""
+
+#: src/Admin/LookControls.php:673
+msgid "Light mode"
+msgstr ""
+
+#: src/Admin/LookControls.php:677
+msgid "Dark mode is off, so payers on a dark device see the light look. Turn it on under Dark mode."
+msgstr ""
+
+#: src/Admin/LookControls.php:707
+msgid "First visit, 60 minutes"
+msgstr ""
+
+#: src/Admin/LookControls.php:719
+msgid "Session"
+msgstr ""
+
+#: src/Admin/LookControls.php:721
+msgid "In person"
+msgstr ""
+
+#: src/Admin/LookControls.php:722
+msgid "Online"
+msgstr ""
+
+#: src/Admin/LookControls.php:725
+msgid "I agree to the terms"
+msgstr ""
+
+#: src/Admin/LookControls.php:864
+msgid "Clean system font"
+msgstr ""
+
+#: src/Admin/LookControls.php:865
+msgid "My theme's font"
+msgstr ""
+
+#: src/Admin/LookControls.php:866
+msgid "Inter"
+msgstr ""
+
+#: src/Admin/LookControls.php:867
+msgid "Outfit"
+msgstr ""
+
+#: src/Admin/LookControls.php:868
+msgid "Space Grotesk"
+msgstr ""
+
+#: src/Admin/LookControls.php:869
+msgid "Playfair Display (serif)"
+msgstr ""
+
+#: src/Admin/LookControls.php:870
+msgid "Space Mono (typewriter)"
+msgstr ""
+
+#: src/Admin/LookControls.php:871
+msgid "Pixelify Sans (pixel)"
+msgstr ""
+
+#: src/Admin/LookControls.php:872
+msgid "Silkscreen (pixel)"
+msgstr ""
+
+#: src/Admin/LookControls.php:873
+msgid "VT323 (terminal pixel)"
+msgstr ""
+
+#: src/Admin/LookControls.php:874
+msgid "Press Start 2P (arcade pixel)"
+msgstr ""
+
+#: src/Admin/LookControls.php:906
+msgid "Bars"
+msgstr ""
+
+#: src/Admin/LookControls.php:906
+msgid "A bar per page"
+msgstr ""
+
+#: src/Admin/LookControls.php:907
+msgid "Named bars"
+msgstr ""
+
+#: src/Admin/LookControls.php:907
+msgid "Each page's title under it"
+msgstr ""
+
+#: src/Admin/LookControls.php:908
+msgid "One line"
+msgstr ""
+
+#: src/Admin/LookControls.php:908
+msgid "The whole form, with a %"
+msgstr ""
+
+#: src/Admin/LookControls.php:909
+msgid "Numbers"
+msgstr ""
+
+#: src/Admin/LookControls.php:909
+msgid "Numbered circles that tick off"
+msgstr ""
+
+#: src/Admin/LookControls.php:910
+#: src/Admin/LookControls.php:970
+msgid "Dots"
+msgstr ""
+
+#: src/Admin/LookControls.php:910
+msgid "This page stretches and fills"
+msgstr ""
+
+#: src/Admin/LookControls.php:911
+msgid "A round meter, a slice a page"
+msgstr ""
+
+#: src/Admin/LookControls.php:912
+msgid "Just words"
+msgstr ""
+
+#: src/Admin/LookControls.php:912
+msgid "The title and the step, no bar"
+msgstr ""
+
+#: src/Admin/LookControls.php:913
+#: src/Admin/LookControls.php:986
+msgid "Chevrons"
+msgstr ""
+
+#: src/Admin/LookControls.php:913
+msgid "Arrow blocks, like a breadcrumb"
+msgstr ""
+
+#: src/Admin/LookControls.php:914
+msgid "Stairs"
+msgstr ""
+
+#: src/Admin/LookControls.php:914
+msgid "Bars that climb a step per page"
+msgstr ""
+
+#: src/Admin/LookControls.php:915
+msgid "Pills"
+msgstr ""
+
+#: src/Admin/LookControls.php:915
+msgid "Chips; this page opens up with its title"
+msgstr ""
+
+#: src/Admin/LookControls.php:916
+msgid "Counter"
+msgstr ""
+
+#: src/Admin/LookControls.php:916
+msgid "A big % over a hairline"
+msgstr ""
+
+#: src/Admin/LookControls.php:917
+msgid "Gauge"
+msgstr ""
+
+#: src/Admin/LookControls.php:917
+msgid "A half dial, a slice a page"
+msgstr ""
+
+#: src/Admin/LookControls.php:918
+msgid "Chunky 8-bit health bar blocks"
+msgstr ""
+
+#: src/Admin/LookControls.php:921
+msgid "Plan"
+msgstr ""
+
+#: src/Admin/LookControls.php:922
+msgid "Details"
+msgstr ""
+
+#: src/Admin/LookControls.php:965
+msgid "Just the background"
+msgstr ""
+
+#: src/Admin/LookControls.php:966
+msgid "Crystals"
+msgstr ""
+
+#: src/Admin/LookControls.php:966
+msgid "Low-poly facets of light"
+msgstr ""
+
+#: src/Admin/LookControls.php:967
+msgid "Waves"
+msgstr ""
+
+#: src/Admin/LookControls.php:967
+msgid "Flowing bands, like silk"
+msgstr ""
+
+#: src/Admin/LookControls.php:968
+msgid "Bokeh"
+msgstr ""
+
+#: src/Admin/LookControls.php:968
+msgid "Soft out-of-focus lights"
+msgstr ""
+
+#: src/Admin/LookControls.php:969
+msgid "Grain"
+msgstr ""
+
+#: src/Admin/LookControls.php:969
+msgid "Fine film noise"
+msgstr ""
+
+#: src/Admin/LookControls.php:970
+msgid "A halftone dot grid"
+msgstr ""
+
+#: src/Admin/LookControls.php:971
+msgid "Grid"
+msgstr ""
+
+#: src/Admin/LookControls.php:971
+msgid "Blueprint lines"
+msgstr ""
+
+#: src/Admin/LookControls.php:972
+msgid "Stripes"
+msgstr ""
+
+#: src/Admin/LookControls.php:972
+msgid "Fine diagonal pinstripes"
+msgstr ""
+
+#: src/Admin/LookControls.php:973
+msgid "Rings"
+msgstr ""
+
+#: src/Admin/LookControls.php:973
+msgid "Ripples that spread from the card"
+msgstr ""
+
+#: src/Admin/LookControls.php:974
+msgid "Liquid"
+msgstr ""
+
+#: src/Admin/LookControls.php:974
+msgid "Glossy blobs that flow and merge"
+msgstr ""
+
+#: src/Admin/LookControls.php:975
+msgid "Mesh"
+msgstr ""
+
+#: src/Admin/LookControls.php:975
+msgid "Soft colour clouds that drift and blend"
+msgstr ""
+
+#: src/Admin/LookControls.php:976
+msgid "Tide"
+msgstr ""
+
+#: src/Admin/LookControls.php:976
+msgid "Layered waves rolling past"
+msgstr ""
+
+#: src/Admin/LookControls.php:977
+msgid "Gilt"
+msgstr ""
+
+#: src/Admin/LookControls.php:977
+msgid "Fine gold crosshatch with a slow sheen"
+msgstr ""
+
+#: src/Admin/LookControls.php:978
+msgid "Rays"
+msgstr ""
+
+#: src/Admin/LookControls.php:978
+msgid "Beams of light fanning from the top"
+msgstr ""
+
+#: src/Admin/LookControls.php:979
+msgid "Spotlight"
+msgstr ""
+
+#: src/Admin/LookControls.php:979
+msgid "A soft light lifting the card out"
+msgstr ""
+
+#: src/Admin/LookControls.php:980
+msgid "Starlight"
+msgstr ""
+
+#: src/Admin/LookControls.php:980
+msgid "Tiny stars that twinkle"
+msgstr ""
+
+#: src/Admin/LookControls.php:981
+msgid "Satin"
+msgstr ""
+
+#: src/Admin/LookControls.php:981
+msgid "A silky sheen sliding across"
+msgstr ""
+
+#: src/Admin/LookControls.php:982
+msgid "Confetti"
+msgstr ""
+
+#: src/Admin/LookControls.php:982
+msgid "Colourful flecks drifting down"
+msgstr ""
+
+#: src/Admin/LookControls.php:983
+msgid "Hexagons"
+msgstr ""
+
+#: src/Admin/LookControls.php:983
+msgid "A honeycomb that drifts slowly"
+msgstr ""
+
+#: src/Admin/LookControls.php:984
+msgid "Diamonds"
+msgstr ""
+
+#: src/Admin/LookControls.php:984
+msgid "A harlequin check on the diagonal"
+msgstr ""
+
+#: src/Admin/LookControls.php:985
+msgid "Scales"
+msgstr ""
+
+#: src/Admin/LookControls.php:985
+msgid "Overlapping fish scales"
+msgstr ""
+
+#: src/Admin/LookControls.php:986
+msgid "Rows of arrowheads rising up"
+msgstr ""
+
+#: src/Admin/LookControls.php:987
+msgid "Bubbles"
+msgstr ""
+
+#: src/Admin/LookControls.php:987
+msgid "Clear rings that float up"
+msgstr ""
+
+#: src/Admin/LookControls.php:988
+msgid "Fireflies"
+msgstr ""
+
+#: src/Admin/LookControls.php:988
+msgid "Warm lights that drift and glow"
+msgstr ""
+
+#: src/Admin/LookControls.php:989
+msgid "Pixels"
+msgstr ""
+
+#: src/Admin/LookControls.php:989
+msgid "A chunky 8-bit checkerboard of blocks"
+msgstr ""
+
+#: src/Admin/LookControls.php:997
+msgid "Effect"
+msgstr ""
+
+#: src/Admin/Menu.php:101
+msgid "Pay Button"
+msgstr ""
+
+#: src/Admin/Menu.php:110
+#: src/Plugin.php:151
+msgid "Buttons"
+msgstr ""
+
+#: src/Admin/MethodsTable.php:63
+msgid "No payment methods loaded yet. Reload this page to fetch them from ifthenpay."
+msgstr ""
+
+#: src/Admin/MethodsTable.php:69
+msgid "Payment methods on this Gateway Key"
+msgstr ""
+
+#: src/Admin/MethodsTable.php:72
+#: src/Admin/MethodsTable.php:166
+#: src/Admin/MethodsTable.php:168
+msgid "Enabled"
+msgstr ""
+
+#: src/Admin/MethodsTable.php:73
+msgid "Default"
+msgstr ""
+
+#: src/Admin/MethodsTable.php:75
+msgid "Account"
+msgstr ""
+
+#. translators: %s: payment method name, e.g. "MB WAY"
+#: src/Admin/MethodsTable.php:115
+#, php-format
+msgid "Enable %s"
+msgstr ""
+
+#: src/Admin/MethodsTable.php:135
+msgid "Default payment method"
+msgstr ""
+
+#. translators: %s: payment method name, e.g. "MB WAY"
+#: src/Admin/MethodsTable.php:141
+#, php-format
+msgid "Make %s the default payment method"
+msgstr ""
+
+#: src/Admin/MethodsTable.php:157
+msgid "No account"
+msgstr ""
+
+#: src/Admin/MethodsTable.php:167
+#: src/Admin/MethodsTable.php:168
+msgid "Activated"
+msgstr ""
+
+#: src/Admin/MethodsTable.php:171
+msgid "Not activated"
+msgstr ""
+
+#: src/Admin/MethodsTable.php:177
+msgid "Request Activation"
+msgstr ""
+
+#: src/Ai/AiController.php:134
+msgid "That model isn't available for this key."
+msgstr ""
+
+#: src/Ai/AiController.php:213
+msgid "That chat no longer exists."
+msgstr ""
+
+#: src/Ai/AiController.php:275
+msgid "That button no longer exists."
+msgstr ""
+
+#: src/Ai/AiController.php:289
+msgid "That chat is not valid."
+msgstr ""
+
+#. translators: %s: the button's name
+#: src/Ai/ButtonSchema.php:436
+#, php-format
+msgid "Named “%s”"
+msgstr ""
+
+#. translators: %s: the text on the button
+#: src/Ai/ButtonSchema.php:445
+#, php-format
+msgid "Button text “%s”"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:453
+msgid "name"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:454
+msgid "email"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:455
+msgid "phone"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:456
+msgid "NIF"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:457
+msgid "note"
+msgstr ""
+
+#. translators: %s: the payer details asked for, e.g. "name, email"
+#: src/Ai/ButtonSchema.php:463
+#, php-format
+msgid "Asks for %s"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:464
+msgid "Asks for no payer details"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:474
+msgid "Button uses the default design"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:475
+msgid "Button follows the theme"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:478
+msgid "New button design"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:485
+msgid "New checkout colours and shape"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:485
+msgid "Checkout uses the site look"
+msgstr ""
+
+#. translators: %s: the pay page background, e.g. "gradient + bokeh"
+#: src/Ai/ButtonSchema.php:491
+#, php-format
+msgid "Pay page background: %s"
+msgstr ""
+
+#. translators: 1: an option, 2: its price
+#: src/Ai/ButtonSchema.php:543
+#, php-format
+msgid "%1$s: %2$s"
+msgstr ""
+
+#. translators: %s: the price
+#: src/Ai/ButtonSchema.php:571
+#, php-format
+msgid "Price %s"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:575
+msgid "Amount comes in the pay link"
+msgstr ""
+
+#. translators: 1: lowest amount, 2: highest amount
+#: src/Ai/ButtonSchema.php:580
+#, php-format
+msgid "Payer chooses %1$s – %2$s"
+msgstr ""
+
+#. translators: 1: the amount range, 2: the quick-pick amounts
+#: src/Ai/ButtonSchema.php:587
+#, php-format
+msgid "%1$s, quick picks %2$s"
+msgstr ""
+
+#. translators: %s: how many fields
+#: src/Ai/ButtonSchema.php:619
+#, php-format
+msgid "Added %s field"
+msgid_plural "Added %s fields"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: the field's label, 2: its type, e.g. Dropdown
+#: src/Ai/ButtonSchema.php:623
+#, php-format
+msgid "Added “%1$s” (%2$s)"
+msgstr ""
+
+#. translators: %s: the field's label
+#: src/Ai/ButtonSchema.php:629
+#, php-format
+msgid "Removed “%s”"
+msgstr ""
+
+#. translators: %s: the field's label
+#: src/Ai/ButtonSchema.php:635
+#, php-format
+msgid "Changed “%s”"
+msgstr ""
+
+#. translators: %s: how many steps
+#: src/Ai/ButtonSchema.php:645
+msgid "One page, no steps"
+msgstr ""
+
+#. translators: %s: how many steps
+#: src/Ai/ButtonSchema.php:645
+#, php-format
+msgid "Split into %s steps"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:651
+msgid "Wrote the text blocks"
+msgstr ""
+
+#. translators: %s: how many spots
+#: src/Ai/ButtonSchema.php:670
+#, php-format
+msgid "%s spot in total"
+msgid_plural "%s spots in total"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Ai/ButtonSchema.php:674
+msgid "No limit on spots"
+msgstr ""
+
+#: src/Ai/ButtonSchema.php:681
+msgid "no limit"
+msgstr ""
+
+#. translators: %s: how many spots
+#: src/Ai/ButtonSchema.php:683
+#, php-format
+msgid "%s spot"
+msgid_plural "%s spots"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Ai/Connection.php:101
+msgid "Pick which AI to connect."
+msgstr ""
+
+#: src/Ai/Connection.php:105
+msgid "That doesn't look like an API key. Paste it again, all of it."
+msgstr ""
+
+#: src/Ai/Providers/ChatGpt.php:46
+msgid "by OpenAI"
+msgstr ""
+
+#: src/Ai/Providers/ChatGpt.php:81
+msgid "This key has no ChatGPT models available."
+msgstr ""
+
+#: src/Ai/Providers/ChatGpt.php:158
+msgid "ChatGPT would not answer that. Try saying it another way."
+msgstr ""
+
+#: src/Ai/Providers/Claude.php:47
+msgid "by Anthropic"
+msgstr ""
+
+#: src/Ai/Providers/Claude.php:81
+msgid "This key has no Claude models available."
+msgstr ""
+
+#: src/Ai/Providers/Gemini.php:46
+msgid "by Google"
+msgstr ""
+
+#: src/Ai/Providers/Gemini.php:84
+msgid "This key has no Gemini chat models available."
+msgstr ""
+
+#: src/Ai/Providers/Gemini.php:274
+msgid "Gemini would not answer that. Try saying it another way."
+msgstr ""
+
+#. translators: %s: the AI provider, e.g. Gemini
+#: src/Ai/Providers/Provider.php:189
+#: src/Ai/Providers/Provider.php:257
+#, php-format
+msgid "%s took too long to answer. Try again, or ask for a smaller change."
+msgstr ""
+
+#. translators: %s: the AI provider, e.g. Gemini
+#: src/Ai/Providers/Provider.php:191
+#, php-format
+msgid "Could not reach %s from this site. Check that the server can make outgoing requests."
+msgstr ""
+
+#. translators: %s: the AI provider, e.g. Gemini
+#: src/Ai/Providers/Provider.php:241
+#, php-format
+msgid "%s refused the API key. Check it, or connect a new one."
+msgstr ""
+
+#. translators: %s: the AI provider, e.g. Gemini
+#: src/Ai/Providers/Provider.php:246
+#, php-format
+msgid "%s says this model isn't available to your key any more. Pick another one in Configuration › AI."
+msgstr ""
+
+#. translators: %s: the AI provider, e.g. Gemini
+#: src/Ai/Providers/Provider.php:251
+#, php-format
+msgid "%s says this key is over its limit or out of credit. Wait a minute, or check the billing on your account."
+msgstr ""
+
+#. translators: %s: the AI provider, e.g. Gemini
+#: src/Ai/Providers/Provider.php:262
+#, php-format
+msgid "%s is overloaded right now. Try again in a moment."
+msgstr ""
+
+#. translators: 1: the AI provider, e.g. Gemini, 2: its error message
+#: src/Ai/Providers/Provider.php:269
+#, php-format
+msgid "%1$s did not accept the request: %2$s"
+msgstr ""
+
+#. translators: %s: the AI provider, e.g. Gemini
+#: src/Ai/Providers/Provider.php:271
+#, php-format
+msgid "%s did not accept the request."
+msgstr ""
+
+#. translators: %s: the AI provider, e.g. Gemini
+#: src/Ai/Providers/Provider.php:309
+#, php-format
+msgid "%s sent back an answer I could not read. Try again, or ask for a smaller change."
+msgstr ""
+
+#: src/Ai/Studio.php:159
+#: src/Ai/Studio.php:330
+msgid "Connect an AI first."
+msgstr ""
+
+#: src/Ai/Studio.php:163
+msgid "Write what you want first."
+msgstr ""
+
+#: src/Ai/Studio.php:215
+msgid "That chat was deleted."
+msgstr ""
+
+#: src/Ai/Studio.php:246
+msgid "Done. Have a look at the preview."
+msgstr ""
+
+#. translators: 1: the model that answered, 2: the model that was picked
+#: src/Ai/Studio.php:253
+#, php-format
+msgid "Answered by %1$s, because %2$s didn't."
+msgstr ""
+
+#: src/Ai/Studio.php:303
+msgid "The server stopped before the answer came back. Try again, or pick a faster model."
+msgstr ""
+
+#: src/Ai/Studio.php:425
+msgid "This key is over its limit on every model I tried. Free keys allow only a few messages a minute: wait a minute and try again."
+msgstr ""
+
+#. translators: %d: how many tries were made
+#: src/Ai/Studio.php:427
+#, php-format
+msgid "The AI was too busy or too slow to answer (%d try). Your message is safe: try again in a minute."
+msgid_plural "The AI was too busy or too slow to answer (%d tries, on different models). Your message is safe: try again in a minute."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Ai/Studio.php:574
+msgid "Still working on your last message. Give it a moment."
+msgstr ""
+
+#: src/Ai/Studio.php:584
+msgid "That's a lot of messages in one hour. Take a short break, then carry on."
+msgstr ""
+
+#: src/Ai/Studio.php:590
+msgid "This site reached its AI messages for today. It opens again tomorrow, or an administrator can raise the limit in Configuration › AI."
+msgstr ""
+
+#: src/Ajax/SettingsController.php:111
+msgid "This Backoffice Key has no Pay Button gateway yet. Ask ifthenpay to add one to your contract."
+msgstr ""
+
+#: src/Ajax/SettingsController.php:142
+#: src/Ajax/SettingsController.php:159
+msgid "Unknown Gateway Key."
+msgstr ""
+
+#: src/Ajax/SettingsController.php:196
+msgid "Missing method or Gateway Key."
+msgstr ""
+
+#: src/Ajax/SettingsController.php:202
+msgid "An activation request for this method was already sent in the last 24 hours."
+msgstr ""
+
+#: src/Ajax/SettingsController.php:219
+msgid "Could not send the activation request. Please try again."
+msgstr ""
+
+#: src/Ajax/SettingsController.php:237
+msgid "Could not send the summary. Check that this site can send mail."
+msgstr ""
+
+#. translators: %s: email address
+#: src/Ajax/SettingsController.php:241
+#, php-format
+msgid "Summary sent to %s."
+msgstr ""
+
+#: src/Ajax/SettingsController.php:291
+msgid "Connect your ifthenpay account first."
+msgstr ""
+
+#: src/Bridge/InvoiceHook.php:117
+msgid "Amount as a number (49.90)"
+msgstr ""
+
+#: src/Bridge/InvoiceHook.php:118
+msgid "Amount ÷ quantity, as a number"
+msgstr ""
+
+#: src/Bridge/InvoiceHook.php:119
+msgid "Tax number, or 999999990 when blank"
+msgstr ""
+
+#: src/Bridge/InvoiceHook.php:120
+msgid "Date as 2026-10-23"
+msgstr ""
+
+#: src/Bridge/InvoiceHook.php:333
+msgid "The body isn't valid JSON once the tags are filled in. Check the quotes and commas, and put text tags inside quotes."
+msgstr ""
+
+#: src/Bridge/InvoiceHook.php:351
+msgid "Add the address to send to."
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:124
+#: src/Checkout/CheckoutLook.php:161
+msgid "Midnight"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:166
+msgid "Ruby"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:181
+#: src/Checkout/CheckoutLook.php:226
+msgid "Sunset"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:209
+msgid "Candy"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:283
+#: src/Checkout/CheckoutLook.php:425
+msgid "Premium"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:340
+msgid "Offset"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:354
+msgid "Barber"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:368
+msgid "Chamfer"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:382
+msgid "Checkerboard"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:396
+msgid "Tape"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:410
+#: src/Checkout/CheckoutLook.php:345
+msgid "Terminal"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:424
+msgid "Showtime"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:438
+msgid "Arcade"
+msgstr ""
+
+#: src/Buttons/ButtonDesign.php:452
+msgid "Drafting"
+msgstr ""
+
+#. translators: %s: the copied button's title
+#: src/Buttons/ButtonRepository.php:164
+#, php-format
+msgid "%s (copy)"
+msgstr ""
+
+#: src/Buttons/FormFields.php:69
+msgid "Short text"
+msgstr ""
+
+#: src/Buttons/FormFields.php:70
+msgid "Paragraph"
+msgstr ""
+
+#: src/Buttons/FormFields.php:73
+msgid "Number"
+msgstr ""
+
+#: src/Buttons/FormFields.php:74
+#: src/Checkout/MergeTags.php:48
+#: src/Mail/ReceiptEmail.php:181
+msgid "Date"
+msgstr ""
+
+#: src/Buttons/FormFields.php:75
+msgid "Dropdown"
+msgstr ""
+
+#: src/Buttons/FormFields.php:76
+msgid "Single choice"
+msgstr ""
+
+#: src/Buttons/FormFields.php:77
+msgid "Multiple choice"
+msgstr ""
+
+#: src/Buttons/FormFields.php:78
+msgid "Agreement"
+msgstr ""
+
+#: src/Buttons/FormFields.php:79
+msgid "Text block"
+msgstr ""
+
+#: src/Buttons/FormFields.php:80
+msgid "Page break"
+msgstr ""
+
+#: src/Buttons/FormFields.php:284
+msgid "More details"
+msgstr ""
+
+#: src/Buttons/Templates.php:51
+msgid "Donate"
+msgstr ""
+
+#: src/Buttons/Templates.php:52
+msgid "Thank you for your support."
+msgstr ""
+
+#: src/Buttons/Templates.php:66
+msgid "Buy ticket"
+msgstr ""
+
+#: src/Buttons/Templates.php:67
+msgid "One ticket for the event."
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:179
+msgid "Paper"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:193
+msgid "Meadow"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:208
+msgid "Ocean"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:241
+msgid "Prism"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:260
+msgid "Blossom"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:294
+msgid "Noir"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:308
+msgid "Latte"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:387
+msgid "Editorial"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:406
+msgid "Typewriter"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:446
+msgid "Emerald"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:466
+msgid "Rosé"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:484
+msgid "Slate"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:501
+msgid "Sunrise"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:519
+msgid "Lavender"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:538
+msgid "Honeycomb"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:557
+msgid "Harlequin"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:574
+msgid "Koi"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:612
+msgid "Soda"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:631
+msgid "Twilight"
+msgstr ""
+
+#: src/Checkout/CheckoutLook.php:651
+msgid "Lava"
+msgstr ""
+
+#: src/Checkout/CheckoutService.php:105
+msgid "Payments are not set up on this site yet."
+msgstr ""
+
+#: src/Checkout/CheckoutService.php:173
+#: src/Checkout/CheckoutTexts.php:49
+#: src/Checkout/MergeTags.php:43
+msgid "Quantity"
+msgstr ""
+
+#: src/Checkout/CheckoutService.php:324
+msgid "This payment has no amount set."
+msgstr ""
+
+#: src/Checkout/CheckoutService.php:478
+msgid "Yes"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:40
+msgid "Pay with"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:41
+msgid "Your payment"
+msgstr ""
+
+#. translators: {step} and {steps} stay as they are: the current step and how many there are
+#: src/Checkout/CheckoutTexts.php:43
+msgid "Step {step} of {steps}"
+msgstr ""
+
+#. translators: {price} stays as it is: the cheapest option's price
+#: src/Checkout/CheckoutTexts.php:45
+msgid "from {price}"
+msgstr ""
+
+#. translators: {min} and {max} stay as they are: the smallest and largest amount
+#: src/Checkout/CheckoutTexts.php:48
+msgid "Between {min} and {max}."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:56
+msgid "Choose…"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:59
+msgid "Continue to payment"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:60
+msgid "Taking you to ifthenpay…"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:61
+msgid "Secure payment by"
+msgstr ""
+
+#. translators: {count} stays as it is: how many spots are left
+#: src/Checkout/CheckoutTexts.php:64
+msgid "Only {count} spot left"
+msgid_plural "Only {count} spots left"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: {count} stays as it is: how many spots are left for this option
+#: src/Checkout/CheckoutTexts.php:66
+msgid "{count} left"
+msgid_plural "{count} left"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Checkout/CheckoutTexts.php:69
+msgid "Checking your payment…"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:73
+msgid "Payment received. Taking you on…"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:75
+msgid "We could not start the payment. Please try again."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:76
+msgid "Choose at least one option."
+msgstr ""
+
+#. translators: {field} stays as it is: the field's label
+#: src/Checkout/CheckoutTexts.php:78
+msgid "Fill in {field}."
+msgstr ""
+
+#. translators: {field} stays as it is: the checkbox's label
+#: src/Checkout/CheckoutTexts.php:80
+msgid "Tick \"{field}\" to continue."
+msgstr ""
+
+#. translators: {field} stays as it is: the field's label
+#: src/Checkout/CheckoutTexts.php:82
+msgid "Check {field}."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:83
+msgid "Enter a valid email address."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:84
+msgid "Enter a valid tax number."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:85
+msgid "Enter the amount you want to pay."
+msgstr ""
+
+#. translators: {min} and {max} stay as they are: the smallest and largest amount
+#: src/Checkout/CheckoutTexts.php:87
+msgid "Enter an amount between {min} and {max}."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:88
+msgid "Pick an option to continue."
+msgstr ""
+
+#. translators: {max} stays as it is: the most spots one payment can take
+#: src/Checkout/CheckoutTexts.php:90
+msgid "Choose a quantity from 1 to {max}."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:91
+msgid "That is more than one payment can take. Choose fewer."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:92
+msgid "Sold out. Every spot has been taken."
+msgstr ""
+
+#. translators: {count} stays as it is: how many spots are left
+#: src/Checkout/CheckoutTexts.php:94
+msgid "Only {count} spot is left."
+msgid_plural "Only {count} spots are left."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: {option} stays as it is: the option's label
+#: src/Checkout/CheckoutTexts.php:96
+msgid "{option} is sold out. Pick another option."
+msgstr ""
+
+#. translators: {count} and {option} stay as they are: how many spots are left, and the option's label
+#: src/Checkout/CheckoutTexts.php:98
+msgid "Only {count} spot is left for {option}."
+msgid_plural "Only {count} spots are left for {option}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Checkout/CheckoutTexts.php:99
+msgid "This payment is not available right now."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:100
+msgid "This payment link is no longer valid. Ask for a new one."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:101
+msgid "This payment link is missing its amount."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:102
+msgid "Too many attempts. Please wait a minute and try again."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:103
+msgid "A lot of people are paying right now. Please try again."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:105
+msgid "One less"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:106
+msgid "One more"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:122
+msgid "The button, the form and its buttons. A button's own text, first page title or note label still wins over these."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:125
+msgid "Top line of the form. Your site name when blank."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:126
+msgid "Text on a pay button that has none of its own."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:127
+msgid "The caption above the method logos under a button."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:128
+msgid "Title of the first page, in a form with pages."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:130
+msgid "Price when options cost different amounts."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:131
+msgid "Also in the popup's payment details."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:132
+msgid "Under the amount the payer types."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:138
+msgid "The free-text field."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:139
+msgid "Next to fields that can be left blank."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:140
+msgid "First line of a dropdown with no placeholder."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:143
+msgid "The last button of the form."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:144
+msgid "On that button while the payment starts."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:145
+msgid "Before the ifthenpay logo at the bottom."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:150
+msgid "For buttons that sell a limited number of places. Your own text is used for any number, so word it to fit one and many alike, e.g. \"Left: {count}\"."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:153
+msgid "Under the title, when few are left."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:154
+msgid "Badge on an option."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:155
+msgid "Badge on an option, and the button once everything is taken."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:159
+msgid "Popup after paying"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:160
+msgid "Its titles and messages are on the Messages tab."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:163
+msgid "While it asks ifthenpay how the payment went."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:167
+msgid "When Paid sends the payer to a page."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:171
+msgid "Problems"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:172
+msgid "Shown above the button when something stops the payment. An empty required field gets the browser's own message, already in the payer's language."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:176
+msgid "A required Multiple choice with nothing ticked."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:179
+msgid "An answer that isn't right for its field."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:199
+msgid "For screen readers"
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:200
+msgid "Not shown on screen, but read aloud to people who can't see it."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:203
+msgid "The − next to Quantity."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:204
+msgid "The + next to Quantity."
+msgstr ""
+
+#: src/Checkout/CheckoutTexts.php:206
+msgid "The logos at the bottom."
+msgstr ""
+
+#: src/Checkout/CustomCode.php:97
+msgid "The button's custom CSS"
+msgstr ""
+
+#: src/Checkout/CustomCode.php:98
+msgid "The button's custom JavaScript"
+msgstr ""
+
+#: src/Checkout/CustomCode.php:99
+msgid "The checkout and pay page's custom CSS"
+msgstr ""
+
+#: src/Checkout/CustomCode.php:100
+msgid "The checkout and pay page's custom JavaScript"
+msgstr ""
+
+#: src/Checkout/CustomCode.php:101
+msgid "The site's custom CSS"
+msgstr ""
+
+#: src/Checkout/CustomCode.php:104
+msgid "is too long (20,000 characters at most)."
+msgstr ""
+
+#: src/Checkout/CustomCode.php:105
+msgid "has a bracket or a quote that is never closed."
+msgstr ""
+
+#: src/Checkout/CustomCode.php:106
+msgid "uses @keyframes, @font-face or another at-rule that cannot sit inside one button's scope. Use @media or @supports, or the site's Custom CSS in Default Design."
+msgstr ""
+
+#: src/Checkout/CustomCode.php:107
+msgid "uses something that is not allowed here (@import, expression(), javascript: links, other data: links, or a closing script tag)."
+msgstr ""
+
+#. translators: 1: which code field, 2: why it was refused
+#: src/Checkout/CustomCode.php:111
+#, php-format
+msgid "%1$s %2$s It was not saved; the last good version is still live."
+msgstr ""
+
+#: src/Checkout/MergeTags.php:37
+msgid "Payer name"
+msgstr ""
+
+#: src/Checkout/MergeTags.php:38
+msgid "Payer email"
+msgstr ""
+
+#: src/Checkout/MergeTags.php:44
+msgid "Payment ID"
+msgstr ""
+
+#: src/Checkout/MergeTags.php:46
+msgid "Button title"
+msgstr ""
+
+#: src/Checkout/MergeTags.php:47
+#: src/Mail/PaymentEmailTemplate.php:56
+msgid "Site name"
+msgstr ""
+
+#: src/Checkout/MergeTags.php:52
+msgid "Payment method"
+msgstr ""
+
+#: src/Checkout/MergeTags.php:55
+msgid "One of your own fields"
+msgstr ""
+
+#: src/Checkout/RestController.php:168
+#: src/Checkout/RestController.php:237
+msgid "No payment found."
+msgstr ""
+
+#: src/Frontend/ButtonRenderer.php:473
+msgid "This is a preview, so it doesn't take payments. Save the button to try it for real."
+msgstr ""
+
+#: src/Frontend/ButtonRenderer.php:528
+msgid "Website"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:49
+msgid "\"Hi Ana,\" — or just \"Hi,\" when there's no name"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:52
+msgid "Amount, e.g. 12,50 €"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:53
+msgid "Payment reference"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:54
+msgid "Payment link, for a button or link href (required)"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:55
+msgid "Table of the payment details (body only)"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:57
+msgid "Site address"
+msgstr ""
+
+#. translators: %s: site name
+#: src/Mail/PaymentEmailTemplate.php:66
+#, php-format
+msgid "Complete your payment to %s"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:79
+msgid "Open the payment link"
+msgstr ""
+
+#. translators: %s: site name, linked to the site
+#: src/Mail/PaymentEmailTemplate.php:83
+#, php-format
+msgid "You started a payment on %s but didn't complete it. You can pick it back up in a few seconds."
+msgstr ""
+
+#. translators: %s: formatted amount, e.g. "12,50 €"
+#: src/Mail/PaymentEmailTemplate.php:85
+#, php-format
+msgid "Pay %s"
+msgstr ""
+
+#. translators: %s: "Open the payment link", linked to the payment page
+#: src/Mail/PaymentEmailTemplate.php:87
+#, php-format
+msgid "Button not working? %s"
+msgstr ""
+
+#. translators: %s: site URL, linked to the site
+#: src/Mail/PaymentEmailTemplate.php:89
+#, php-format
+msgid "Sent from %s"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:103
+#: src/Repository/CheckoutSettings.php:67
+msgid "Payment pending"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:107
+msgid "Finish your payment"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:113
+msgid "Total"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:131
+msgid "Secured by ifthenpay"
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:137
+msgid "Already paid? You can ignore this email."
+msgstr ""
+
+#: src/Mail/PaymentEmailTemplate.php:240
+msgid "Payment details"
+msgstr ""
+
+#. translators: %s: customer name
+#: src/Mail/PaymentRequestEmail.php:97
+#, php-format
+msgid "Hi %s,"
+msgstr ""
+
+#: src/Mail/PaymentRequestEmail.php:98
+msgid "Hi,"
+msgstr ""
+
+#. translators: 1: the amount, 2: the payer's name or email
+#: src/Mail/ReceiptEmail.php:85
+#, php-format
+msgid "New payment: %1$s from %2$s"
+msgstr ""
+
+#. translators: 1: the amount, 2: the payer's name or email
+#: src/Mail/ReceiptEmail.php:85
+msgid "a payer"
+msgstr ""
+
+#: src/Mail/ReceiptEmail.php:86
+msgid "ifthenpay confirmed this payment."
+msgstr ""
+
+#. translators: %s: the site name
+#: src/Mail/ReceiptEmail.php:144
+#, php-format
+msgid "Your payment to %s"
+msgstr ""
+
+#: src/Mail/ReceiptEmail.php:146
+#: src/Repository/CheckoutSettings.php:66
+msgid "Payment received"
+msgstr ""
+
+#. translators: %s: the payer's name
+#: src/Mail/ReceiptEmail.php:149
+#, php-format
+msgid "Hi %s, thank you. Your payment was received."
+msgstr ""
+
+#: src/Mail/ReceiptEmail.php:150
+msgid "Thank you. Your payment was received."
+msgstr ""
+
+#: src/Mail/ReceiptEmail.php:187
+msgid "Your reference"
+msgstr ""
+
+#: src/Mail/ReceiptEmail.php:235
+msgid "Open the payment"
+msgstr ""
+
+#: src/Mail/ReceiptEmail.php:240
+msgid "Payment processed securely by ifthenpay."
+msgstr ""
+
+#. translators: 1: site name, 2: revenue, e.g. "1.234,56 €", 3: change, e.g. "▲ 12.4%"
+#: src/Mail/WeeklySummaryEmail.php:77
+#, php-format
+msgid "%1$s · your ifthenpay week: %2$s (%3$s)"
+msgstr ""
+
+#: src/Mail/WeeklySummaryEmail.php:83
+msgid "Your week"
+msgstr ""
+
+#: src/Mail/WeeklySummaryEmail.php:84
+msgid "Revenue, last 7 days"
+msgstr ""
+
+#: src/Mail/WeeklySummaryEmail.php:92
+msgid "Open your entries"
+msgstr ""
+
+#: src/Mail/WeeklySummaryEmail.php:96
+msgid "You get this every Monday because the weekly summary is on in Pay Button › Configuration › Emails."
+msgstr ""
+
+#. translators: %s: number of payments
+#: src/Mail/WeeklySummaryEmail.php:171
+#, php-format
+msgid "%s payment"
+msgid_plural "%s payments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Mail/WeeklySummaryEmail.php:176
+msgid "Top customers"
+msgstr ""
+
+#. translators: %s: number of payments
+#: src/Mail/WeeklySummaryEmail.php:191
+#, php-format
+msgid "%s payment is still waiting to be paid."
+msgid_plural "%s payments are still waiting to be paid."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Mail/WeeklySummaryEmail.php:194
+msgid "Money waiting"
+msgstr ""
+
+#: src/Plugin.php:152
+msgid "Settings"
+msgstr ""
+
+#: src/Privacy.php:59
+#: src/Privacy.php:74
+#: src/Privacy.php:121
+msgid "ifthenpay payments"
+msgstr ""
+
+#: src/Privacy.php:150
+msgid "ifthenpay payments were kept as accounting records, without the payer's details."
+msgstr ""
+
+#: src/Privacy.php:163
+msgid "When you pay through an ifthenpay pay button, we store the details the button asks for (such as your name, email, phone, tax number and note), the amount, the payment method and the page you paid from, to record and confirm your payment."
+msgstr ""
+
+#: src/Privacy.php:164
+msgid "The payment itself happens on ifthenpay's own page. We send ifthenpay the amount, a reference and a description; your card or bank details never reach this site."
+msgstr ""
+
+#: src/Privacy.php:166
+#: blocks/pay-button/editor.js:75
+msgid "ifthenpay Pay Button"
+msgstr ""
+
+#: src/Reports/Insights.php:143
+msgid "Other"
+msgstr ""
+
+#: src/Reports/Insights.php:179
+msgid "Unknown"
+msgstr ""
+
+#: src/Reports/Insights.php:332
+msgid "Revenue"
+msgstr ""
+
+#: src/Reports/Insights.php:333
+msgid "Paid payments"
+msgstr ""
+
+#: src/Reports/Insights.php:386
+msgid "7 days"
+msgstr ""
+
+#: src/Reports/Insights.php:388
+msgid "30 days"
+msgstr ""
+
+#: src/Reports/Insights.php:390
+msgid "12 months"
+msgstr ""
+
+#: src/Reports/Insights.php:402
+msgid "vs previous 7 days"
+msgstr ""
+
+#: src/Reports/Insights.php:404
+msgid "vs previous 30 days"
+msgstr ""
+
+#: src/Reports/Insights.php:406
+msgid "vs previous 12 months"
+msgstr ""
+
+#: src/Repository/CheckoutSettings.php:52
+msgid "Your payment was received."
+msgstr ""
+
+#: src/Repository/CheckoutSettings.php:53
+msgid "Almost there."
+msgstr ""
+
+#: src/Repository/CheckoutSettings.php:53
+msgid "We are waiting for ifthenpay to confirm your payment. With Multibanco or Payshop this happens once you pay the reference."
+msgstr ""
+
+#: src/Repository/CheckoutSettings.php:54
+msgid "The payment did not go through."
+msgstr ""
+
+#: src/Repository/CheckoutSettings.php:54
+msgid "No money was taken. You can try again."
+msgstr ""
+
+#: src/Repository/CheckoutSettings.php:55
+msgid "Payment cancelled."
+msgstr ""
+
+#: src/Repository/CheckoutSettings.php:55
+msgid "Nothing was charged."
+msgstr ""
+
+#: src/Repository/CheckoutSettings.php:68
+msgid "Payment failed"
+msgstr ""
+
+#: src/Repository/CheckoutSettings.php:69
+msgid "Payment cancelled"
+msgstr ""
+
+#: blocks/pay-button/editor.js:15
+msgid "Choose a button…"
+msgstr ""
+
+#: blocks/pay-button/editor.js:19
+msgid "(off)"
+msgstr ""
+
+#: blocks/pay-button/editor.js:38
+msgid "Create a pay button"
+msgstr ""
+
+#: blocks/pay-button/editor.js:55
+msgid "Leave empty to use the text set on the button."
+msgstr ""
+
+#: blocks/pay-button/editor.js:77
+msgid "Pick the pay button to show here."
+msgstr ""
+
+#: blocks/pay-button/editor.js:78
+msgid "You have no pay buttons yet."
+msgstr ""
+
+#: blocks/pay-button/block.json
+msgctxt "block title"
+msgid "ifthenpay Pay Button"
+msgstr ""
+
+#: blocks/pay-button/block.json
+msgctxt "block description"
+msgid "A button that takes a payment through ifthenpay. Pick one of your pay buttons."
+msgstr ""
+
+#: blocks/pay-button/block.json
+msgctxt "block keyword"
+msgid "ifthenpay"
+msgstr ""
+
+#: blocks/pay-button/block.json
+msgctxt "block keyword"
+msgid "pay"
+msgstr ""
+
+#: blocks/pay-button/block.json
+msgctxt "block keyword"
+msgid "payment"
+msgstr ""
+
+#: blocks/pay-button/block.json
+msgctxt "block keyword"
+msgid "multibanco"
+msgstr ""
+
+#: blocks/pay-button/block.json
+msgctxt "block keyword"
+msgid "mbway"
+msgstr ""

@@ -25,9 +25,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class DesignControls {
 
-	// How many style and preset tiles show before "Show all".
+	// How many style, preset and effect tiles show before "Show all".
 	private const FEATURED_STYLES  = 8;
 	private const FEATURED_PRESETS = 7;
+	private const FEATURED_EFFECTS = 6;
 
 	/**
 	 * What every field's name starts with.
@@ -99,29 +100,48 @@ class DesignControls {
 			ButtonDesign::SOURCE_SITE   => array( __( 'Default design', 'ifthenpay-pay-button' ), __( 'The same as every button set to it.', 'ifthenpay-pay-button' ) ),
 			ButtonDesign::SOURCE_THEME  => array( __( 'Match my theme', 'ifthenpay-pay-button' ), __( 'Looks like the other buttons on your site.', 'ifthenpay-pay-button' ) ),
 			ButtonDesign::SOURCE_CUSTOM => array( __( 'Custom', 'ifthenpay-pay-button' ), __( 'Your own colour, shape and size.', 'ifthenpay-pay-button' ) ),
+			ButtonDesign::SOURCE_CODE   => array( __( 'My own code', 'ifthenpay-pay-button' ), __( 'No styles from us. Your CSS and JavaScript do it.', 'ifthenpay-pay-button' ) ),
 		);
 		$sources    = $this->with_site ? $sources : array_intersect_key( $sources, array_flip( ButtonDesign::OWN_SOURCES ) );
 		$variants   = array(
-			'filled'   => __( 'Filled', 'ifthenpay-pay-button' ),
-			'outline'  => __( 'Outline', 'ifthenpay-pay-button' ),
-			'soft'     => __( 'Soft', 'ifthenpay-pay-button' ),
-			'gradient' => __( 'Gradient', 'ifthenpay-pay-button' ),
-			'aurora'   => __( 'Aurora', 'ifthenpay-pay-button' ),
-			'split'    => __( 'Split', 'ifthenpay-pay-button' ),
-			'halo'     => __( 'Halo', 'ifthenpay-pay-button' ),
-			'glass'    => __( 'Glass', 'ifthenpay-pay-button' ),
-			'3d'       => __( '3D', 'ifthenpay-pay-button' ),
-			'neon'     => __( 'Neon', 'ifthenpay-pay-button' ),
-			'brutal'   => __( 'Brutal', 'ifthenpay-pay-button' ),
-			'ghost'    => __( 'Ghost', 'ifthenpay-pay-button' ),
-			'luxe'     => __( 'Luxe', 'ifthenpay-pay-button' ),
-			'beam'     => __( 'Beam', 'ifthenpay-pay-button' ),
-			'clay'     => __( 'Clay', 'ifthenpay-pay-button' ),
-			'ticket'   => __( 'Ticket', 'ifthenpay-pay-button' ),
-			'gloss'    => __( 'Gloss', 'ifthenpay-pay-button' ),
-			'ring'     => __( 'Ring', 'ifthenpay-pay-button' ),
-			'stripe'   => __( 'Stripe', 'ifthenpay-pay-button' ),
-			'cut'      => __( 'Cut', 'ifthenpay-pay-button' ),
+			'filled'    => __( 'Filled', 'ifthenpay-pay-button' ),
+			'outline'   => __( 'Outline', 'ifthenpay-pay-button' ),
+			'soft'      => __( 'Soft', 'ifthenpay-pay-button' ),
+			'aurora'    => __( 'Aurora', 'ifthenpay-pay-button' ),
+			'split'     => __( 'Split', 'ifthenpay-pay-button' ),
+			'halo'      => __( 'Halo', 'ifthenpay-pay-button' ),
+			'glass'     => __( 'Glass', 'ifthenpay-pay-button' ),
+			'3d'        => __( '3D', 'ifthenpay-pay-button' ),
+			'neon'      => __( 'Neon', 'ifthenpay-pay-button' ),
+			'brutal'    => __( 'Brutal', 'ifthenpay-pay-button' ),
+			'ghost'     => __( 'Ghost', 'ifthenpay-pay-button' ),
+			'luxe'      => __( 'Luxe', 'ifthenpay-pay-button' ),
+			'beam'      => __( 'Beam', 'ifthenpay-pay-button' ),
+			'clay'      => __( 'Clay', 'ifthenpay-pay-button' ),
+			'ticket'    => __( 'Ticket', 'ifthenpay-pay-button' ),
+			'gloss'     => __( 'Gloss', 'ifthenpay-pay-button' ),
+			'ring'      => __( 'Ring', 'ifthenpay-pay-button' ),
+			'stripe'    => __( 'Stripe', 'ifthenpay-pay-button' ),
+			'cut'       => __( 'Cut', 'ifthenpay-pay-button' ),
+			'checker'   => __( 'Checker', 'ifthenpay-pay-button' ),
+			'hazard'    => __( 'Hazard', 'ifthenpay-pay-button' ),
+			'scanline'  => __( 'Scanline', 'ifthenpay-pay-button' ),
+			'marquee'   => __( 'Marquee', 'ifthenpay-pay-button' ),
+			'pixel'     => __( 'Pixel', 'ifthenpay-pay-button' ),
+			'blueprint' => __( 'Blueprint', 'ifthenpay-pay-button' ),
+			'spectrum'  => __( 'Spectrum', 'ifthenpay-pay-button' ),
+			'glazed'    => __( 'Glazed', 'ifthenpay-pay-button' ),
+			'frosting'  => __( 'Frosting', 'ifthenpay-pay-button' ),
+			'pizza'     => __( 'Pizza', 'ifthenpay-pay-button' ),
+			'football'  => __( 'Football', 'ifthenpay-pay-button' ),
+			'basketball' => __( 'Basketball', 'ifthenpay-pay-button' ),
+			'running'   => __( 'Running', 'ifthenpay-pay-button' ),
+			'coder'     => __( 'Coder', 'ifthenpay-pay-button' ),
+			'medic'     => __( 'Medic', 'ifthenpay-pay-button' ),
+			'music'     => __( 'Music', 'ifthenpay-pay-button' ),
+			'pilot'     => __( 'Pilot', 'ifthenpay-pay-button' ),
+			'school'    => __( 'School', 'ifthenpay-pay-button' ),
+			'cartoon'   => __( 'Cartoon', 'ifthenpay-pay-button' ),
 		);
 		$effects    = array(
 			'none'  => __( 'None', 'ifthenpay-pay-button' ),
@@ -172,12 +192,17 @@ class DesignControls {
 			'leaf'     => __( 'Leaf', 'ifthenpay-pay-button' ),
 			'bolt'     => __( 'Bolt', 'ifthenpay-pay-button' ),
 		);
+		$icon_styles = array(
+			'outline' => __( 'Outline', 'ifthenpay-pay-button' ),
+			'filled'  => __( 'Filled', 'ifthenpay-pay-button' ),
+			'duotone' => __( 'Duotone', 'ifthenpay-pay-button' ),
+		);
 		$widths     = array(
 			'0' => __( 'Fit the text', 'ifthenpay-pay-button' ),
 			'1' => __( 'Full width', 'ifthenpay-pay-button' ),
 		);
 		?>
-		<fieldset class="iftp-btn-segment<?php echo $this->with_site ? '' : ' iftp-btn-segment--two'; ?>">
+		<fieldset class="iftp-btn-segment<?php echo $this->with_site ? ' iftp-btn-segment--four' : ' iftp-btn-segment--two'; ?>">
 			<legend class="screen-reader-text"><?php esc_html_e( 'Where the look comes from', 'ifthenpay-pay-button' ); ?></legend>
 			<?php foreach ( $sources as $source => $labels ) : ?>
 				<label class="iftp-btn-segment__option">
@@ -241,7 +266,7 @@ class DesignControls {
 						</button>
 					<?php endforeach; ?>
 				</div>
-				<?php $this->render_more_toggle( $shown_presets ); ?>
+				<?php self::render_more_toggle( $shown_presets ); ?>
 			</div>
 			<?php self::close_fold(); ?>
 
@@ -249,7 +274,8 @@ class DesignControls {
 			<div class="iftp-btn-design__grid">
 				<?php $this->render_fx_picker( 'variant', __( 'Style', 'ifthenpay-pay-button' ), $variants, $design, '', self::FEATURED_STYLES ); ?>
 
-				<div class="iftp-btn-field">
+				<?php $single_colour = array_values( array_diff( array_keys( $variants ), array( 'spectrum' ) ) ); ?>
+				<div class="iftp-btn-field" data-iftp-when-variant="<?php echo esc_attr( implode( ' ', $single_colour ) ); ?>"<?php echo 'spectrum' === $design['variant'] ? ' hidden' : ''; ?>>
 					<label class="iftp-btn-field__label" for="iftp-btn-color"><?php esc_html_e( 'Colour', 'ifthenpay-pay-button' ); ?></label>
 					<span class="iftp-btn-color">
 						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( $design['color'] ); ?>" aria-label="<?php esc_attr_e( 'Pick the colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="iftp-btn-color" />
@@ -257,7 +283,7 @@ class DesignControls {
 					</span>
 				</div>
 
-				<div class="iftp-btn-field" data-iftp-when-variant="gradient aurora split luxe beam"<?php echo in_array( $design['variant'], array( 'gradient', 'aurora', 'split', 'luxe', 'beam' ), true ) ? '' : ' hidden'; ?>>
+				<div class="iftp-btn-field" data-iftp-when-variant="aurora split luxe beam marquee glazed frosting pizza"<?php echo in_array( $design['variant'], array( 'aurora', 'split', 'luxe', 'beam', 'marquee', 'glazed', 'frosting', 'pizza' ), true ) ? '' : ' hidden'; ?>>
 					<label class="iftp-btn-field__label" for="iftp-btn-color2"><?php esc_html_e( 'Second colour', 'ifthenpay-pay-button' ); ?></label>
 					<span class="iftp-btn-color<?php echo $auto2 ? ' is-auto' : ''; ?>" data-iftp-color2>
 						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( ButtonDesign::second_color( $design ) ); ?>" aria-label="<?php esc_attr_e( 'Pick the second colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="iftp-btn-color2" />
@@ -268,6 +294,8 @@ class DesignControls {
 						<?php esc_html_e( 'Pick it for me (a neighbouring shade)', 'ifthenpay-pay-button' ); ?>
 					</label>
 				</div>
+
+				<?php $this->render_spectrum( $design ); ?>
 
 				<div class="iftp-btn-field">
 					<label class="iftp-btn-field__label" for="iftp-btn-text-color"><?php esc_html_e( 'Text colour', 'ifthenpay-pay-button' ); ?></label>
@@ -350,12 +378,23 @@ class DesignControls {
 					<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'A glow in the button\'s colour that lifts a little on hover.', 'ifthenpay-pay-button' ); ?></span>
 				</span>
 			</label>
+
+			<div data-iftp-when-variant="aurora beam stripe checker hazard scanline marquee pixel blueprint glazed frosting pizza football basketball running coder medic music pilot school cartoon"<?php echo in_array( $design['variant'], array( 'aurora', 'beam', 'stripe', 'checker', 'hazard', 'scanline', 'marquee', 'pixel', 'blueprint', 'glazed', 'frosting', 'pizza', 'football', 'basketball', 'running', 'coder', 'medic', 'music', 'pilot', 'school', 'cartoon' ), true ) ? '' : ' hidden'; ?>>
+				<label class="iftp-btn-np__toggle">
+					<input type="hidden" name="<?php echo esc_attr( $this->name( 'still' ) ); ?>" value="0" />
+					<input type="checkbox" class="iftp-btn-switch" name="<?php echo esc_attr( $this->name( 'still' ) ); ?>" value="1" <?php checked( $design['still'] ); ?> data-iftp-design="still" />
+					<span class="iftp-btn-np__toggle-text">
+						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Pause the animation', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Holds this style still: its moving background, and the motion it plays on hover (the cherry, steam, runner, ball, equalizer and the like). The hover effect below still works. Payers whose device asks for less motion always get it still.', 'ifthenpay-pay-button' ); ?></span>
+					</span>
+				</label>
+			</div>
 			<?php self::close_fold(); ?>
 
 			<?php self::open_fold( 'design-effects', __( 'Effects', 'ifthenpay-pay-button' ), __( 'What it does on hover, and a gentle move that catches the eye.', 'ifthenpay-pay-button' ) ); ?>
 			<?php
-			$this->render_fx_picker( 'effect', __( 'On hover', 'ifthenpay-pay-button' ), $effects, $design, __( 'What it does when the pointer is on it. Point at a sample to see it. Nudge moves the icon, so pick one below.', 'ifthenpay-pay-button' ) );
-			$this->render_fx_picker( 'attention', __( 'Catch the eye', 'ifthenpay-pay-button' ), $attentions, $design, __( 'Keeps going on its own to draw attention, and rests while the button is hovered. Payers who turn motion off get a still button.', 'ifthenpay-pay-button' ) );
+			$this->render_fx_picker( 'effect', __( 'On hover', 'ifthenpay-pay-button' ), $effects, $design, __( 'What it does when the pointer is on it. Point at a sample to see it. Nudge moves the icon, so pick one below.', 'ifthenpay-pay-button' ), self::FEATURED_EFFECTS );
+			$this->render_fx_picker( 'attention', __( 'Catch the eye', 'ifthenpay-pay-button' ), $attentions, $design, __( 'Keeps going on its own to draw attention, and rests while the button is hovered. Payers who turn motion off get a still button.', 'ifthenpay-pay-button' ), self::FEATURED_EFFECTS );
 			?>
 
 			<label class="iftp-btn-np__toggle">
@@ -366,6 +405,16 @@ class DesignControls {
 					<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'PAY NOW, a little spaced out.', 'ifthenpay-pay-button' ); ?></span>
 				</span>
 			</label>
+
+			<div class="iftp-btn-field">
+				<label class="iftp-btn-field__label" for="iftp-btn-font"><?php esc_html_e( 'Button font', 'ifthenpay-pay-button' ); ?></label>
+				<select class="iftp-btn-field__control" id="iftp-btn-font" name="<?php echo esc_attr( $this->name( 'font' ) ); ?>" data-iftp-design="font">
+					<option value="" <?php selected( $design['font'], '' ); ?>><?php esc_html_e( 'The style\'s own', 'ifthenpay-pay-button' ); ?></option>
+					<?php foreach ( array_slice( LookControls::font_options(), 2 ) as $font => $font_label ) : ?>
+						<option value="<?php echo esc_attr( $font ); ?>" <?php selected( $design['font'], $font ); ?>><?php echo esc_html( $font_label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</div>
 			<?php self::close_fold(); ?>
 		</div>
 
@@ -382,6 +431,18 @@ class DesignControls {
 									<span class="iftp-btn-seg__icon" data-iftp-icon-svg="<?php echo esc_attr( $icon ); ?>"><?php echo ButtonDesign::icon( $icon ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
 									<?php echo esc_html( $label ); ?>
 								</span>
+							</label>
+						<?php endforeach; ?>
+					</span>
+				</fieldset>
+
+				<fieldset class="iftp-btn-field iftp-btn-design__wide">
+					<legend class="iftp-btn-field__label"><?php esc_html_e( 'Icon style', 'ifthenpay-pay-button' ); ?></legend>
+					<span class="iftp-btn-seg">
+						<?php foreach ( $icon_styles as $style => $label ) : ?>
+							<label class="iftp-btn-seg__option">
+								<input type="radio" name="<?php echo esc_attr( $this->name( 'icon_style' ) ); ?>" value="<?php echo esc_attr( $style ); ?>" <?php checked( $design['icon_style'], $style ); ?> data-iftp-design="icon_style" />
+								<span><?php echo esc_html( $label ); ?></span>
 							</label>
 						<?php endforeach; ?>
 					</span>
@@ -447,7 +508,7 @@ class DesignControls {
 	 *
 	 * @param int $total How many tiles there are in all.
 	 */
-	private function render_more_toggle( int $total ): void {
+	public static function render_more_toggle( int $total ): void {
 		?>
 		<button type="button" class="iftp-btn-more" data-iftp-more aria-expanded="false">
 			<span data-iftp-more-closed>
@@ -475,8 +536,8 @@ class DesignControls {
 	private function render_fx_picker( string $key, string $legend, array $options, array $design, string $help = '', int $featured = 0 ): void {
 		$help_id = 'iftp-btn-fx-' . $key . '-help';
 		$shown   = array_slice( array_keys( $options ), 0, $featured );
-		// Only the first few show at first, unless the one in use is further down.
-		$folded = $featured > 0 && count( $options ) > $featured && ! in_array( $design[ $key ] ?? '', array_slice( array_keys( $options ), $featured ), true );
+		// Always the first few and "Show all"; a pick further down still shows (responsive.css), so nothing opens as a wall of tiles.
+		$folded = $featured > 0 && count( $options ) > $featured;
 		?>
 		<fieldset class="iftp-btn-field iftp-btn-design__wide"<?php echo '' !== $help ? ' aria-describedby="' . esc_attr( $help_id ) . '"' : ''; ?>>
 			<legend class="iftp-btn-field__label"><?php echo esc_html( $legend ); ?></legend>
@@ -510,12 +571,123 @@ class DesignControls {
 				<?php endforeach; ?>
 			</span>
 			<?php if ( $featured > 0 && count( $options ) > $featured ) : ?>
-				<?php $this->render_more_toggle( count( $options ) ); ?>
+				<?php self::render_more_toggle( count( $options ) ); ?>
 			<?php endif; ?>
 			<?php if ( '' !== $help ) : ?>
 				<p class="iftp-btn-field__help" id="<?php echo esc_attr( $help_id ); ?>"><?php echo esc_html( $help ); ?></p>
 			<?php endif; ?>
 		</fieldset>
+		<?php
+	}
+
+	/**
+	 * The Spectrum style's colour stops: a bar with a handle per colour, a row of controls each, the shape and, for a
+	 * straight gradient, whether it flows. spectrum.js drives it.
+	 *
+	 * @param array<string, mixed> $design The current design.
+	 * @phpstan-param ButtonDesignConfig $design
+	 */
+	private function render_spectrum( array $design ): void {
+		$stops  = $design['stops'];
+		$name   = $this->name( 'stops' );
+		$shapes = array(
+			'linear' => __( 'Straight', 'ifthenpay-pay-button' ),
+			'radial' => __( 'Radial', 'ifthenpay-pay-button' ),
+			'conic'  => __( 'Colour wheel', 'ifthenpay-pay-button' ),
+		);
+		?>
+		<div class="iftp-btn-field iftp-btn-design__wide iftp-btn-spectrum" data-iftp-when-variant="spectrum"<?php echo 'spectrum' === $design['variant'] ? '' : ' hidden'; ?> data-iftp-spectrum data-iftp-min="<?php echo esc_attr( (string) ButtonDesign::SPECTRUM_MIN ); ?>" data-iftp-max="<?php echo esc_attr( (string) ButtonDesign::SPECTRUM_MAX ); ?>" data-iftp-next="<?php echo esc_attr( (string) count( $stops ) ); ?>">
+			<span class="iftp-btn-field__label"><?php esc_html_e( 'Colours', 'ifthenpay-pay-button' ); ?></span>
+			<p class="iftp-btn-field__help"><?php esc_html_e( 'Drag a colour along the bar to place it. Spread is how far a colour reaches, and blur how much of that melts into its neighbours (0 is a hard edge).', 'ifthenpay-pay-button' ); ?></p>
+
+			<div class="iftp-btn-spectrum__bar" data-iftp-spectrum-bar>
+				<span class="iftp-btn-spectrum__fill" data-iftp-spectrum-fill></span>
+			</div>
+
+			<div class="iftp-btn-spectrum__rows" data-iftp-spectrum-rows>
+				<?php foreach ( array_values( $stops ) as $index => $stop ) : ?>
+					<?php $this->render_spectrum_row( $name, (string) $index, $stop ); ?>
+				<?php endforeach; ?>
+			</div>
+
+			<template>
+				<?php
+				$this->render_spectrum_row(
+					$name,
+					'__i__',
+					array(
+						'color'  => '#000000',
+						'pos'    => 0,
+						'spread' => 20,
+						'blur'   => 100,
+					)
+				);
+				?>
+			</template>
+
+			<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-spectrum__add" data-iftp-spectrum-add><?php esc_html_e( 'Add a colour', 'ifthenpay-pay-button' ); ?></button>
+
+			<div class="iftp-btn-design__grid iftp-btn-spectrum__shape">
+				<fieldset class="iftp-btn-field">
+					<legend class="iftp-btn-field__label"><?php esc_html_e( 'Shape', 'ifthenpay-pay-button' ); ?></legend>
+					<span class="iftp-btn-seg">
+						<?php foreach ( $shapes as $value => $label ) : ?>
+							<label class="iftp-btn-seg__option">
+								<input type="radio" name="<?php echo esc_attr( $this->name( 'stops_shape' ) ); ?>" value="<?php echo esc_attr( $value ); ?>" <?php checked( $design['stops_shape'], $value ); ?> data-iftp-design="stops_shape" />
+								<span><?php echo esc_html( $label ); ?></span>
+							</label>
+						<?php endforeach; ?>
+					</span>
+				</fieldset>
+
+				<div class="iftp-btn-field" data-iftp-spectrum-angle<?php echo 'radial' === $design['stops_shape'] ? ' hidden' : ''; ?>>
+					<label class="iftp-btn-field__label" for="iftp-btn-stops-angle"><?php esc_html_e( 'Angle', 'ifthenpay-pay-button' ); ?> <output class="iftp-btn-range__value" for="iftp-btn-stops-angle" data-iftp-angle-out><?php echo esc_html( $design['stops_angle'] . '°' ); ?></output></label>
+					<span class="iftp-btn-range">
+						<input type="range" class="iftp-btn-range__input" id="iftp-btn-stops-angle" name="<?php echo esc_attr( $this->name( 'stops_angle' ) ); ?>" min="0" max="360" step="5" value="<?php echo esc_attr( (string) $design['stops_angle'] ); ?>" data-iftp-design="stops_angle" />
+					</span>
+				</div>
+			</div>
+
+			<label class="iftp-btn-np__toggle" data-iftp-spectrum-flow<?php echo 'linear' === $design['stops_shape'] ? '' : ' hidden'; ?>>
+				<input type="hidden" name="<?php echo esc_attr( $this->name( 'stops_flow' ) ); ?>" value="0" />
+				<input type="checkbox" class="iftp-btn-switch" name="<?php echo esc_attr( $this->name( 'stops_flow' ) ); ?>" value="1" <?php checked( $design['stops_flow'] ); ?> data-iftp-design="stops_flow" />
+				<span class="iftp-btn-np__toggle-text">
+					<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Let the colours flow', 'ifthenpay-pay-button' ); ?></span>
+					<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'The gradient drifts slowly back and forth. Payers whose device asks for less motion always get it still.', 'ifthenpay-pay-button' ); ?></span>
+				</span>
+			</label>
+		</div>
+		<?php
+	}
+
+	/**
+	 * One colour stop's controls.
+	 *
+	 * @param string                                                 $name  The stops' field name.
+	 * @param string                                                 $key   The row's key; '__i__' in the template.
+	 * @param array{color: string, pos: int, spread: int, blur: int} $stop The stop.
+	 */
+	private function render_spectrum_row( string $name, string $key, array $stop ): void {
+		$id     = 'iftp-btn-stop-' . $key;
+		$ranges = array(
+			'pos'    => __( 'Position', 'ifthenpay-pay-button' ),
+			'spread' => __( 'Spread', 'ifthenpay-pay-button' ),
+			'blur'   => __( 'Blur', 'ifthenpay-pay-button' ),
+		);
+		?>
+		<div class="iftp-btn-spectrum__row" data-iftp-stop-row="<?php echo esc_attr( $key ); ?>">
+			<span class="iftp-btn-color">
+				<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( $stop['color'] ); ?>" aria-label="<?php esc_attr_e( 'Pick the colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="<?php echo esc_attr( $id ); ?>-color" />
+				<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="<?php echo esc_attr( $id ); ?>-color" name="<?php echo esc_attr( $name . '[' . $key . '][color]' ); ?>" value="<?php echo esc_attr( $stop['color'] ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-stop="color" />
+			</span>
+			<?php foreach ( $ranges as $field => $label ) : ?>
+				<span class="iftp-btn-spectrum__range">
+					<label for="<?php echo esc_attr( $id . '-' . $field ); ?>"><?php echo esc_html( $label ); ?> <output data-iftp-stop-out="<?php echo esc_attr( $field ); ?>"><?php echo esc_html( $stop[ $field ] . '%' ); ?></output></label>
+					<input type="range" class="iftp-btn-range__input" id="<?php echo esc_attr( $id . '-' . $field ); ?>" name="<?php echo esc_attr( $name . '[' . $key . '][' . $field . ']' ); ?>" min="0" max="100" step="1" value="<?php echo esc_attr( (string) $stop[ $field ] ); ?>" data-iftp-stop="<?php echo esc_attr( $field ); ?>" />
+				</span>
+			<?php endforeach; ?>
+			<button type="button" class="iftp-btn-spectrum__remove" data-iftp-stop-remove aria-label="<?php esc_attr_e( 'Remove this colour', 'ifthenpay-pay-button' ); ?>">&times;</button>
+		</div>
 		<?php
 	}
 
@@ -531,10 +703,7 @@ class DesignControls {
 		?>
 		<div class="iftp-btn-preview__head">
 			<h2 class="iftp-btn-preview__title" id="iftp-btn-preview-title"><?php esc_html_e( 'Preview', 'ifthenpay-pay-button' ); ?></h2>
-			<span class="iftp-btn-stagebg" role="group" aria-label="<?php esc_attr_e( 'Preview background', 'ifthenpay-pay-button' ); ?>">
-				<button type="button" class="iftp-btn-stagebg__option" data-iftp-stage-bg="light" aria-pressed="true"><span class="screen-reader-text"><?php esc_html_e( 'Light background', 'ifthenpay-pay-button' ); ?></span></button>
-				<button type="button" class="iftp-btn-stagebg__option iftp-btn-stagebg__option--dark" data-iftp-stage-bg="dark" aria-pressed="false"><span class="screen-reader-text"><?php esc_html_e( 'Dark background', 'ifthenpay-pay-button' ); ?></span></button>
-			</span>
+			<?php SchemeControl::render(); ?>
 		</div>
 		<div class="iftp-btn-preview__stage" data-iftp-stage data-bg="light">
 			<span class="iftp-btn-pay__group">

@@ -1,0 +1,1045 @@
+/* stylelint-disable selector-class-pattern -- BEM with the iftp-btn- prefix. */
+
+/* --------------------------------------------------------------------------
+   List view: one card, a header, and a slim row per button
+   -------------------------------------------------------------------------- */
+@media (width > 1100px) {
+
+	.iftp-btn-bcards--list {
+		--iftp-list-cols: 148px minmax(180px, 1fr) minmax(280px, 330px) 150px 46px 218px;
+
+		display: block;
+		padding: 0 6px 6px;
+		border: 1px solid var(--iftp-line);
+		border-radius: var(--iftp-r-xl);
+		background: var(--iftp-surface);
+		box-shadow: var(--iftp-shadow-2);
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcards__head,
+	.iftp-btn-bcards--list .iftp-btn-bcard {
+		display: grid;
+		grid-template-columns: var(--iftp-list-cols);
+		align-items: center;
+		column-gap: 20px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcards__head {
+		margin: 0 -6px;
+		padding: 12px 18px 10px 14px;
+		border-bottom: 1px solid var(--iftp-line);
+		color: var(--iftp-muted);
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+
+	.iftp-btn-bcards__col--button {
+		grid-column: 1 / 3;
+	}
+
+	.iftp-btn-bcards__col--stats {
+		display: grid;
+		grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 1fr);
+		grid-column: 3;
+	}
+
+	.iftp-btn-bcards__col--spots {
+		grid-column: 4;
+	}
+
+	.iftp-btn-bcards__col--on {
+		grid-column: 5;
+		text-align: center;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard {
+		margin: 0;
+		padding: 8px 12px 8px 8px;
+		border: 0;
+		border-top: 1px solid var(--iftp-line);
+		border-radius: 12px;
+		background: transparent;
+		box-shadow: none;
+		transition: background-color var(--iftp-fast) var(--iftp-ease);
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcards__head + .iftp-btn-bcard,
+	.iftp-btn-bcards--list .iftp-btn-bcard[hidden] + .iftp-btn-bcard {
+		border-top-color: transparent;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard:hover,
+	.iftp-btn-bcards--list .iftp-btn-bcard:focus-within {
+		border-top-color: transparent;
+		background: var(--iftp-inset);
+		box-shadow: none;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard:hover + .iftp-btn-bcard,
+	.iftp-btn-bcards--list .iftp-btn-bcard:focus-within + .iftp-btn-bcard {
+		border-top-color: transparent;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard[hidden],
+	.iftp-btn-bcards--list .iftp-btn-bcard--new {
+		display: none;
+	}
+
+	/* The body and its top row step aside, so the title, numbers, spots and switch each take a column. */
+	.iftp-btn-bcards--list .iftp-btn-bcard__body,
+	.iftp-btn-bcards--list .iftp-btn-bcard__top {
+		display: contents;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stage {
+		grid-column: 1;
+		grid-row: 1;
+		height: 56px;
+		padding: 0 8px;
+		border: 0;
+		border-radius: 10px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stage .iftp-btn-pay {
+		zoom: 0.5;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__status,
+	.iftp-btn-bcards--list .iftp-btn-bcard__look,
+	.iftp-btn-bcards--list .iftp-btn-bcard__badge {
+		display: none;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__heading {
+		grid-column: 2;
+		grid-row: 1;
+	}
+
+	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-bcard__title {
+		font-size: 14px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__amount {
+		margin-top: 4px;
+		font-size: 12px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__mode,
+	.iftp-btn-bcards--list .iftp-btn-bcard__state {
+		font-size: 11px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__state {
+		position: static;
+		width: auto;
+		height: auto;
+		padding: 2px 8px;
+		overflow: visible;
+		clip-path: none;
+		border-radius: var(--iftp-r-pill);
+		font-weight: 650;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats {
+		grid-column: 3;
+		grid-row: 1;
+		grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 1fr);
+		grid-auto-flow: row;
+		gap: 0;
+		padding: 0;
+		border: 0;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats > div {
+		padding: 0;
+		border-radius: 0;
+		background: none;
+	}
+
+	/* The header names the numbers once. */
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats dt,
+	.iftp-btn-bcards--list .iftp-btn-bcard__spots-head > span:first-child {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats dd {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__stats .iftp-btn-bcard__since {
+		font-size: 11px;
+		font-weight: 500;
+		letter-spacing: 0;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__spots {
+		grid-column: 4;
+		grid-row: 1;
+		gap: 5px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__spots-count {
+		color: var(--iftp-ink-2);
+		font-size: 12px;
+		font-weight: 600;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__meter {
+		height: 5px;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__toggle {
+		grid-column: 5;
+		grid-row: 1;
+		justify-content: center;
+		padding: 0;
+	}
+
+	.iftp-btn-bcards--list .iftp-btn-bcard__foot {
+		grid-column: 6;
+		grid-row: 1;
+		justify-content: flex-end;
+		gap: 6px;
+		padding: 0;
+		border: 0;
+	}
+
+	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-bcard__edit,
+	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-bcard__activate {
+		min-height: 30px;
+		padding: 0 12px;
+		font-size: 12.5px;
+	}
+
+	body.iftp-btn-screen .iftp-btn-bcards--list .iftp-btn-tool {
+		width: 30px;
+		height: 30px;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Copy fields
+   -------------------------------------------------------------------------- */
+.iftp-btn-copy {
+	display: grid;
+	gap: 5px;
+	min-width: 0;
+}
+
+.iftp-btn-copy__label {
+	color: var(--iftp-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.iftp-btn-copy__row {
+	display: flex;
+	gap: 6px;
+	min-width: 0;
+}
+
+body.iftp-btn-screen .iftp-btn-copy__value {
+	flex: 1;
+	min-width: 0;
+	min-height: 36px;
+	margin: 0;
+	padding: 0 10px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-sm);
+	background: var(--iftp-inset);
+	box-shadow: none;
+	color: var(--iftp-ink);
+	font-family: var(--iftp-mono);
+	font-size: 12px;
+}
+
+body.iftp-btn-screen .iftp-btn-copy__value:focus {
+	border-color: var(--iftp-brand);
+	box-shadow: var(--iftp-ring);
+	outline: none;
+}
+
+body.iftp-btn-screen .iftp-btn-copy__button {
+	min-height: 36px;
+	padding: 0 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Editor
+   -------------------------------------------------------------------------- */
+.iftp-btn-editor__back {
+	margin: 16px 0;
+}
+
+.iftp-btn-editor__back a {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--iftp-muted);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.iftp-btn-editor__back a:hover {
+	color: var(--iftp-brand);
+}
+
+.iftp-btn-editor {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 420px;
+	align-items: start;
+	gap: 20px;
+	margin-top: 14px;
+}
+
+.iftp-btn-editor__main {
+	display: grid;
+	gap: 16px;
+	min-width: 0;
+}
+
+/* The aside runs the full height of the form, so the preview has room to stay in view while it scrolls. */
+.iftp-btn-editor__aside {
+	align-self: stretch;
+}
+
+/* Taller than the screen, it scrolls on its own, so Save and the bottom of the preview stay reachable. */
+.iftp-btn-editor__sticky {
+	position: sticky;
+	top: 46px;
+	display: grid;
+	gap: 16px;
+	max-height: calc(100vh - 62px);
+	margin: -4px;
+	padding: 4px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: thin;
+}
+
+.iftp-btn-editor__pair {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	align-items: end;
+	gap: 14px;
+}
+
+/* An editor card: heading row on top, fields under it. */
+.iftp-btn-ecard {
+	display: grid;
+	gap: 18px;
+	padding: 22px 24px 24px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-xl);
+	background: var(--iftp-surface);
+	box-shadow: var(--iftp-shadow-2);
+}
+
+body.iftp-btn-screen .iftp-btn-ecard__title {
+	margin: 0;
+	color: var(--iftp-ink);
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+.iftp-btn-ecard__description {
+	margin: 3px 0 0;
+	color: var(--iftp-muted);
+	font-size: 13px;
+}
+
+.iftp-btn-ecard__body {
+	display: grid;
+	gap: 16px;
+	min-width: 0;
+}
+
+/* A text prefix glued to its input, e.g. the pay link's address. */
+.iftp-btn-affix {
+	display: flex;
+	align-items: stretch;
+	min-width: 0;
+}
+
+.iftp-btn-affix__text {
+	display: inline-flex;
+	align-items: center;
+	max-width: 55%;
+	padding: 0 10px;
+	overflow: hidden;
+	border: 1px solid var(--iftp-line-strong);
+	border-right: 0;
+	border-radius: var(--iftp-r-sm) 0 0 var(--iftp-r-sm);
+	background: var(--iftp-inset);
+	color: var(--iftp-muted);
+	font-family: var(--iftp-mono);
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.iftp-btn-affix__text:last-child {
+	border-right: 1px solid var(--iftp-line-strong);
+	border-left: 0;
+	border-radius: 0 var(--iftp-r-sm) var(--iftp-r-sm) 0;
+}
+
+body.iftp-btn-screen .iftp-btn-affix .iftp-btn-field__control {
+	flex: 1;
+	min-width: 0;
+	border-radius: 0 var(--iftp-r-sm) var(--iftp-r-sm) 0;
+}
+
+body.iftp-btn-screen .iftp-btn-affix .iftp-btn-field__control:not(:last-child) {
+	border-radius: 0;
+}
+
+/* Segmented choice: big radio cards. */
+.iftp-btn-segment {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.iftp-btn-segment__option {
+	position: relative;
+	display: grid;
+	gap: 2px;
+	padding: 12px 14px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), background-color var(--iftp-fast) var(--iftp-ease), box-shadow var(--iftp-fast) var(--iftp-ease);
+}
+
+.iftp-btn-segment__option:hover {
+	border-color: rgb(0 96 156 / 40%);
+}
+
+.iftp-btn-segment__option input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.iftp-btn-segment__option:has(input:checked) {
+	border-color: var(--iftp-brand);
+	background: var(--iftp-brand-tint);
+	box-shadow: inset 0 0 0 1px var(--iftp-brand);
+}
+
+.iftp-btn-segment__option:has(input:focus-visible) {
+	box-shadow: var(--iftp-ring);
+}
+
+.iftp-btn-segment__title {
+	color: var(--iftp-ink);
+	font-weight: 700;
+}
+
+.iftp-btn-segment__hint {
+	color: var(--iftp-muted);
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.iftp-btn-segment--compact .iftp-btn-segment__option {
+	padding: 9px 12px;
+	text-align: center;
+}
+
+/* Spots per option: one row per option, with its spots and price. */
+.iftp-btn-spots,
+.iftp-btn-spots__left {
+	display: grid;
+	gap: 14px;
+}
+
+.iftp-btn-spots__empty {
+	margin: 0;
+	padding: 12px 14px;
+	border: 1px dashed var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+	color: var(--iftp-muted);
+	font-size: 13px;
+}
+
+.iftp-btn-spots__row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	grid-auto-columns: 118px;
+	grid-auto-flow: column;
+	column-gap: 12px;
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--iftp-line);
+}
+
+.iftp-btn-spots__row:last-child,
+.iftp-btn-spots__row--head {
+	border-bottom: 0;
+}
+
+.iftp-btn-spots__row--head {
+	padding-top: 0;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.iftp-btn-spots__option {
+	overflow-wrap: anywhere;
+	color: var(--iftp-ink);
+	font-weight: 600;
+}
+
+body.iftp-btn-screen .iftp-btn-spots__grid .iftp-btn-field__control {
+	width: 100%;
+}
+
+/* More fields with spots and prices: one block each, under the main one. */
+.iftp-btn-spots__extras {
+	display: grid;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
+.iftp-btn-spots__extras:empty {
+	display: none;
+}
+
+.iftp-btn-spots__extra {
+	display: grid;
+	gap: 10px;
+	padding: 12px 14px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-md);
+}
+
+.iftp-btn-spots__extra-head {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.iftp-btn-spots__extra-head select {
+	flex: 1;
+	min-width: 0;
+}
+
+/* The payer-details table: one field per row, Off / Optional / Required pills. */
+.iftp-btn-fields-list__row {
+	display: grid;
+	grid-template-columns: 40% minmax(0, 1fr);
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--iftp-line);
+}
+
+.iftp-btn-fields-list__row:last-child {
+	border-bottom: 0;
+}
+
+.iftp-btn-fields-list__name {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding-right: 14px;
+	color: var(--iftp-ink);
+	font-weight: 600;
+}
+
+body.iftp-btn-screen .iftp-btn-fields-list__label {
+	min-height: 34px;
+}
+
+.iftp-btn-fields-list__value {
+	text-align: right;
+}
+
+.iftp-btn-pills {
+	display: inline-flex;
+	margin: 0;
+	padding: 3px;
+	border: 0;
+	border-radius: var(--iftp-r-pill);
+	background: var(--iftp-inset);
+}
+
+.iftp-btn-pills__option {
+	position: relative;
+	cursor: pointer;
+}
+
+.iftp-btn-pills__option input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.iftp-btn-pills__option span {
+	display: inline-block;
+	padding: 5px 12px;
+	border-radius: var(--iftp-r-pill);
+	color: var(--iftp-muted);
+	font-size: 12.5px;
+	font-weight: 600;
+	transition: background-color var(--iftp-fast) var(--iftp-ease), color var(--iftp-fast) var(--iftp-ease);
+}
+
+.iftp-btn-pills__option input:checked + span {
+	background: var(--iftp-raised);
+	box-shadow: var(--iftp-shadow-1);
+	color: var(--iftp-ink);
+}
+
+.iftp-btn-pills__option input[value="required"]:checked + span {
+	color: var(--iftp-brand);
+}
+
+.iftp-btn-pills__option input:focus-visible + span {
+	box-shadow: var(--iftp-ring);
+}
+
+/* Connect another plugin */
+.iftp-btn-bridge__steps {
+	display: grid;
+	gap: 6px;
+	margin: 0;
+	padding: 0 0 0 20px;
+	color: var(--iftp-ink-2);
+}
+
+.iftp-btn-bridge__steps li {
+	margin: 0;
+}
+
+.iftp-btn-builder {
+	display: grid;
+	gap: 8px;
+	padding: 14px;
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-inset);
+}
+
+.iftp-btn-builder__row {
+	display: grid;
+	grid-template-columns: 210px minmax(0, 1fr);
+	align-items: center;
+	gap: 12px;
+}
+
+.iftp-btn-builder__check {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--iftp-ink);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.iftp-btn-builder__check input {
+	margin: 0;
+}
+
+.iftp-btn-builder__check code {
+	padding: 1px 6px;
+	border-radius: var(--iftp-r-xs);
+	background: var(--iftp-raised);
+	color: var(--iftp-muted);
+	font-size: 11px;
+}
+
+body.iftp-btn-screen .iftp-btn-builder__tag {
+	min-height: 34px;
+	font-family: var(--iftp-mono);
+	font-size: 12.5px;
+}
+
+.iftp-btn-builder__row:has(input[type="checkbox"]:not(:checked)) .iftp-btn-builder__tag {
+	opacity: 0.45;
+}
+
+.iftp-btn-builder .iftp-btn-copy {
+	margin-top: 6px;
+}
+
+/* The redirect link under "From the link" in the Amount card. */
+.iftp-btn-amount-link {
+	display: grid;
+	gap: 6px;
+	padding: 14px;
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-inset);
+}
+
+.iftp-btn-amount-link .iftp-btn-field__help {
+	margin: 0;
+}
+
+.iftp-btn-details {
+	padding: 12px 14px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-md);
+}
+
+.iftp-btn-details summary {
+	color: var(--iftp-ink);
+	font-weight: 650;
+	cursor: pointer;
+}
+
+.iftp-btn-details[open] {
+	display: grid;
+	gap: 12px;
+}
+
+.iftp-btn-code {
+	margin: 0;
+	padding: 12px 14px;
+	overflow-x: auto;
+	border-radius: var(--iftp-r-sm);
+	background: var(--iftp-night);
+	color: #dfe7f3;
+	font-family: var(--iftp-mono);
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+[data-iftp-test-result].is-error,
+[data-iftp-invoice-result].is-error {
+	color: var(--iftp-failed);
+}
+
+/* Invoicing app card */
+.iftp-btn-invoice {
+	display: grid;
+	gap: 16px;
+}
+
+.iftp-btn-invoice .iftp-btn-design__grid,
+.iftp-btn-invoice .iftp-btn-field {
+	margin: 0;
+}
+
+.iftp-btn-invoice__test {
+	display: grid;
+	justify-items: start;
+	gap: 8px;
+}
+
+.iftp-btn-invoice__test .iftp-btn-field__help {
+	margin: 0;
+}
+
+.iftp-btn-invoice__test .iftp-btn-code {
+	width: 100%;
+	max-height: 160px;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.iftp-btn-invoice__log {
+	display: grid;
+	gap: 8px;
+}
+
+.iftp-btn-invoice__log-title {
+	margin: 0;
+	color: var(--iftp-ink);
+	font-size: 13px;
+	font-weight: 650;
+}
+
+.iftp-btn-invoice__log-list {
+	display: grid;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-sm);
+}
+
+.iftp-btn-invoice__log-item {
+	display: grid;
+	grid-template-columns: auto auto auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	padding: 8px 12px;
+	color: var(--iftp-ink-2);
+	font-size: 12.5px;
+}
+
+.iftp-btn-invoice__log-item + .iftp-btn-invoice__log-item {
+	border-top: 1px solid var(--iftp-line);
+}
+
+.iftp-btn-invoice__log-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: var(--iftp-r-pill);
+	background: var(--iftp-paid-dot, var(--iftp-paid));
+}
+
+.iftp-btn-invoice__log-item.is-error .iftp-btn-invoice__log-dot {
+	background: var(--iftp-failed-dot, var(--iftp-failed));
+}
+
+.iftp-btn-invoice__log-ref,
+.iftp-btn-invoice__log-code {
+	font-family: var(--iftp-mono);
+}
+
+.iftp-btn-invoice__log-message {
+	overflow: hidden;
+	color: var(--iftp-muted);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.iftp-btn-invoice__log-time {
+	color: var(--iftp-muted);
+	white-space: nowrap;
+}
+
+.iftp-btn-invoice__alt {
+	margin: 0;
+}
+
+@media (width <= 782px) {
+
+	.iftp-btn-invoice__log-item {
+		grid-template-columns: auto auto minmax(0, 1fr);
+	}
+
+	.iftp-btn-invoice__log-message,
+	.iftp-btn-invoice__log-time {
+		grid-column: 2 / -1;
+	}
+}
+
+/* Tabs over the editor's cards. */
+.iftp-btn-tabs {
+	position: sticky;
+	top: 42px;
+	z-index: 5;
+	display: flex;
+	gap: 4px;
+	padding: 4px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-pill, 999px);
+	background: rgb(250 251 253 / 92%);
+	box-shadow: var(--iftp-shadow-2);
+	backdrop-filter: blur(8px);
+}
+
+body.iftp-btn-screen .iftp-btn-tabs__tab {
+	flex: 1;
+	min-height: 38px;
+	margin: 0;
+	padding: 0 12px;
+	border: 0;
+	border-radius: var(--iftp-r-pill, 999px);
+	background: transparent;
+	color: var(--iftp-muted);
+	font-family: inherit;
+	font-size: 13.5px;
+	font-weight: 650;
+	cursor: pointer;
+	transition: background-color var(--iftp-fast) var(--iftp-ease), color var(--iftp-fast) var(--iftp-ease);
+}
+
+body.iftp-btn-screen .iftp-btn-tabs__tab:hover {
+	background: var(--iftp-inset);
+	color: var(--iftp-ink);
+}
+
+body.iftp-btn-screen .iftp-btn-tabs__tab[aria-selected="true"] {
+	background: var(--iftp-brand-tint);
+	color: var(--iftp-brand-deep);
+}
+
+.iftp-btn-tabpanel {
+	display: grid;
+	gap: 16px;
+	min-width: 0;
+}
+
+.iftp-btn-editor__save {
+	display: grid;
+	gap: 10px;
+	padding: 16px 18px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-surface);
+	box-shadow: var(--iftp-shadow-2);
+}
+
+.iftp-btn-editor__save-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.iftp-btn-editor__save-row .iftp-btn-btn--primary {
+	flex: 1;
+	min-height: 42px;
+}
+
+.iftp-btn-editor__dirty {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	color: var(--iftp-pending);
+	font-size: 12.5px;
+	font-weight: 650;
+}
+
+.iftp-btn-editor__dirty::before {
+	content: "";
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--iftp-pending-dot);
+	box-shadow: 0 0 0 3px rgb(240 165 0 / 20%);
+}
+
+/* Design › Checkout & pay page swaps the sidebar's button preview for the checkout look preview. */
+.iftp-btn-editor__lookpreview {
+	display: none;
+}
+
+.iftp-btn-editor[data-tab="design"][data-design-view="checkout"] .iftp-btn-editor__lookpreview {
+	display: block;
+}
+
+.iftp-btn-editor[data-tab="design"][data-design-view="checkout"] .iftp-btn-preview:not(.iftp-btn-look-preview),
+.iftp-btn-editor[data-tab="design"][data-design-view="checkout"] .iftp-btn-placeit {
+	display: none;
+}
+
+/* Configuration › Messages shows the popup being written, in the same place. */
+.iftp-btn-editor[data-tab="configuration"][data-config-view="messages"] .iftp-btn-editor__lookpreview {
+	display: block;
+}
+
+.iftp-btn-editor[data-tab="configuration"][data-config-view="messages"] .iftp-btn-preview:not(.iftp-btn-look-preview),
+.iftp-btn-editor[data-tab="configuration"][data-config-view="messages"] .iftp-btn-placeit {
+	display: none;
+}
+
+.iftp-btn-editor__designpick {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+
+/* Two cards, not a small toggle: the checkout's design is a whole second half of this tab and has to be seen. */
+body.iftp-btn-screen .iftp-btn-editor__designcard {
+	display: grid;
+	gap: 2px;
+	margin: 0;
+	padding: 14px 16px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-surface);
+	color: var(--iftp-ink);
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: border-color var(--iftp-mid) var(--iftp-ease), background-color var(--iftp-mid) var(--iftp-ease);
+}
+
+body.iftp-btn-screen .iftp-btn-editor__designcard:hover {
+	border-color: var(--iftp-brand);
+}
+
+body.iftp-btn-screen .iftp-btn-editor__designcard[aria-pressed="true"] {
+	border-color: var(--iftp-brand);
+	background: var(--iftp-brand-tint);
+	box-shadow: 0 0 0 1px var(--iftp-brand);
+}
+
+.iftp-btn-editor__designcard-title {
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.iftp-btn-editor__designcard-text {
+	color: var(--iftp-muted);
+	font-size: 12.5px;
+}
+
+@media (width <= 600px) {
+
+	.iftp-btn-editor__designpick {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.iftp-btn-tabpanel__group {
+	display: grid;
+	gap: 16px;
+}
+
+/* The icon picker beside a payer field: a small tile that unfolds a grid of icons. */
+.iftp-btn-iconpick {
+	position: relative;
+	flex: none;
+}
+
+.iftp-btn-iconpick__summary {
+	display: grid;
+	width: 34px;
+	height: 34px;
+	place-items: center;
+	color: var(--iftp-brand);
+	background: var(--iftp-surface, #fff);
+	border: 1px solid var(--iftp-line);
+	border-radius: 10px;
+	cursor: pointer;
+	list-style: none;
+}
+
+.iftp-btn-iconpick__summary::-webkit-details-marker {
+	display: none;
+}
+
+.iftp-btn-iconpick[open] .iftp-btn-iconpick__summary {
+	border-color: var(--iftp-brand);
+}
+
+.iftp-btn-iconpick__grid {
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 0;
+	z-index: 20;
+	display: grid;
+	grid-template-columns: repeat(6, 36px);
+	gap: 6px;
+	padding: 10px;
+	background: var(--iftp-surface, #fff);
+	border: 1px solid var(--iftp-line);
+	border-radius: 14px;
+	box-shadow: 0 18px 40px -16px rgb(16 30 54 / 35%);
+}

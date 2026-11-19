@@ -152,6 +152,6 @@ class Menu {
 	public function enqueue_menu_icon(): void {
 		$css = 'assets/css/menu-icon.css';
 
-		wp_enqueue_style( 'iftp-btn-menu-icon', IFTP_BTN_URL . $css, array(), Plugin::asset_version( $css ) );
+		wp_enqueue_style( 'iftp-btn-menu-icon', Plugin::asset_url( $css ), array(), Plugin::asset_version( $css ) );
 	}
 }

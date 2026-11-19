@@ -10,12 +10,14 @@ declare(strict_types=1);
 namespace Ifthenpay\PayButton\Admin\Entries;
 
 use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
+use Ifthenpay\PayButton\Admin\Toast;
 use Ifthenpay\PayButton\Api\PaymentLinks;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
 use Ifthenpay\PayButton\Dates;
 use Ifthenpay\PayButton\Mail\ReceiptEmail;
 use Ifthenpay\PayButton\Plugin;
 use Ifthenpay\PayButton\Reports\Insights;
+use Ifthenpay\PayButton\Reports\TransactionReports;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
 use Ifthenpay\PayButton\Repository\TransactionStore;
 
@@ -27,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The "Payments" screen, built on the Forminator entries playbook: masthead, summary cards, status tabs, search,
  * filters, columns, export, bulk actions, cross-page selection and pagination. View opens the single entry page.
  *
- * Styled by assets/css/admin.css, the unified ifthenpay look, through the `iftp-btn-` BEM classes below.
+ * Styled by assets/css/admin/, the unified ifthenpay look, through the `iftp-btn-` BEM classes below.
  *
  * @phpstan-import-type Transaction from TransactionStore
  * @phpstan-import-type View from ViewState
@@ -138,7 +140,7 @@ class EntriesPage {
 	 * The Performance section's view, built once per request.
 	 */
 	private function insights_view(): InsightsView {
-		return $this->insights_view ??= new InsightsView( new Insights( $this->transactions ), $this->presenter );
+		return $this->insights_view ??= new InsightsView( new Insights( new TransactionReports( $this->transactions ) ), $this->presenter );
 	}
 
 	/**
@@ -260,7 +262,6 @@ class EntriesPage {
 			return;
 		}
 
-		$entries_js     = 'assets/js/entries.js';
 		$restore_js     = 'assets/js/entries-restore.js';
 		$email_settings = $this->email_settings->enqueue();
 		$deps           = array( Plugin::METHOD_LOGOS_HANDLE, Plugin::UI_SCRIPT_HANDLE, Plugin::CHARTS_SCRIPT_HANDLE );
@@ -270,11 +271,11 @@ class EntriesPage {
 		}
 
 		wp_enqueue_style( Plugin::ADMIN_STYLE_HANDLE );
-		wp_enqueue_script( 'iftp-btn-entries', IFTP_BTN_URL . $entries_js, $deps, Plugin::asset_version( $entries_js ), true );
+		Plugin::enqueue_split_script( 'iftp-btn-entries', 'assets/js/entries', array( 'core', 'view', 'selection', 'bulk', 'new-entry', 'settings', 'ui', 'tables', 'boot' ), $deps );
 
 		// Head, not footer, and the list only — it may redirect to the saved view before the default one paints.
 		if ( ! $this->wants_single_entry() ) {
-			wp_enqueue_script( 'iftp-btn-entries-restore', IFTP_BTN_URL . $restore_js, array(), Plugin::asset_version( $restore_js ), false );
+			wp_enqueue_script( 'iftp-btn-entries-restore', Plugin::asset_url( $restore_js ), array(), Plugin::asset_version( $restore_js ), false );
 
 			wp_localize_script(
 				'iftp-btn-entries-restore',
@@ -431,7 +432,7 @@ class EntriesPage {
 			}
 
 			// A stale or tampered link falls back to the list, with a word on why.
-			wp_admin_notice( esc_html__( 'That entry link is no longer valid, or the entry was deleted.', 'ifthenpay-pay-button' ), array( 'type' => 'warning' ) );
+			Toast::add( esc_html__( 'That entry link is no longer valid, or the entry was deleted.', 'ifthenpay-pay-button' ), 'warning' );
 		}
 
 		$this->render_list();
@@ -483,7 +484,10 @@ class EntriesPage {
 		<div id="iftp-btn-entries" class="wrap iftp-btn-entries iftp-btn-entries--no-js" data-iftp-entries data-iftp-hidden-cols="<?php echo esc_attr( implode( ' ', $hidden_cols ) ); ?>" data-iftp-col-order="<?php echo esc_attr( implode( ' ', $col_order ) ); ?>">
 			<header class="iftp-btn-masthead">
 				<div class="iftp-btn-masthead__brand">
-					<img class="iftp-btn-masthead__logo" src="<?php echo esc_url( IFTP_BTN_URL . 'assets/img/logo-color.svg' ); ?>" alt="ifthenpay" width="94" height="24" />
+					<?php echo ButtonsPage::menu_controls(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed markup, escaped in nav_menu() and menu_toggle(). ?>
+					<a class="iftp-btn-masthead__home" href="<?php echo esc_url( ButtonsPage::list_url() ); ?>" title="<?php esc_attr_e( 'Pay buttons', 'ifthenpay-pay-button' ); ?>">
+						<img class="iftp-btn-masthead__logo" src="<?php echo esc_url( IFTP_BTN_URL . 'assets/img/logo-color.svg' ); ?>" alt="<?php esc_attr_e( 'ifthenpay, back to Pay buttons', 'ifthenpay-pay-button' ); ?>" width="94" height="24" />
+					</a>
 					<span class="iftp-btn-masthead__divider" aria-hidden="true"></span>
 					<div class="iftp-btn-masthead__text">
 						<h1 id="iftp-btn-entries-title" class="iftp-btn-masthead__title"><?php esc_html_e( 'Payments', 'ifthenpay-pay-button' ); ?></h1>

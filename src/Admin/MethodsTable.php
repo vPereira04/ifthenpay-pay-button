@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Renders the payment methods table: Enabled, the Default star, the method, its account and its status / activation request.
+ * Renders a Gateway Key's payment methods table in the button editor: Offered, the Default star, the method, its account and its status / activation request.
  *
  * @phpstan-import-type Method from SettingsRepository
  */
@@ -40,23 +40,34 @@ class MethodsTable {
 	}
 
 	/**
-	 * The table markup, for the AJAX responses that swap it in.
+	 * The table markup, for the AJAX response that swaps it in.
+	 *
+	 * @param string             $gateway_key    The Gateway Key whose methods it lists.
+	 * @param array<int, string> $picked         The entities the button offers; none means every method the key can offer.
+	 * @param string             $default_method The entity the hosted page opens on.
+	 * @param string             $enabled_name   The checkboxes' field name.
+	 * @param string             $default_name   The star radios' field name.
 	 */
-	public function render(): string {
+	public function render( string $gateway_key, array $picked, string $default_method, string $enabled_name, string $default_name ): string {
 		ob_start();
-		$this->output();
+		$this->output( $gateway_key, $picked, $default_method, $enabled_name, $default_name );
 
 		return (string) ob_get_clean();
 	}
 
 	/**
-	 * Prints the full methods table.
+	 * Prints the methods table of one Gateway Key.
+	 *
+	 * @param string             $gateway_key    The Gateway Key whose methods it lists.
+	 * @param array<int, string> $picked         The entities the button offers; none means every method the key can offer.
+	 * @param string             $default_method The entity the hosted page opens on.
+	 * @param string             $enabled_name   The checkboxes' field name.
+	 * @param string             $default_name   The star radios' field name.
 	 */
-	public function output(): void {
+	public function output( string $gateway_key, array $picked, string $default_method, string $enabled_name, string $default_name ): void {
 		// I keep IsVisible:false methods in storage for their icon/alias, but ifthenpay isn't offering them.
-		$methods        = array_filter( $this->settings->get_methods(), static fn ( array $method ): bool => $method['visible'] ?? true );
-		$default_method = $this->settings->get_default_method();
-		$gateway_key    = $this->settings->get_gateway_key();
+		$methods = array_filter( $this->settings->get_methods( $gateway_key ), static fn ( array $method ): bool => $method['visible'] ?? true );
+		$picked  = array() !== $picked ? array_map( 'strtoupper', $picked ) : array_map( 'strtoupper', array_column( $this->settings->get_enabled_methods( $gateway_key ), 'entity' ) );
 
 		if ( array() === $methods ) {
 			?>
@@ -69,7 +80,7 @@ class MethodsTable {
 			<caption class="screen-reader-text"><?php esc_html_e( 'Payment methods on this Gateway Key', 'ifthenpay-pay-button' ); ?></caption>
 			<thead>
 				<tr>
-					<th scope="col" class="iftp-btn-methods__col iftp-btn-methods__col--control"><?php esc_html_e( 'Enabled', 'ifthenpay-pay-button' ); ?></th>
+					<th scope="col" class="iftp-btn-methods__col iftp-btn-methods__col--control"><?php esc_html_e( 'Offered', 'ifthenpay-pay-button' ); ?></th>
 					<th scope="col" class="iftp-btn-methods__col iftp-btn-methods__col--control iftp-btn-methods__col--divider"><?php esc_html_e( 'Default', 'ifthenpay-pay-button' ); ?></th>
 					<th scope="col" class="iftp-btn-methods__col iftp-btn-methods__col--method"><?php esc_html_e( 'Method', 'ifthenpay-pay-button' ); ?></th>
 					<th scope="col" class="iftp-btn-methods__col iftp-btn-methods__col--account"><?php esc_html_e( 'Account', 'ifthenpay-pay-button' ); ?></th>
@@ -78,7 +89,7 @@ class MethodsTable {
 			</thead>
 			<tbody>
 				<?php foreach ( $methods as $method ) : ?>
-					<?php $this->render_row( $method, $default_method, $gateway_key ); ?>
+					<?php $this->render_row( $method, $picked, $default_method, $gateway_key, $enabled_name, $default_name ); ?>
 				<?php endforeach; ?>
 			</tbody>
 		</table>
@@ -89,18 +100,21 @@ class MethodsTable {
 	 * Renders a single method row.
 	 *
 	 * @param array<string, mixed> $method         The catalog method row.
-	 * @param string               $default_method The currently configured default method entity.
-	 * @param string               $gateway_key    The selected Gateway Key, for the activation cooldown.
+	 * @param array<int, string>   $picked         The entities the button offers, upper-cased.
+	 * @param string               $default_method The default method entity.
+	 * @param string               $gateway_key    The Gateway Key, for the activation cooldown.
+	 * @param string               $enabled_name   The checkbox field name.
+	 * @param string               $default_name   The star radio field name.
 	 * @phpstan-param Method $method
 	 */
-	private function render_row( array $method, string $default_method, string $gateway_key ): void {
+	private function render_row( array $method, array $picked, string $default_method, string $gateway_key, string $enabled_name, string $default_name ): void {
 		$entity      = $method['entity'];
 		$alias       = $method['alias'];
 		$logo        = $method['logo'] ?? '';
 		$logo_dark   = $method['logo_dark'] ?? '';
-		$enabled     = (bool) $method['enabled'];
 		$provisioned = '' !== $method['account'];
-		$is_default  = $enabled && $entity === $default_method;
+		$enabled     = $provisioned && in_array( strtoupper( $entity ), $picked, true );
+		$is_default  = $enabled && strtoupper( $entity ) === strtoupper( $default_method );
 		$star_id     = 'iftp-btn-default-' . sanitize_html_class( $entity );
 		$row_class   = 'iftp-btn-methods__row' . ( $provisioned ? '' : ' iftp-btn-methods__row--unprovisioned' );
 		?>
@@ -109,9 +123,10 @@ class MethodsTable {
 				<input
 					type="checkbox"
 					class="iftp-btn-methods__enabled"
-					name="enabled_methods[]"
-					value="<?php echo esc_attr( $entity ); ?>"
+					name="<?php echo esc_attr( $enabled_name ); ?>"
+					value="<?php echo esc_attr( strtoupper( $entity ) ); ?>"
 					data-iftp-method-enabled
+					data-iftp-preview="method"
 					aria-label="<?php /* translators: %s: payment method name, e.g. "MB WAY" */ echo esc_attr( sprintf( __( 'Enable %s', 'ifthenpay-pay-button' ), $alias ) ); ?>"
 					<?php checked( $enabled ); ?>
 					<?php disabled( ! $provisioned ); ?>
@@ -123,7 +138,7 @@ class MethodsTable {
 					type="radio"
 					class="screen-reader-text iftp-btn-methods__default"
 					id="<?php echo esc_attr( $star_id ); ?>"
-					name="default_method"
+					name="<?php echo esc_attr( $default_name ); ?>"
 					value="<?php echo esc_attr( $entity ); ?>"
 					data-iftp-method-default
 					<?php checked( $is_default ); ?>
@@ -145,7 +160,7 @@ class MethodsTable {
 			<td class="iftp-btn-methods__cell iftp-btn-methods__cell--method">
 				<span class="iftp-btn-methods__logo-slot">
 					<?php if ( '' !== $logo ) : ?>
-						<img class="iftp-btn-methods__logo" src="<?php echo esc_url( $logo ); ?>"<?php echo '' !== $logo_dark ? ' data-logo-dark="' . esc_url( $logo_dark ) . '"' : ''; ?> alt="" height="24" loading="lazy" />
+						<img class="iftp-btn-methods__logo" src="<?php echo esc_url( $logo ); ?>"<?php echo '' !== $logo_dark ? ' data-logo-dark="' . esc_url( $logo_dark ) . '"' : ''; ?> alt="" height="24" loading="lazy" data-iftp-method-logo />
 					<?php endif; ?>
 				</span>
 				<span class="iftp-btn-methods__label<?php echo $provisioned ? '' : ' iftp-btn-methods__label--dimmed'; ?>"><?php echo esc_html( $alias ); ?></span>
@@ -173,6 +188,7 @@ class MethodsTable {
 						type="button"
 						class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-methods__activate"
 						data-iftp-request-activation="<?php echo esc_attr( $entity ); ?>"
+						data-iftp-gateway-key="<?php echo esc_attr( $gateway_key ); ?>"
 						<?php disabled( $requested ); ?>
 					><?php echo $requested ? esc_html__( 'Requested', 'ifthenpay-pay-button' ) : esc_html__( 'Request Activation', 'ifthenpay-pay-button' ); ?></button>
 				<?php endif; ?>

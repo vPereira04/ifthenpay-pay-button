@@ -1,0 +1,470 @@
+/* stylelint-disable selector-class-pattern -- BEM with the iftp-btn- prefix. */
+
+/* --------------------------------------------------------------------------
+   Checkout form builder
+   -------------------------------------------------------------------------- */
+.iftp-btn-fb {
+	display: grid;
+	gap: 12px;
+}
+
+.iftp-btn-fb > .iftp-btn-field {
+	margin: 0;
+}
+
+.iftp-btn-fb__list {
+	display: grid;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.iftp-btn-fb__item {
+	margin: 0;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+	transition: border-color var(--iftp-fast) var(--iftp-ease), box-shadow var(--iftp-mid) var(--iftp-ease);
+}
+
+.iftp-btn-fb__item.is-open {
+	border-color: rgb(0 96 156 / 40%);
+	box-shadow: var(--iftp-shadow-2);
+}
+
+.iftp-btn-fb__item--anchor {
+	border-style: dashed;
+	background: var(--iftp-inset);
+}
+
+.iftp-btn-fb__item--break {
+	border: 1.5px dashed rgb(0 96 156 / 35%);
+	background: rgb(230 241 249 / 55%);
+}
+
+.iftp-btn-fb__row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 52px;
+	padding: 6px 8px 6px 12px;
+}
+
+.iftp-btn-fb__icon {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 9px;
+	background: var(--iftp-brand-tint);
+	color: var(--iftp-brand);
+}
+
+.iftp-btn-fb__item--anchor .iftp-btn-fb__icon,
+.iftp-btn-fb__item--break .iftp-btn-fb__icon {
+	background: var(--iftp-raised);
+}
+
+.iftp-btn-fb__item--anchor .iftp-btn-fb__icon {
+	color: var(--iftp-muted);
+}
+
+body.iftp-btn-screen .iftp-btn-fb__name {
+	display: grid;
+	flex: 1;
+	gap: 1px;
+	min-width: 0;
+	margin: 0;
+	padding: 4px 0;
+	border: 0;
+	background: transparent;
+	color: var(--iftp-ink);
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+span.iftp-btn-fb__name {
+	cursor: default;
+}
+
+.iftp-btn-fb__name strong {
+	overflow: hidden;
+	font-size: 13.5px;
+	font-weight: 650;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.iftp-btn-fb__meta {
+	overflow: hidden;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.iftp-btn-fb__tools {
+	display: inline-flex;
+	flex: none;
+	gap: 2px;
+}
+
+body.iftp-btn-screen .iftp-btn-fb__tools .iftp-btn-tool {
+	width: 30px;
+	height: 30px;
+}
+
+body.iftp-btn-screen .iftp-btn-fb__tools .iftp-btn-tool:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.iftp-btn-fb__tools > [data-iftp-tip]:last-child::after {
+	right: 0;
+	left: auto;
+	transform: translateY(3px);
+}
+
+.iftp-btn-fb__tools > [data-iftp-tip]:last-child:hover::after {
+	transform: none;
+}
+
+.iftp-btn-fb__page {
+	flex: none;
+	padding: 3px 10px;
+	border-radius: var(--iftp-r-pill);
+	background: var(--iftp-brand);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+body.iftp-btn-screen .iftp-btn-fb__page-title {
+	flex: 1;
+	min-width: 0;
+	min-height: 36px;
+}
+
+.iftp-btn-fb__panel {
+	display: grid;
+	gap: 14px;
+	padding: 14px 14px 16px 54px;
+	border-top: 1px solid var(--iftp-line);
+}
+
+.iftp-btn-fb__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px 14px;
+}
+
+.iftp-btn-fb__grid > .iftp-btn-field {
+	align-content: start;
+	margin: 0;
+}
+
+.iftp-btn-fb__wide {
+	grid-column: 1 / -1;
+}
+
+.iftp-btn-fb__tag {
+	display: flex;
+	align-items: center;
+	min-height: 40px;
+	padding-left: 10px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-sm);
+	background: var(--iftp-inset);
+	color: var(--iftp-muted);
+	font-family: var(--iftp-mono);
+	font-size: 12.5px;
+}
+
+body.iftp-btn-screen .iftp-btn-fb__tag .iftp-btn-field__control {
+	flex: 1;
+	min-width: 0;
+	min-height: 36px;
+	padding: 0 2px;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--iftp-brand-deep);
+	font-family: var(--iftp-mono);
+	font-size: 12.5px;
+}
+
+.iftp-btn-fb__tag-brace:last-child {
+	padding-right: 10px;
+}
+
+.iftp-btn-fb__switches {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+/* Show this only when: a picker for the earlier field, is / is none of, then its answers as ticks. */
+.iftp-btn-fb__when {
+	display: grid;
+	gap: 8px;
+	padding-top: 12px;
+	border-top: 1px dashed var(--iftp-line);
+}
+
+.iftp-btn-fb__when .iftp-btn-field__help {
+	margin: 0;
+}
+
+.iftp-btn-fb__when-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+}
+
+.iftp-btn-fb__when-line > select {
+	flex: 1 1 220px;
+	width: auto;
+	min-width: 0;
+}
+
+.iftp-btn-fb__when-line > input {
+	flex: 0 1 140px;
+	width: auto;
+	min-width: 0;
+}
+
+/* Limits: the smallest and largest a Number takes, or the shortest and longest text. */
+.iftp-btn-fb__rules {
+	display: grid;
+	gap: 8px;
+	padding-top: 12px;
+	border-top: 1px dashed var(--iftp-line);
+}
+
+.iftp-btn-fb__rules .iftp-btn-field__help {
+	margin: 0;
+}
+
+.iftp-btn-fb__when-values {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+}
+
+.iftp-btn-fb__add {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	padding: 12px;
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-inset);
+}
+
+.iftp-btn-fb__add-label {
+	margin-right: 4px;
+	color: var(--iftp-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+body.iftp-btn-screen .iftp-btn-fb__chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 32px;
+	margin: 0;
+	padding: 0 11px 0 8px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-pill);
+	background: var(--iftp-raised);
+	color: var(--iftp-ink);
+	font-family: inherit;
+	font-size: 12.5px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), background-color var(--iftp-fast) var(--iftp-ease);
+}
+
+body.iftp-btn-screen .iftp-btn-fb__chip:hover:not(:disabled) {
+	border-color: var(--iftp-brand);
+	background: var(--iftp-brand-tint);
+}
+
+body.iftp-btn-screen .iftp-btn-fb__chip:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+body.iftp-btn-screen .iftp-btn-fb__chip--page {
+	border-style: dashed;
+	border-color: rgb(0 96 156 / 45%);
+	color: var(--iftp-brand-deep);
+}
+
+.iftp-btn-fb__chip-icon {
+	display: inline-grid;
+	color: var(--iftp-brand);
+}
+
+.iftp-btn-fb__chip-icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+
+/* --------------------------------------------------------------------------
+   Option pictures: one row per option, a thumbnail to pick or change.
+   -------------------------------------------------------------------------- */
+.iftp-btn-fb__pics-body {
+	margin-top: 10px;
+}
+
+.iftp-btn-fb__pics {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+	gap: 8px;
+}
+
+.iftp-btn-fb__pic {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+	padding: 6px 8px 6px 6px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+}
+
+.iftp-btn-fb__pic-thumb {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border: 1.5px dashed var(--iftp-line-strong);
+	border-radius: var(--iftp-r-sm);
+	background: var(--iftp-inset) center / cover no-repeat;
+	color: var(--iftp-muted);
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), color var(--iftp-fast) var(--iftp-ease), transform var(--iftp-fast) var(--iftp-ease);
+}
+
+.iftp-btn-fb__pic-thumb:hover,
+.iftp-btn-fb__pic-thumb:focus-visible {
+	border-color: var(--iftp-brand);
+	color: var(--iftp-brand);
+	transform: scale(1.05);
+}
+
+.iftp-btn-fb__pic-thumb.has-image {
+	border-style: solid;
+}
+
+.iftp-btn-fb__pic-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	font-size: 13px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.iftp-btn-fb__pic-clear {
+	flex: none;
+	padding: 4px 6px;
+	border: 0;
+	background: none;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.iftp-btn-fb__pic-clear:hover,
+.iftp-btn-fb__pic-clear:focus-visible {
+	color: var(--iftp-failed, #a3201f);
+}
+
+.iftp-btn-fb__pics-hint {
+	display: block;
+	margin-top: 6px;
+	color: var(--iftp-muted);
+	font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.iftp-btn-fb__pic-thumb {
+		transition: none;
+	}
+
+	.iftp-btn-fb__pic-thumb:hover,
+	.iftp-btn-fb__pic-thumb:focus-visible {
+		transform: none;
+	}
+}
+
+/* The icon picker in a field's settings: one small tile per icon, the picked one outlined. */
+.iftp-btn-fb__icons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.iftp-btn-fb__icon {
+	position: relative;
+	display: grid;
+	width: 36px;
+	height: 36px;
+	place-items: center;
+	color: var(--iftp-muted, #5c6b82);
+	background: #fff;
+	border: 1px solid var(--iftp-line, #dfe5ee);
+	border-radius: 10px;
+	cursor: pointer;
+}
+
+.iftp-btn-fb__icon:hover {
+	color: var(--iftp-ink, #121a2c);
+	border-color: var(--iftp-line-strong, #b8c3d4);
+}
+
+.iftp-btn-fb__icon input {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.iftp-btn-fb__icon:has(input:checked) {
+	color: var(--iftp-brand, #00609c);
+	background: var(--iftp-brand-tint, #e8f2fa);
+	border-color: var(--iftp-brand, #00609c);
+}
+
+.iftp-btn-fb__icon:has(input:focus-visible) {
+	outline: 2px solid var(--iftp-brand, #00609c);
+	outline-offset: 2px;
+}
+
+.iftp-btn-fb__icon-none {
+	display: block;
+	width: 14px;
+	height: 14px;
+	border: 1.5px dashed currentcolor;
+	border-radius: 50%;
+}

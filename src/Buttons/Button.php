@@ -13,6 +13,8 @@ use Ifthenpay\PayButton\Bridge\InvoiceHook;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutService;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
+use Ifthenpay\PayButton\Checkout\CustomCode;
+use Ifthenpay\PayButton\Repository\CheckoutSettings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -27,7 +29,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @phpstan-import-type FormStep from FormFields
  * @phpstan-import-type Look from CheckoutLook
  * @phpstan-import-type SpotsConfig from Spots
- * @phpstan-type ButtonConfig array{amount_mode: string, amount: float, min: float, max: float, presets: array<int, float>, label: string, show_amount: bool, summary: string, fields: array<string, string>, note_label: string, methods: array<int, string>, paid_redirect: string, paid_page: int, paid_url: string, skip_form: bool, spots: SpotsConfig, webhook_url: string, webhook_secret: string, invoice_hook: InvoiceHookConfig, design: ButtonDesignConfig, form: array<int, FormItem>, first_step: string, pay_description: string, look_mode: string, look: Look}
+ * @phpstan-type ButtonWords array{titles: array<string, string>, messages: array<string, string>}
+ * @phpstan-type ButtonConfig array{amount_mode: string, amount: float, min: float, max: float, presets: array<int, float>, label: string, show_amount: bool, summary: string, fields: array<string, string>, note_label: string, methods: array<int, string>, gateway_key: string, default_method: string, expiry_days: int, confirmation: ButtonWords, paid_redirect: string, paid_page: int, paid_url: string, skip_form: bool, spots: SpotsConfig, webhook_url: string, webhook_secret: string, invoice_hook: InvoiceHookConfig, design: ButtonDesignConfig, form: array<int, FormItem>, first_step: string, pay_description: string, look_mode: string, look: Look, code: array{button_css: string, button_js: string, page_css: string, page_js: string}}
  */
 class Button {
 
@@ -44,15 +47,17 @@ class Button {
 	// Every field the checkout can ask for, in the order it asks.
 	public const FIELDS = array( 'name', 'email', 'phone', 'nif', 'note' );
 
-	// DECIMAL(10,2) holds up to this; ifthenpay won't take less than a cent.
+	// The most a payment can be (the DECIMAL(10,2) column holds more); ifthenpay won't take less than a cent.
 	public const MIN_AMOUNT = 0.01;
-	public const MAX_AMOUNT = 99999999.99;
+	public const MAX_AMOUNT = 9999999.99;
 
 	public const MAX_PRESETS = 6;
 
 	// Whose checkout look it uses: the site's, or its own.
 	public const LOOK_SITE = 'site';
 	public const LOOK_OWN  = 'own';
+	// No styles from us for the checkout and pay page: the button's own CSS and JavaScript do it.
+	public const LOOK_CODE = 'code';
 
 	/**
 	 * The post ID.
@@ -120,7 +125,7 @@ class Button {
 			'max'             => 1000.0,
 			'presets'         => array(),
 			'label'           => '',
-			'show_amount'     => true,
+			'show_amount'     => false,
 			'summary'         => '',
 			'fields'          => array(
 				'name'  => self::FIELD_REQUIRED,
@@ -130,7 +135,16 @@ class Button {
 				'note'  => self::FIELD_OFF,
 			),
 			'note_label'      => '',
+			'field_icons'     => array(),
+			'field_icon_style' => 'outline',
 			'methods'         => array(),
+			'gateway_key'     => '',
+			'default_method'  => '',
+			'expiry_days'     => 0,
+			'confirmation'    => array(
+				'titles'   => array(),
+				'messages' => array(),
+			),
 			'paid_redirect'   => '',
 			'paid_page'       => 0,
 			'paid_url'        => '',
@@ -146,6 +160,7 @@ class Button {
 			'pay_description' => '',
 			'look_mode'       => self::LOOK_SITE,
 			'look'            => CheckoutLook::defaults(),
+			'code'            => CustomCode::defaults(),
 		);
 	}
 
@@ -182,7 +197,7 @@ class Button {
 		$config['label']       = $text( 'label', 60 );
 		$config['summary']     = $text( 'summary', 200 );
 		$config['note_label']  = $text( 'note_label', 60 );
-		$config['show_amount'] = ! empty( $input['show_amount'] ) || ! array_key_exists( 'show_amount', $input );
+		$config['show_amount'] = ! empty( $input['show_amount'] );
 		$config['skip_form']   = ! empty( $input['skip_form'] ) || ! array_key_exists( 'skip_form', $input );
 
 		$fields = is_array( $input['fields'] ?? null ) ? $input['fields'] : array();
@@ -193,8 +208,26 @@ class Button {
 			}
 		}
 
+		// An icon before the title of each built-in payer field.
+		$icons                 = is_array( $input['field_icons'] ?? null ) ? $input['field_icons'] : array();
+		$config['field_icons'] = array();
+
+		foreach ( self::FIELDS as $field ) {
+			if ( is_string( $icons[ $field ] ?? null ) && in_array( $icons[ $field ], FieldIcons::names(), true ) ) {
+				$config['field_icons'][ $field ] = $icons[ $field ];
+			}
+		}
+
+		$config['field_icon_style'] = is_string( $input['field_icon_style'] ?? null ) && in_array( $input['field_icon_style'], ButtonDesign::ICON_STYLES, true ) ? $input['field_icon_style'] : 'outline';
+
 		$methods           = is_array( $input['methods'] ?? null ) ? $input['methods'] : array();
 		$config['methods'] = array_values( array_unique( array_filter( array_map( static fn( $entity ): string => is_scalar( $entity ) ? strtoupper( sanitize_key( (string) $entity ) ) : '', $methods ) ) ) );
+
+		$config['gateway_key']    = $text( 'gateway_key', 60 );
+		$config['default_method'] = is_scalar( $input['default_method'] ?? null ) ? strtoupper( sanitize_key( (string) $input['default_method'] ) ) : '';
+		// 0 follows the default, three days.
+		$config['expiry_days']  = is_numeric( $input['expiry_days'] ?? null ) ? max( 0, min( 365, (int) $input['expiry_days'] ) ) : 0;
+		$config['confirmation'] = self::sanitize_confirmation( $input['confirmation'] ?? null );
 
 		if ( is_string( $input['paid_redirect'] ?? null ) && in_array( $input['paid_redirect'], array( '', 'popup', 'page', 'url' ), true ) ) {
 			$config['paid_redirect'] = $input['paid_redirect'];
@@ -209,15 +242,47 @@ class Button {
 		$config['design']         = ButtonDesign::sanitize( $input['design'] ?? array() );
 		$config['form']           = FormFields::sanitize( $input['form'] ?? array() );
 		// A button saved before spots existed had a plain "Stop after" cap; it becomes Limited spots.
-		$config['spots']           = Spots::sanitize( $input['spots'] ?? null, $config['form'], is_numeric( $input['max_payments'] ?? null ) ? (int) $input['max_payments'] : 0 );
+		$config['spots']           = Spots::sanitize( $input['spots'] ?? null, $config['form'] );
 		$config['form']            = Spots::require_field( $config['form'], $config['spots'] );
 		$config['first_step']      = $text( 'first_step', 60 );
 		$config['pay_description'] = $text( 'pay_description', 200 );
-		$config['look_mode']       = self::LOOK_OWN === ( $input['look_mode'] ?? '' ) ? self::LOOK_OWN : self::LOOK_SITE;
+		$config['look_mode']       = in_array( $input['look_mode'] ?? '', array( self::LOOK_OWN, self::LOOK_CODE ), true ) ? $input['look_mode'] : self::LOOK_SITE;
 		// A button's own look has no CSS of its own; the site's Custom CSS still applies to it.
 		$config['look'] = array( 'css' => '' ) + CheckoutLook::sanitize( $input['look'] ?? array() );
+		$config['code'] = CustomCode::sanitize( $input['code'] ?? array() );
 
 		return $config;
+	}
+
+	/**
+	 * The popup words this button sets itself. An outcome left out follows Default Design.
+	 *
+	 * @param mixed $input The raw confirmation.
+	 * @return ButtonWords
+	 */
+	private static function sanitize_confirmation( $input ): array {
+		$input  = is_array( $input ) ? $input : array();
+		$titles = is_array( $input['titles'] ?? null ) ? $input['titles'] : array();
+		$words  = is_array( $input['messages'] ?? null ) ? $input['messages'] : array();
+		$clean  = array(
+			'titles'   => array(),
+			'messages' => array(),
+		);
+
+		foreach ( CheckoutSettings::OUTCOMES as $outcome ) {
+			$title = is_string( $titles[ $outcome ] ?? null ) ? mb_substr( sanitize_text_field( $titles[ $outcome ] ), 0, 120 ) : '';
+			$text  = is_string( $words[ $outcome ] ?? null ) ? wp_kses_post( $words[ $outcome ] ) : '';
+
+			if ( '' !== $title ) {
+				$clean['titles'][ $outcome ] = $title;
+			}
+
+			if ( '' !== trim( $text ) ) {
+				$clean['messages'][ $outcome ] = $text;
+			}
+		}
+
+		return $clean;
 	}
 
 	/**

@@ -183,7 +183,7 @@ class CheckoutService {
 			return new WP_Error( 'iftp_btn_busy', CheckoutTexts::get( 'busy' ), array( 'status' => 503 ) );
 		}
 
-		$free = $limited ? $this->spots->check( $button, $spot['options'], $spot['count'] ) : true;
+		$free = $limited ? $this->spots->check( $button, $spot['options'], $spot['count'], $spot['extra'] ) : true;
 
 		if ( is_wp_error( $free ) ) {
 			SpotCounter::unlock( $button->id );
@@ -191,9 +191,18 @@ class CheckoutService {
 			return $free;
 		}
 
-		$spot['hold_until'] = PaymentLinks::link_ends_at( $this->links->expiry_days() );
+		$spot['hold_until'] = PaymentLinks::link_ends_at( $this->links->expiry_days( $button ) );
 
-		$ref = $this->transactions->create_for_button( $button->id, $amount, $this->settings->get_gateway_key(), $snapshot, $link['reference'], esc_url_raw( $source ), $spot );
+		// A payment from the demo page carries a signed token: it's a real payment, but its ref says TEST- and it takes no spot.
+		$test = is_scalar( $input[ TestMode::FIELD ] ?? null ) && TestMode::verify( $button->id, (string) $input[ TestMode::FIELD ] );
+
+		if ( $test ) {
+			$spot['count']   = 0;
+			$spot['options'] = array();
+			$spot['extra']   = array();
+		}
+
+		$ref = $this->transactions->create_for_button( $button->id, $amount, $this->links->gateway_key_for( $button ), $snapshot, $link['reference'], esc_url_raw( $source ), $spot, $test );
 
 		if ( $limited ) {
 			SpotCounter::unlock( $button->id );
@@ -265,7 +274,7 @@ class CheckoutService {
 	 *
 	 * @param Button               $button The button.
 	 * @param array<string, mixed> $input  The raw input, already checked by collect_fields().
-	 * @return array{count: int, options: array<int, string>}|WP_Error
+	 * @return array{count: int, options: array<int, string>, extra: array<int, string>}|WP_Error
 	 */
 	private function read_spot( Button $button, array $input ) {
 		$spots = $button->config['spots'];
@@ -296,17 +305,18 @@ class CheckoutService {
 		return array(
 			'count'   => $count,
 			'options' => $options,
+			'extra'   => Spots::extra_keys( $button, $input ),
 		);
 	}
 
 	/**
 	 * The amount to charge. A signed amount wins; otherwise the button's mode decides, within its limits.
-	 * A fixed amount is per spot: each picked option's price, or the button's, times how many.
+	 * A fixed amount is per spot: each picked option's price, or the button's, plus any priced options on the other fields, times how many.
 	 *
-	 * @param Button                                                $button The button.
-	 * @param array<string, mixed>                                  $input  The raw input.
-	 * @param array{reference: string, signed: bool, amount: float} $link   What read_link() found.
-	 * @param array{count: int, options: array<int, string>}        $spot   What read_spot() found.
+	 * @param Button                                                                    $button The button.
+	 * @param array<string, mixed>                                                      $input  The raw input.
+	 * @param array{reference: string, signed: bool, amount: float}                     $link   What read_link() found.
+	 * @param array{count: int, options: array<int, string>, extra: array<int, string>} $spot   What read_spot() found.
 	 * @return float|WP_Error
 	 */
 	private function resolve_amount( Button $button, array $input, array $link, array $spot ) {
@@ -316,6 +326,8 @@ class CheckoutService {
 
 		if ( Button::MODE_FIXED === $button->mode() ) {
 			$unit = array() === $spot['options'] ? Spots::unit_price( $button, '' ) : array_sum( array_map( static fn( string $option ): float => Spots::unit_price( $button, $option ), $spot['options'] ) );
+			// Priced options on the other fields (accessories, say) add to every spot.
+			$unit += FormFields::extras( $button->config['form'], Spots::MODE_OPTIONS === $button->config['spots']['mode'] ? $button->config['spots']['field'] : '', $input );
 
 			if ( $unit < Button::MIN_AMOUNT ) {
 				return new WP_Error( 'iftp_btn_no_amount', __( 'This payment has no amount set.', 'ifthenpay-pay-button' ), array( 'status' => 400 ) );
@@ -413,7 +425,7 @@ class CheckoutService {
 
 			if ( '' === $value && $item['required'] ) {
 				$message = 'checkbox' === $item['type']
-					? CheckoutTexts::get( 'tick', array( 'field' => $item['label'] ) )
+					? CheckoutTexts::get( 'tick', array( 'field' => FormFields::plain_label( $item['label'] ) ) )
 					: CheckoutTexts::get( 'fill_in', array( 'field' => $item['label'] ) );
 
 				return new WP_Error( 'iftp_btn_required', $message, array( 'status' => 400 ) );
@@ -421,7 +433,7 @@ class CheckoutService {
 
 			if ( '' !== $value ) {
 				$snapshot[ FormFields::input_name( $item['id'] ) ] = array(
-					'label' => $item['label'],
+					'label' => FormFields::plain_label( $item['label'] ),
 					'value' => $value,
 				);
 			}
@@ -439,6 +451,69 @@ class CheckoutService {
 	 * @return string|WP_Error The value to store, '' for none, or why it isn't valid.
 	 */
 	private static function clean_custom( array $item, string $raw ) {
+		$value = self::clean_typed( $item, $raw );
+
+		return is_wp_error( $value ) ? $value : self::check_rules( $item, $value );
+	}
+
+	/**
+	 * The merchant's limits on a field: a smallest and largest number, whole numbers only, a shortest and longest text.
+	 * An empty answer passes; whether it is allowed is the field's "required".
+	 *
+	 * @param array<string, mixed> $item  The field.
+	 * @param string               $value The cleaned value.
+	 * @phpstan-param FormItem $item
+	 * @return string|WP_Error The value, or why it breaks a limit.
+	 */
+	private static function check_rules( array $item, string $value ) {
+		$rules = $item['rules'];
+		$field = $item['label'];
+		$fail  = static fn( string $key, array $tokens ): WP_Error => new WP_Error( 'iftp_btn_out_of_range', CheckoutTexts::get( $key, array( 'field' => $field ) + $tokens ), array( 'status' => 400 ) );
+
+		if ( '' === $value ) {
+			return $value;
+		}
+
+		if ( 'number' === $item['type'] ) {
+			$number = (float) $value;
+
+			if ( $rules['whole'] && floor( $number ) !== $number ) {
+				return $fail( 'number_whole', array() );
+			}
+
+			if ( '' !== $rules['min'] && $number < (float) $rules['min'] ) {
+				return $fail( 'number_min', array( 'min' => $rules['min'] ) );
+			}
+
+			if ( '' !== $rules['max'] && $number > (float) $rules['max'] ) {
+				return $fail( 'number_max', array( 'max' => $rules['max'] ) );
+			}
+		}
+
+		if ( in_array( $item['type'], array( 'text', 'textarea', 'tel' ), true ) ) {
+			$length = mb_strlen( $value );
+
+			if ( $rules['min_len'] > 0 && $length < $rules['min_len'] ) {
+				return $fail( 'text_min', array( 'min' => (string) $rules['min_len'] ) );
+			}
+
+			if ( $rules['max_len'] > 0 && $length > $rules['max_len'] ) {
+				return $fail( 'text_max', array( 'max' => (string) $rules['max_len'] ) );
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * A field's value cleaned for its type, before the merchant's limits.
+	 *
+	 * @param array<string, mixed> $item The field.
+	 * @param string               $raw  What the payer sent.
+	 * @phpstan-param FormItem $item
+	 * @return string|WP_Error The value to store, '' for none, or why it isn't valid.
+	 */
+	private static function clean_typed( array $item, string $raw ) {
 		$invalid = new WP_Error( 'iftp_btn_invalid_field', CheckoutTexts::get( 'check_field', array( 'field' => $item['label'] ) ), array( 'status' => 400 ) );
 
 		switch ( $item['type'] ) {

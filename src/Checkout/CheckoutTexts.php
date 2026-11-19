@@ -80,6 +80,16 @@ class CheckoutTexts {
 			'tick'             => __( 'Tick "{field}" to continue.', 'ifthenpay-pay-button' ),
 			/* translators: {field} stays as it is: the field's label */
 			'check_field'      => __( 'Check {field}.', 'ifthenpay-pay-button' ),
+			/* translators: {field} stays as it is: the field's label */
+			'number_whole'     => __( '{field} must be a whole number.', 'ifthenpay-pay-button' ),
+			/* translators: {field} and {min} stay as they are: the field's label and the smallest number allowed */
+			'number_min'       => __( '{field} must be {min} or more.', 'ifthenpay-pay-button' ),
+			/* translators: {field} and {max} stay as they are: the field's label and the largest number allowed */
+			'number_max'       => __( '{field} can be at most {max}.', 'ifthenpay-pay-button' ),
+			/* translators: {field} and {min} stay as they are: the field's label and the fewest characters allowed */
+			'text_min'         => __( '{field} needs at least {min} characters.', 'ifthenpay-pay-button' ),
+			/* translators: {field} and {max} stay as they are: the field's label and the most characters allowed */
+			'text_max'         => __( '{field} can have at most {max} characters.', 'ifthenpay-pay-button' ),
 			'bad_email'        => __( 'Enter a valid email address.', 'ifthenpay-pay-button' ),
 			'bad_nif'          => __( 'Enter a valid tax number.', 'ifthenpay-pay-button' ),
 			'enter_amount'     => __( 'Enter the amount you want to pay.', 'ifthenpay-pay-button' ),
@@ -177,6 +187,11 @@ class CheckoutTexts {
 					'fill_in'          => '',
 					'tick'             => '',
 					'check_field'      => __( 'An answer that isn\'t right for its field.', 'ifthenpay-pay-button' ),
+					'number_whole'     => __( 'A Number that has to be a whole number.', 'ifthenpay-pay-button' ),
+					'number_min'       => __( 'A Number below its smallest allowed.', 'ifthenpay-pay-button' ),
+					'number_max'       => __( 'A Number above its largest allowed.', 'ifthenpay-pay-button' ),
+					'text_min'         => __( 'A text shorter than its shortest allowed.', 'ifthenpay-pay-button' ),
+					'text_max'         => __( 'A text longer than its longest allowed.', 'ifthenpay-pay-button' ),
 					'bad_email'        => '',
 					'bad_nif'          => '',
 					'enter_amount'     => '',

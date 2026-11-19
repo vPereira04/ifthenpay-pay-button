@@ -90,7 +90,7 @@ class PaymentLinks {
 	}
 
 	/**
-	 * Creates and stores a link for a payment a button started, with that button's methods, description and expiry.
+	 * Creates and stores a link for a payment a button started, with that button's Gateway Key, methods, description and expiry.
 	 *
 	 * @param array<string, mixed> $record A pending transaction row.
 	 * @param Button               $button The button it came from.
@@ -98,26 +98,37 @@ class PaymentLinks {
 	 * @return string The new link, or '' when ifthenpay isn't set up or refused it.
 	 */
 	public function create_link_for_button( array $record, Button $button ): string {
-		$methods = $this->button_methods( $button );
+		$gateway_key = $this->gateway_key_for( $button );
+		$methods     = $this->button_methods( $button );
 
-		if ( ! $this->settings->is_connected() || '' === $this->settings->get_gateway_key() || array() === $methods ) {
+		if ( ! $this->settings->is_connected() || '' === $gateway_key || array() === $methods ) {
 			return '';
 		}
 
-		$entities = array_column( $methods, 'entity' );
-		$default  = in_array( $this->settings->get_default_method(), $entities, true ) ? $this->settings->get_default_method_position() : '';
-		$expiry   = $this->expiry_days();
-		// The button's own description wins; otherwise the hosted payment page description from Configuration › Gateway.
+		$default  = in_array( strtoupper( $button->config['default_method'] ), array_map( 'strtoupper', array_column( $methods, 'entity' ) ), true ) ? $this->settings->method_position( $gateway_key, $button->config['default_method'] ) : '';
 		$template = '' !== $button->config['pay_description'] ? $button->config['pay_description'] : $this->settings->get_description();
 
-		return $this->request_link( $record, self::description( $template, $record, $button ), $methods, $default, $expiry );
+		return $this->request_link( $record, self::description( $template, $record, $button ), $methods, $default, $this->expiry_days( $button ), $gateway_key );
 	}
 
 	/**
-	 * How many days a link stays payable, from Configuration › Gateway.
+	 * The Gateway Key a button's payments are made under: its own, else the default one.
+	 *
+	 * @param Button|null $button The button, or null for a payment added by hand.
 	 */
-	public function expiry_days(): int {
-		return max( 1, $this->settings->get_expiry_days() );
+	public function gateway_key_for( ?Button $button ): string {
+		return $this->settings->resolve_gateway_key( null !== $button ? $button->config['gateway_key'] : '' );
+	}
+
+	/**
+	 * How many days a link stays payable: the button's own, else the default.
+	 *
+	 * @param Button|null $button The button, or null for the default.
+	 */
+	public function expiry_days( ?Button $button = null ): int {
+		$own = null !== $button ? $button->config['expiry_days'] : 0;
+
+		return $own > 0 ? $own : max( 1, $this->settings->get_expiry_days() );
 	}
 
 	/**
@@ -158,7 +169,7 @@ class PaymentLinks {
 	 * @return array<int, array{entity: string, account: string}>
 	 */
 	public function button_methods( Button $button ): array {
-		$enabled = $this->settings->get_enabled_methods();
+		$enabled = $this->settings->get_enabled_methods( $this->gateway_key_for( $button ) );
 
 		if ( array() === $button->config['methods'] ) {
 			return $enabled;
@@ -166,7 +177,7 @@ class PaymentLinks {
 
 		$picked = array_values( array_filter( $enabled, static fn( array $method ): bool => in_array( strtoupper( $method['entity'] ), $button->config['methods'], true ) ) );
 
-		// A button whose picks were all switched off site-wide falls back to every method, rather than not working at all.
+		// A button whose picks are no longer on its Gateway Key falls back to every method, rather than not working at all.
 		return array() !== $picked ? $picked : $enabled;
 	}
 
@@ -178,11 +189,12 @@ class PaymentLinks {
 	 * @param array<int, array{entity: string, account: string}> $methods     The methods to offer.
 	 * @param string                                             $position    The catalog Position of the pre-selected method, or ''.
 	 * @param int                                                $expiry_days Days the link stays payable.
+	 * @param string|null                                        $gateway_key The Gateway Key to create it under, or null for the default one.
 	 * @phpstan-param Transaction $record
 	 * @return string The new link, or '' when ifthenpay refused it.
 	 */
-	private function request_link( array $record, string $description, array $methods, string $position, int $expiry_days ): string {
-		$gateway_key  = $this->settings->get_gateway_key();
+	private function request_link( array $record, string $description, array $methods, string $position, int $expiry_days, ?string $gateway_key = null ): string {
+		$gateway_key  = $gateway_key ?? $this->settings->get_gateway_key();
 		$ref          = $record['ref'];
 		$redirect_url = $this->client->create_payment_link(
 			$gateway_key,

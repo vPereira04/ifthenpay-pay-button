@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * What's left of a button's spots. A spot is taken by a paid payment, or by an unpaid one until its link
  * expires; it never comes back earlier, so a payer who still has the link open can't be oversold.
  *
- * @phpstan-type SpotsLeft array{total: int|null, options: array<string, int|null>}
+ * @phpstan-type SpotsLeft array{total: int|null, options: array<string, int|null>, extras: array<string, int>}
  */
 class SpotCounter {
 
@@ -59,9 +59,11 @@ class SpotCounter {
 		$left  = array(
 			'total'   => null,
 			'options' => array(),
+			'extras'  => array(),
 		);
+		$extra = Spots::extra_limits( $button );
 
-		if ( Spots::MODE_NONE === $spots['mode'] ) {
+		if ( Spots::MODE_NONE === $spots['mode'] && array() === $extra ) {
 			return $left;
 		}
 
@@ -69,6 +71,15 @@ class SpotCounter {
 			'total'   => 0,
 			'options' => array(),
 		) );
+
+		// What's left on the options of the other fields, each on its own count.
+		foreach ( $extra as $key => $limit ) {
+			$left['extras'][ $key ] = max( 0, $limit - ( $taken['options'][ $key ] ?? 0 ) );
+		}
+
+		if ( Spots::MODE_NONE === $spots['mode'] ) {
+			return $left;
+		}
 
 		if ( $spots['total'] > 0 ) {
 			$left['total'] = max( 0, $spots['total'] - $taken['total'] );
@@ -105,14 +116,37 @@ class SpotCounter {
 	 * @param Button             $button  The button.
 	 * @param array<int, string> $options The picked options; none for Limited spots.
 	 * @param int                $count   How many spots on each.
+	 * @param array<int, string> $extra   What the picks on the other fields are counted under.
 	 * @return true|WP_Error
 	 */
-	public function check( Button $button, array $options, int $count ) {
+	public function check( Button $button, array $options, int $count, array $extra = array() ) {
+		$left = $this->left( $button );
+
+		foreach ( $extra as $key ) {
+			$available = $left['extras'][ $key ] ?? null;
+
+			if ( null !== $available && $available < $count ) {
+				$option = (string) substr( $key, (int) strpos( $key, ':' ) + 1 );
+
+				return 0 === $available
+					? new WP_Error( 'iftp_btn_sold_out', CheckoutTexts::get( 'option_sold_out', array( 'option' => $option ) ), array( 'status' => 409 ) )
+					: new WP_Error(
+						'iftp_btn_spots_left',
+						CheckoutTexts::get(
+							'option_only_left',
+							array(
+								'count'  => $available,
+								'option' => $option,
+							)
+						),
+						array( 'status' => 409 )
+					);
+			}
+		}
+
 		if ( Spots::MODE_NONE === $button->config['spots']['mode'] ) {
 			return true;
 		}
-
-		$left = $this->left( $button );
 
 		if ( Spots::MODE_OPTIONS === $button->config['spots']['mode'] ) {
 			foreach ( $options as $option ) {

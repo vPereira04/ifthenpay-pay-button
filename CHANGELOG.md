@@ -6,8 +6,21 @@ All notable changes to ifthenpay | Pay Button are listed here. Releases that fix
 
 Initial public release.
 
+### Added
+
+- **Edit with AI on the Default Design.** The same chat that builds buttons can now change the site-wide look: the checkout, the pay page and the default button. It opens a chat with a few starting ideas, and its version comes back to the Default Design screen as a draft to check and save. Nothing goes live until you save, and it only shows when ifthenpay is connected.
+- **Rules for pages and fields.** A page break can now show only for some answers, and hides every field on it with it. A condition can read a choice, a number (more or less than), or whether a field is filled in or left empty.
+- **Limits on fields.** A Number takes a smallest, a largest and whole-numbers-only; Short text, Paragraph and Phone take a fewest and most characters. The checkout says so as the payer types, and the server holds them to it too.
+- The AI builder knows about both, and sets sensible limits on number fields.
+
+### Fixed
+
+- A date picked from the calendar is no longer cleared when the payer moves to the next field.
+
 ### Changed
 
+- The Default Design chat sends the AI only the look and the button's design, not the whole button, so its requests are much smaller and cheaper on every provider.
+- When an AI provider says a request is too big for the limit of the model on your plan, the chat says so in plain words and tries another model, instead of stopping with the provider's raw error.
 - Payment links always stay open for Gateway Configuration › **Expiry days**; the per-button "Link stays open (days)" setting is gone.
 - The "Checking your payment" popup wears the paying button's own look from the start, instead of the site's look until the status came back.
 - The **Default Checkout** screen is now **Default Design**, with Checkout, Button, Messages, Texts and Links & emails tabs. Its preview stays in view while the page scrolls.
@@ -15,6 +28,14 @@ Initial public release.
 
 ### Added
 
+- Card designs: six still, simple designs for the checkout card itself (dotted, notebook, graph paper, polka, glow, pizzeria), picked in Checkout › Look and following the accent.
+- A new **Pizza** pay-page background (pepperoni, mushrooms, olives, peppers, tomato and basil), and richer **Sprinkles** with glossy rods and round candy dots.
+- The pay page can show any image from the media library instead of the site logo, above or inside the card, at a size you choose.
+- A date picker in the checkout's own design: type the date into a `MM / DD / YYYY` mask (the site's date order, each slot jumps to the next) or pick it in a calendar; it shows as "July 14, 2026".
+- An optional icon before the title of any field, built-in payer fields included, each with its own pick; the AI builder can set it on your own fields.
+- Picture cards for **Single choice** and **Multiple choice** fields: switch on "Show the options as picture cards", pick a media library image per option, and an option without one shows a tile with its first letter. Off by default, so existing fields look the same.
+- The AI builder can set each option's price, spots and picture (pictures come from the media library, which it is shown by name), switch picture cards on, and leave the rest to you: say the prices, or let it suggest some and change them in the chat or the editor. With "AI may set prices" off, option prices stay yours.
+- One Light / System / Dark switch for every preview (the AI studio, the editor's demo page and its checkout, the checkout and button previews), remembered in the browser and shared by every tab. Previews open in Light, whatever the device uses.
 - Pay buttons for any page: the `[ifthenpay_button]` shortcode (`id`, `label`, `align`), the **ifthenpay Pay Button** block, and a pay page per button at `/pay/{button}/` (the base is configurable).
 - Amount modes: **Fixed**, **Payer chooses** (suggested amounts, minimum and maximum) and **From the link**.
 - Checkout form builder: name, email, phone, tax number (NIF) and note as Off, Optional or Required, plus custom questions (short text, paragraph, email, phone, number, date, dropdown, single choice, multiple choice, agreement, text block) and page breaks with a step bar.

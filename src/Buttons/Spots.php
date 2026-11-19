@@ -56,20 +56,14 @@ class Spots {
 	/**
 	 * Cleans spots from the editor or the database, and lines them up with the button's form.
 	 *
-	 * @param mixed                $input       The raw spots.
-	 * @param array<int, FormItem> $form        The button's sanitized form.
-	 * @param int                  $legacy_max  The old "Stop after" cap, for a button saved before spots existed.
+	 * @param mixed                $input The raw spots.
+	 * @param array<int, FormItem> $form  The button's sanitized form.
 	 * @return SpotsConfig
 	 */
-	public static function sanitize( $input, array $form, int $legacy_max = 0 ): array {
+	public static function sanitize( $input, array $form ): array {
 		$spots = self::defaults();
 
 		if ( ! is_array( $input ) ) {
-			if ( $legacy_max > 0 ) {
-				$spots['mode']  = self::MODE_TOTAL;
-				$spots['total'] = min( self::MAX_SPOTS, $legacy_max );
-			}
-
 			return $spots;
 		}
 
@@ -138,11 +132,21 @@ class Spots {
 			return $form;
 		}
 
+		$page = -1;
+
 		foreach ( $form as $index => $item ) {
+			if ( FormFields::TYPE_PAGE === $item['type'] ) {
+				$page = $index;
+			}
+
 			if ( $item['id'] === $spots['field'] ) {
-				// Always asked, too: a payer who never sees it couldn't pick a spot.
+				// Always asked, too: a payer who never sees it couldn't pick a spot, so neither it nor its page can be hidden.
 				$form[ $index ]['required'] = true;
 				$form[ $index ]['when']     = FormFields::no_condition();
+
+				if ( $page >= 0 ) {
+					$form[ $page ]['when'] = FormFields::no_condition();
+				}
 			}
 		}
 
@@ -176,7 +180,63 @@ class Spots {
 	 * @param Button $button The button.
 	 */
 	public static function limited( Button $button ): bool {
-		return self::MODE_NONE !== $button->config['spots']['mode'];
+		return self::MODE_NONE !== $button->config['spots']['mode'] || array() !== self::extra_limits( $button );
+	}
+
+	/**
+	 * The id of the main Spots field, or '' when the options aren't split by one.
+	 *
+	 * @param Button $button The button.
+	 */
+	public static function main_field( Button $button ): string {
+		return self::MODE_OPTIONS === $button->config['spots']['mode'] ? $button->config['spots']['field'] : '';
+	}
+
+	/**
+	 * The spots set on the options of the other choice fields, by what they're counted under.
+	 *
+	 * @param Button $button The button.
+	 * @return array<string, int>
+	 */
+	public static function extra_limits( Button $button ): array {
+		$main   = self::main_field( $button );
+		$limits = array();
+
+		foreach ( $button->config['form'] as $item ) {
+			if ( $item['id'] === $main ) {
+				continue;
+			}
+
+			foreach ( $item['limits'] as $label => $limit ) {
+				if ( in_array( (string) $label, $item['options'], true ) ) {
+					$limits[ FormFields::spot_key( $item['id'], (string) $label ) ] = $limit;
+				}
+			}
+		}
+
+		return $limits;
+	}
+
+	/**
+	 * What a payment's picks on the other fields are counted under: only options that have spots.
+	 *
+	 * @param Button               $button The button.
+	 * @param array<string, mixed> $input  The raw input.
+	 * @return array<int, string>
+	 */
+	public static function extra_keys( Button $button, array $input ): array {
+		$limits = self::extra_limits( $button );
+		$keys   = array();
+
+		foreach ( FormFields::picks( $button->config['form'], self::main_field( $button ), $input ) as $pick ) {
+			$key = FormFields::spot_key( $pick['item']['id'], $pick['label'] );
+
+			if ( isset( $limits[ $key ] ) ) {
+				$keys[] = $key;
+			}
+		}
+
+		return $keys;
 	}
 
 	/**

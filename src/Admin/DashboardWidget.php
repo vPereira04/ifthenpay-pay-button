@@ -14,6 +14,7 @@ use Ifthenpay\PayButton\Admin\Entries\EntryPresenter;
 use Ifthenpay\PayButton\Admin\Entries\InsightsView;
 use Ifthenpay\PayButton\Plugin;
 use Ifthenpay\PayButton\Reports\Insights;
+use Ifthenpay\PayButton\Reports\TransactionReports;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
 use Ifthenpay\PayButton\Repository\TransactionStore;
 
@@ -98,7 +99,7 @@ class DashboardWidget {
 	 */
 	public function render(): void {
 		$presenter = new EntryPresenter( $this->settings );
-		$period    = ( new Insights( $this->transactions ) )->period( '30d' );
+		$period    = ( new Insights( new TransactionReports( $this->transactions ) ) )->period( '30d' );
 		$revenue   = $period['kpis']['revenue'];
 		$split     = $period['split'];
 		$started   = array_sum( $split );

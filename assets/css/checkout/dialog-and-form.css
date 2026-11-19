@@ -1,0 +1,1398 @@
+/* stylelint-disable selector-class-pattern -- BEM with the iftp-btn- prefix. */
+
+/* --------------------------------------------------------------------------
+   Dialogs: the sheet is a column, so a long form scrolls inside it while its header and actions stay put
+   -------------------------------------------------------------------------- */
+/* While a checkout popup is open, the page under it stays put. checkout.js sets the scrollbar's width, and the padding
+   takes its place under the dimmed backdrop, so nothing shifts sideways and no stripe shows. */
+html:has(.iftp-btn-sheet[open]) {
+	padding-right: var(--iftp-btn-sbw, 0);
+	overflow: hidden;
+}
+
+html:has(.iftp-btn-sheet[open]) body {
+	overflow: hidden;
+}
+
+.iftp-btn-sheet {
+	box-sizing: border-box;
+	width: min(var(--iftp-sheet-w), calc(100vw - 24px));
+	max-height: min(760px, calc(100dvh - 24px));
+	margin: auto;
+	padding: 0;
+	overflow: hidden;
+	color: var(--iftp-ink);
+	background: var(--iftp-card-bg, var(--iftp-surface));
+	border: 0;
+	border-radius: var(--iftp-radius);
+	box-shadow: var(--iftp-card-ring, 0 0 #0000), var(--iftp-shadow);
+	font-family: var(--iftp-font);
+	backdrop-filter: var(--iftp-card-filter, none);
+}
+
+/* --------------------------------------------------------------------------
+   Opening and closing. A button picks one (iftp-btn-anim--NAME on the dialog); each one sets which keyframes play.
+   --iftp-a-*  the card (the popup itself, or the card on a scene)     --iftp-s-*  a scene's background
+   --iftp-c-in the form's parts after the card                          none  nothing at all
+   voxel and waves are built by open-fx.js (layers of blocks or waves), so the card itself holds still under them.
+   -------------------------------------------------------------------------- */
+.iftp-btn-sheet[open] {
+	display: flex;
+	flex-direction: column;
+	transform-origin: var(--iftp-btn-ox, 50%) var(--iftp-btn-oy, 50%);
+	animation: var(--iftp-a-in, iftp-btn-grow) var(--iftp-a-time, 460ms) var(--iftp-a-ease, cubic-bezier(0.2, 0.9, 0.25, 1));
+}
+
+/* A scene fades in as the background, and its card is what plays the animation. */
+.iftp-btn-sheet--scene[open] > .iftp-btn-form,
+.iftp-btn-sheet--scene[open] > .iftp-btn-result__box {
+	transform-origin: var(--iftp-btn-ox, 50%) var(--iftp-btn-oy, 50%);
+	animation: var(--iftp-a-in, iftp-btn-grow) var(--iftp-a-time, 460ms) var(--iftp-a-ease, cubic-bezier(0.2, 0.9, 0.25, 1));
+}
+
+/* The backdrop fades and blurs in, and the form's parts follow one after another. */
+.iftp-btn-sheet[open]::backdrop {
+	animation: iftp-btn-veil 380ms var(--iftp-ease);
+}
+
+.iftp-btn-sheet[open] > .iftp-btn-form > * {
+	animation: var(--iftp-c-in, iftp-btn-content-in) 420ms cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+}
+
+.iftp-btn-sheet[open] > .iftp-btn-form > :nth-child(1) {
+	animation-delay: 140ms;
+}
+
+.iftp-btn-sheet[open] > .iftp-btn-form > :nth-child(2) {
+	animation-delay: 210ms;
+}
+
+.iftp-btn-sheet[open] > .iftp-btn-form > :nth-child(n+3) {
+	animation-delay: 280ms;
+}
+
+/* Closing: the opening in reverse. checkout.js adds is-closing, then closes the dialog when it is done. */
+.iftp-btn-sheet[open].is-closing {
+	animation: var(--iftp-a-out, iftp-btn-shrink) var(--iftp-o-time, 340ms) var(--iftp-o-ease, cubic-bezier(0.5, 0, 0.75, 0.4)) forwards;
+	pointer-events: none;
+}
+
+.iftp-btn-sheet[open].is-closing::backdrop {
+	animation: iftp-btn-veil 340ms var(--iftp-ease) reverse forwards;
+}
+
+.iftp-btn-sheet[open].is-closing > .iftp-btn-form > * {
+	animation: none;
+}
+
+.iftp-btn-sheet--scene[open].is-closing {
+	animation: var(--iftp-s-out, iftp-btn-iris-out) var(--iftp-s-otime, 440ms) var(--iftp-s-oease, cubic-bezier(0.5, 0, 0.7, 0.4)) 60ms forwards;
+}
+
+.iftp-btn-sheet--scene[open].is-closing > .iftp-btn-form,
+.iftp-btn-sheet--scene[open].is-closing > .iftp-btn-result__box {
+	animation: var(--iftp-a-out, iftp-btn-shrink) var(--iftp-o-time, 340ms) var(--iftp-o-ease, cubic-bezier(0.5, 0, 0.75, 0.4)) forwards;
+}
+
+/* The editor's preview plays the same opening on its card when asked. */
+.iftp-btn-look-preview__frame.is-anim-play {
+	animation: var(--iftp-a-in, iftp-btn-grow) var(--iftp-a-time, 460ms) var(--iftp-a-ease, cubic-bezier(0.2, 0.9, 0.25, 1));
+}
+
+/* The choices: which keyframes each one plays. Grow is the default, so it sets nothing. */
+.iftp-btn-anim--rise {
+	--iftp-a-in: iftp-btn-rise-in;
+	--iftp-a-out: iftp-btn-rise-out;
+	--iftp-a-time: 400ms;
+	--iftp-o-time: 260ms;
+	--iftp-s-in: iftp-btn-fade;
+	--iftp-s-out: iftp-btn-fade-out;
+	--iftp-s-time: 300ms;
+	--iftp-s-otime: 300ms;
+}
+
+.iftp-btn-anim--slide {
+	--iftp-a-in: iftp-btn-slide-in;
+	--iftp-a-out: iftp-btn-slide-out;
+	--iftp-a-time: 520ms;
+	--iftp-a-ease: cubic-bezier(0.16, 1, 0.3, 1);
+	--iftp-o-time: 380ms;
+	--iftp-o-ease: cubic-bezier(0.55, 0, 0.8, 0.4);
+	--iftp-c-in: none;
+	--iftp-s-in: iftp-btn-fade;
+	--iftp-s-out: iftp-btn-fade-out;
+	--iftp-s-time: 320ms;
+	--iftp-s-otime: 380ms;
+}
+
+.iftp-btn-anim--zoom {
+	--iftp-a-in: iftp-btn-zoom-in;
+	--iftp-a-out: iftp-btn-zoom-out;
+	--iftp-a-time: 300ms;
+	--iftp-a-ease: cubic-bezier(0.2, 0.9, 0.3, 1.15);
+	--iftp-o-time: 200ms;
+	--iftp-c-in: none;
+	--iftp-s-in: iftp-btn-fade;
+	--iftp-s-out: iftp-btn-fade-out;
+	--iftp-s-time: 220ms;
+	--iftp-s-otime: 220ms;
+}
+
+.iftp-btn-anim--blur {
+	--iftp-a-in: iftp-btn-blur-in;
+	--iftp-a-out: iftp-btn-blur-out;
+	--iftp-a-time: 560ms;
+	--iftp-a-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+	--iftp-o-time: 320ms;
+	--iftp-s-in: iftp-btn-fade;
+	--iftp-s-out: iftp-btn-fade-out;
+	--iftp-s-time: 420ms;
+	--iftp-s-otime: 340ms;
+}
+
+.iftp-btn-anim--drawer {
+	--iftp-a-in: iftp-btn-drawer-in;
+	--iftp-a-out: iftp-btn-drawer-out;
+	--iftp-a-time: 540ms;
+	--iftp-a-ease: cubic-bezier(0.16, 1, 0.3, 1);
+	--iftp-o-time: 380ms;
+	--iftp-o-ease: cubic-bezier(0.55, 0, 0.8, 0.4);
+	--iftp-c-in: none;
+	--iftp-s-in: iftp-btn-fade;
+	--iftp-s-out: iftp-btn-fade-out;
+	--iftp-s-time: 320ms;
+	--iftp-s-otime: 380ms;
+}
+
+.iftp-btn-anim--none {
+	--iftp-a-in: none;
+	--iftp-a-out: none;
+	--iftp-s-in: none;
+	--iftp-s-out: none;
+	--iftp-c-in: none;
+}
+
+/* The layered openings (built by open-fx.js) cover the popup first and only then show the form, so it stays out of sight until
+   the cover is complete. Each one says in --iftp-hold how long the cover takes. */
+.iftp-btn-anim--voxel,
+.iftp-btn-anim--waves,
+.iftp-btn-anim--shutter,
+.iftp-btn-anim--curtain,
+.iftp-btn-anim--iris,
+.iftp-btn-anim--ripple,
+.iftp-btn-anim--pixelate,
+.iftp-btn-anim--shatter,
+.iftp-btn-anim--stripes,
+.iftp-btn-anim--confetti {
+	--iftp-a-in: iftp-btn-fx-hold;
+	--iftp-a-out: iftp-btn-fx-hide;
+	--iftp-a-ease: linear;
+	--iftp-o-ease: linear;
+	--iftp-s-in: iftp-btn-fx-hold;
+	--iftp-s-out: iftp-btn-fx-hide;
+	--iftp-s-ease: linear;
+	--iftp-s-oease: linear;
+	--iftp-c-in: none;
+	--iftp-a-time: var(--iftp-hold);
+	--iftp-s-time: var(--iftp-hold);
+	--iftp-o-time: var(--iftp-hold);
+	--iftp-s-otime: var(--iftp-hold);
+}
+
+.iftp-btn-anim--voxel {
+	--iftp-hold: 330ms;
+}
+
+.iftp-btn-anim--waves {
+	--iftp-hold: 352ms;
+}
+
+.iftp-btn-anim--shutter {
+	--iftp-hold: 355ms;
+}
+
+.iftp-btn-anim--curtain {
+	--iftp-hold: 330ms;
+}
+
+.iftp-btn-anim--iris {
+	--iftp-hold: 330ms;
+}
+
+.iftp-btn-anim--ripple {
+	--iftp-hold: 335ms;
+}
+
+.iftp-btn-anim--pixelate {
+	--iftp-hold: 335ms;
+}
+
+.iftp-btn-anim--shatter {
+	--iftp-hold: 335ms;
+}
+
+.iftp-btn-anim--stripes {
+	--iftp-hold: 380ms;
+}
+
+.iftp-btn-anim--confetti {
+	--iftp-hold: 330ms;
+}
+
+/* Closing: the popup hides itself once the cover is complete, and the cover then clears to show the page. */
+@keyframes iftp-btn-fx-hide {
+
+	0%,
+	99% {
+		visibility: visible;
+	}
+
+	100% {
+		visibility: hidden;
+	}
+}
+
+@keyframes iftp-btn-fx-hold {
+
+	0%,
+	96% {
+		visibility: hidden;
+	}
+
+	100% {
+		visibility: visible;
+	}
+}
+
+@keyframes iftp-btn-grow {
+
+	from {
+		opacity: 0;
+		transform: scale(0.2);
+		border-radius: 60px;
+		filter: blur(6px);
+	}
+
+	45% {
+		opacity: 1;
+		filter: blur(0);
+	}
+}
+
+@keyframes iftp-btn-shrink {
+
+	to {
+		opacity: 0;
+		transform: scale(0.2);
+		border-radius: 60px;
+		filter: blur(6px);
+	}
+}
+
+@keyframes iftp-btn-rise-in {
+
+	from {
+		opacity: 0;
+		transform: translateY(28px);
+	}
+}
+
+@keyframes iftp-btn-rise-out {
+
+	to {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+}
+
+@keyframes iftp-btn-slide-in {
+
+	from {
+		transform: translateY(105vh);
+	}
+}
+
+@keyframes iftp-btn-slide-out {
+
+	to {
+		transform: translateY(105vh);
+	}
+}
+
+@keyframes iftp-btn-zoom-in {
+
+	from {
+		opacity: 0;
+		transform: scale(0.82);
+	}
+}
+
+@keyframes iftp-btn-zoom-out {
+
+	to {
+		opacity: 0;
+		transform: scale(0.92);
+	}
+}
+
+@keyframes iftp-btn-blur-in {
+
+	from {
+		opacity: 0;
+		filter: blur(18px);
+		transform: scale(1.08);
+	}
+}
+
+@keyframes iftp-btn-blur-out {
+
+	to {
+		opacity: 0;
+		filter: blur(14px);
+		transform: scale(1.05);
+	}
+}
+
+@keyframes iftp-btn-drawer-in {
+
+	from {
+		transform: translateX(110vw);
+	}
+}
+
+@keyframes iftp-btn-drawer-out {
+
+	to {
+		transform: translateX(110vw);
+	}
+}
+
+@keyframes iftp-btn-fade-out {
+
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes iftp-btn-iris {
+
+	from {
+		opacity: 0;
+		filter: saturate(0.6) brightness(1.15);
+		clip-path: circle(0 at var(--iftp-btn-cx, 50%) var(--iftp-btn-cy, 50%));
+	}
+
+	25% {
+		opacity: 1;
+	}
+
+	to {
+		filter: none;
+		clip-path: circle(150vmax at var(--iftp-btn-cx, 50%) var(--iftp-btn-cy, 50%));
+	}
+}
+
+@keyframes iftp-btn-iris-out {
+
+	from {
+		opacity: 1;
+		clip-path: circle(150vmax at var(--iftp-btn-cx, 50%) var(--iftp-btn-cy, 50%));
+	}
+
+	to {
+		opacity: 0;
+		filter: saturate(0.6) brightness(1.15);
+		clip-path: circle(0 at var(--iftp-btn-cx, 50%) var(--iftp-btn-cy, 50%));
+	}
+}
+
+@keyframes iftp-btn-veil {
+
+	from {
+		background-color: transparent;
+		backdrop-filter: blur(0);
+	}
+}
+
+@keyframes iftp-btn-content-in {
+
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+}
+
+/* The layers the layered openings draw over the card: they cover it first, then clear to show it (and the reverse when closing).
+   open-fx.js copies the popup's own background onto the layer (--fx-col, --fx-img, and --lw/--lh for its size) and cuts it into
+   pieces; each piece shows the part of that background that lies under it (--bx/--by), and the light and shadow are added here,
+   so the cover looks like the popup itself breaking up. The accent only appears as a rim or a fleck. */
+.iftp-btn-fx {
+	--fx-a: var(--iftp-brand, #00609c);
+	--fx-b: var(--iftp-second, var(--fx-a));
+	--fx-lit: linear-gradient(135deg, rgb(255 255 255 / 14%), rgb(255 255 255 / 1%) 45%, rgb(0 0 0 / 12%));
+
+	position: absolute;
+	visibility: visible;
+	inset: 0;
+	z-index: 20;
+	overflow: hidden;
+	border-radius: inherit;
+	pointer-events: none;
+}
+
+/* Every piece shows its slice of the background, with its light on top. */
+.iftp-btn-fx--voxel > i,
+.iftp-btn-fx--waves > i,
+.iftp-btn-fx--shutter > i,
+.iftp-btn-fx--curtain > i,
+.iftp-btn-fx--iris > i,
+.iftp-btn-fx--ripple > i,
+.iftp-btn-fx--pixelate > i,
+.iftp-btn-fx--shatter > i,
+.iftp-btn-fx--stripes > i,
+.iftp-btn-fx--confetti > .is-fill {
+	background-color: var(--fx-col, #fff);
+	background-image: var(--fx-img, none);
+	background-repeat: no-repeat;
+	background-size: var(--lw, 100%) var(--lh, 100%);
+	background-position: calc(var(--bx, 0px) * -1) calc(var(--by, 0px) * -1);
+	filter: brightness(var(--br, 1));
+}
+
+.iftp-btn-fx--voxel > i::before,
+.iftp-btn-fx--shutter > i::before,
+.iftp-btn-fx--curtain > i::before,
+.iftp-btn-fx--pixelate > i::before,
+.iftp-btn-fx--shatter > i::before,
+.iftp-btn-fx--stripes > i::before,
+.iftp-btn-fx--iris > .is-disc::before,
+.iftp-btn-fx--ripple > i::before,
+.iftp-btn-fx--confetti > .is-fill::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: var(--lit, var(--fx-lit));
+	border-radius: inherit;
+}
+
+/* Voxel: blocks flip up from the middle until the card is covered, then fall away from the middle, so a hole opens. */
+.iftp-btn-fx--voxel {
+	display: grid;
+	grid-template-columns: repeat(var(--cols, 8), 1fr);
+	grid-template-rows: repeat(var(--rows, 8), 1fr);
+	perspective: 640px;
+}
+
+.iftp-btn-fx--voxel > i {
+	position: relative;
+	margin: -0.5px;
+	border-radius: 2px;
+	box-shadow: inset 1px 1px 0 rgb(255 255 255 / 18%), inset -1px -1px 0 rgb(0 0 0 / 13%), 0 2px 6px rgb(0 0 0 / 8%);
+	backface-visibility: hidden;
+	animation: iftp-btn-voxel-build 210ms cubic-bezier(0.2, 0.8, 0.3, 1) var(--d, 0ms) both, iftp-btn-voxel-break 230ms cubic-bezier(0.55, 0, 0.9, 0.5) calc(330ms + var(--e, 0ms)) forwards;
+}
+
+@keyframes iftp-btn-voxel-build {
+
+	from {
+		opacity: 0;
+		transform: rotateY(-100deg) scale(0.5);
+	}
+
+	60% {
+		opacity: 1;
+	}
+}
+
+@keyframes iftp-btn-voxel-break {
+
+	to {
+		opacity: 0;
+		transform: translateY(26px) translateZ(-90px) rotateX(75deg) rotateZ(var(--r, 12deg)) scale(0.4);
+	}
+}
+
+/* Waves: three layers from each side sweep in and meet, then pull back, each a little behind the one before; the front
+   one casts a shadow on the others and the back one is lit. */
+.iftp-btn-fx--waves > i {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 64%;
+	animation: iftp-btn-wave-pass-left 640ms linear var(--wd, 0ms) both;
+}
+
+.iftp-btn-fx--waves > .is-back {
+	--br: 1.05;
+	--wf: 1.5s;
+}
+
+.iftp-btn-fx--waves > .is-mid {
+	--br: 1.02;
+	--wd: 22ms;
+	--wf: 1.2s;
+}
+
+.iftp-btn-fx--waves > .is-front {
+	--wd: 46ms;
+	--wf: 0.95s;
+
+	filter: drop-shadow(0 0 14px rgb(0 0 0 / 15%));
+}
+
+.iftp-btn-fx--waves > .is-left {
+	left: 0;
+}
+
+.iftp-btn-fx--waves > .is-right {
+	--bx: calc(var(--lw) * 0.36);
+
+	right: 0;
+	animation-name: iftp-btn-wave-pass-right;
+}
+
+/* The wavy edge: a strip with a curved side that scrolls along it, showing the same background as the wave it belongs to. */
+.iftp-btn-fx--waves > i::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 150px;
+	background-color: var(--fx-col, #fff);
+	background-image: var(--fx-img, none);
+	background-repeat: no-repeat;
+	background-size: var(--lw, 100%) var(--lh, 100%);
+	animation: iftp-btn-wave-flow var(--wf, 1.2s) linear infinite;
+}
+
+.iftp-btn-fx--waves > .is-left::after {
+	left: calc(100% - 75px);
+	background-position: calc(var(--lw) * -0.64 + 75px) 0;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 300'%3E%3Cpath d='M0 0H76Q116 37.5 76 75T76 150T76 225T76 300H0Z'/%3E%3C/svg%3E") 0 0 / 150px 300px repeat-y;
+}
+
+.iftp-btn-fx--waves > .is-right::after {
+	right: calc(100% - 75px);
+	background-position: calc(var(--bx) * -1 + 75px) 0;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 300'%3E%3Cpath d='M150 0H74Q34 37.5 74 75T74 150T74 225T74 300H150Z'/%3E%3C/svg%3E") 0 0 / 150px 300px repeat-y;
+}
+
+@keyframes iftp-btn-wave-pass-left {
+
+	0% {
+		transform: translateX(-130%);
+		animation-timing-function: cubic-bezier(0.25, 0.7, 0.3, 1);
+	}
+
+	46%,
+	54% {
+		transform: translateX(0);
+		animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+	}
+
+	100% {
+		transform: translateX(-130%);
+	}
+}
+
+@keyframes iftp-btn-wave-pass-right {
+
+	0% {
+		transform: translateX(130%);
+		animation-timing-function: cubic-bezier(0.25, 0.7, 0.3, 1);
+	}
+
+	46%,
+	54% {
+		transform: translateX(0);
+		animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+	}
+
+	100% {
+		transform: translateX(130%);
+	}
+}
+
+@keyframes iftp-btn-wave-flow {
+
+	to {
+		mask-position: 0 300px;
+	}
+}
+
+/* Shutter: slats flip shut one after another, then flip on to open. */
+.iftp-btn-fx--shutter {
+	display: flex;
+	flex-direction: column;
+	perspective: 800px;
+}
+
+.iftp-btn-fx--shutter > i {
+	position: relative;
+	flex: 1;
+	margin: -0.5px 0;
+	backface-visibility: hidden;
+	animation: iftp-btn-shutter-flip 520ms linear calc(var(--i) / var(--n) * 110ms) both;
+}
+
+.iftp-btn-fx--shutter > i {
+	--lit: linear-gradient(180deg, rgb(255 255 255 / 15%), rgb(255 255 255 / 1%) 38%, rgb(0 0 0 / 14%));
+}
+
+.iftp-btn-fx--shutter > .is-odd {
+	--br: 1.03;
+}
+
+@keyframes iftp-btn-shutter-flip {
+
+	0% {
+		transform: rotateX(92deg);
+		animation-timing-function: cubic-bezier(0.25, 0.7, 0.3, 1);
+	}
+
+	46%,
+	54% {
+		transform: rotateX(0);
+		animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+	}
+
+	100% {
+		transform: rotateX(-92deg);
+	}
+}
+
+/* Curtain: a panel from each side, in pleats of light and shade; they meet in the middle, then part. */
+.iftp-btn-fx--curtain > i {
+	--lit: repeating-linear-gradient(90deg, rgb(0 0 0 / 11%) 0, rgb(255 255 255 / 6%) 22px, rgb(0 0 0 / 11%) 44px);
+
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 50.6%;
+	box-shadow: 0 0 24px rgb(0 0 0 / 15%);
+	animation: iftp-btn-curtain-left 640ms linear both;
+}
+
+.iftp-btn-fx--curtain > .is-left {
+	left: 0;
+}
+
+.iftp-btn-fx--curtain > .is-right {
+	--bx: calc(var(--lw) * 0.494);
+
+	right: 0;
+	animation-name: iftp-btn-curtain-right;
+}
+
+@keyframes iftp-btn-curtain-left {
+
+	0% {
+		transform: translateX(-102%);
+		animation-timing-function: cubic-bezier(0.3, 0.7, 0.3, 1);
+	}
+
+	46%,
+	54% {
+		transform: translateX(0);
+		animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+	}
+
+	100% {
+		transform: translateX(-102%);
+	}
+}
+
+@keyframes iftp-btn-curtain-right {
+
+	0% {
+		transform: translateX(102%);
+		animation-timing-function: cubic-bezier(0.3, 0.7, 0.3, 1);
+	}
+
+	46%,
+	54% {
+		transform: translateX(0);
+		animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+	}
+
+	100% {
+		transform: translateX(102%);
+	}
+}
+
+/* Iris and Ripple cut round holes with a mask, so the hole's radius is a property the animation can move. */
+@property --iftp-hole {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+
+@property --iftp-grow {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+
+/* Iris: a frame closes in to the middle like an aperture, then opens again. A brighter rim leads the closing edge, and
+   the frame darkens toward the middle. */
+.iftp-btn-fx--iris > i {
+	position: absolute;
+	inset: 0;
+	mask: radial-gradient(circle at 50% 50%, transparent var(--iftp-hole), #000 calc(var(--iftp-hole) + 1px));
+	animation: iftp-btn-iris-shut 640ms linear both;
+}
+
+.iftp-btn-fx--iris > .is-disc {
+	--lit: radial-gradient(circle at 50% 50%, rgb(0 0 0 / 17%), rgb(0 0 0 / 1%) 58%, rgb(255 255 255 / 7%));
+}
+
+.iftp-btn-fx--iris > .is-ring {
+	--br: 1.15;
+
+	animation-delay: -34ms;
+}
+
+@keyframes iftp-btn-iris-shut {
+
+	0% {
+		--iftp-hole: calc(var(--diag) / 2);
+		animation-timing-function: cubic-bezier(0.3, 0.6, 0.3, 1);
+	}
+
+	46%,
+	54% {
+		--iftp-hole: 0px;
+		animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+	}
+
+	100% {
+		--iftp-hole: calc(var(--diag) / 2);
+	}
+}
+
+/* Ripple: discs of the background spread out from the middle one behind another, each lit differently, then each opens a
+   hole, so rings travel outward. The discs keep their size; a mask grows (and then opens) them, so the background under
+   them never moves. */
+.iftp-btn-fx--ripple > i {
+	--lit: radial-gradient(circle at 50% 50%, rgb(0 0 0 / 1%) 52%, rgb(0 0 0 / 14%) 86%, rgb(255 255 255 / 10%));
+	--br: calc(1.08 - var(--k) * 0.04);
+
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: var(--diag);
+	height: var(--diag);
+	margin: calc(var(--diag) / -2) 0 0 calc(var(--diag) / -2);
+	background-position: calc((var(--diag) - var(--lw)) / 2) calc((var(--diag) - var(--lh)) / 2);
+	border-radius: 50%;
+	mask: radial-gradient(circle at 50% 50%, transparent var(--iftp-hole), #000 calc(var(--iftp-hole) + 1px), #000 var(--iftp-grow), transparent calc(var(--iftp-grow) + 1px));
+	animation:
+		iftp-btn-ripple-grow 300ms cubic-bezier(0.2, 0.7, 0.3, 1) calc(var(--k) * 34ms) both,
+		iftp-btn-ripple-open 280ms cubic-bezier(0.5, 0, 0.8, 0.5) calc(335ms + (3 - var(--k)) * 30ms) forwards;
+}
+
+@keyframes iftp-btn-ripple-grow {
+
+	to {
+		--iftp-grow: calc(var(--diag) / 2 + 2px);
+	}
+}
+
+@keyframes iftp-btn-ripple-open {
+
+	to {
+		--iftp-hole: calc(var(--diag) / 2 + 2px);
+	}
+}
+
+/* Pixel dissolve: flat tiles of the background that switch on in a random order, then off again. */
+.iftp-btn-fx--pixelate {
+	display: grid;
+	grid-template-columns: repeat(var(--cols, 8), 1fr);
+	grid-template-rows: repeat(var(--rows, 8), 1fr);
+}
+
+.iftp-btn-fx--pixelate > i {
+	--lit: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(0 0 0 / 6%));
+
+	position: relative;
+	margin: -0.5px;
+	animation:
+		iftp-btn-pixel-on 90ms steps(3, jump-none) var(--d, 0ms) both,
+		iftp-btn-pixel-off 90ms steps(3, jump-none) calc(335ms + var(--e, 0ms)) forwards;
+}
+
+@keyframes iftp-btn-pixel-on {
+
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes iftp-btn-pixel-off {
+
+	to {
+		opacity: 0;
+	}
+}
+
+/* Shatter: each cell is two glass triangles of the background, each catching the light at its own angle; they settle into
+   place, then fall away from the middle. */
+.iftp-btn-fx--shatter {
+	display: grid;
+	grid-template-columns: repeat(var(--cols, 5), 1fr);
+	grid-template-rows: repeat(var(--rows, 4), 1fr);
+}
+
+.iftp-btn-fx--shatter > i {
+	--lit: linear-gradient(var(--g, 135deg), rgb(255 255 255 / var(--f, 30%)), rgb(255 255 255 / 1%) 55%, rgb(0 0 0 / 11%));
+
+	position: relative;
+	margin: -1px;
+	animation: iftp-btn-shatter-set 210ms cubic-bezier(0.2, 0.8, 0.3, 1) var(--d, 0ms) both, iftp-btn-shatter-fall 230ms cubic-bezier(0.5, 0, 0.9, 0.5) calc(335ms + var(--e, 0ms)) forwards;
+}
+
+.iftp-btn-fx--shatter > .is-a {
+	clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.iftp-btn-fx--shatter > .is-b {
+	clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+@keyframes iftp-btn-shatter-set {
+
+	from {
+		opacity: 0;
+		transform: translate(var(--x), var(--y)) rotate(calc(var(--r) / 2)) scale(1.08);
+	}
+
+	60% {
+		opacity: 1;
+	}
+}
+
+@keyframes iftp-btn-shatter-fall {
+
+	to {
+		opacity: 0;
+		transform: translateY(280px) rotate(calc(var(--r) * 2.5)) scale(0.9);
+	}
+}
+
+/* Stripes: bars of the background grow from alternating edges, then leave through the opposite ones. */
+.iftp-btn-fx--stripes {
+	display: grid;
+	grid-template-columns: repeat(var(--cols, 10), 1fr);
+}
+
+.iftp-btn-fx--stripes > i {
+	--lit: linear-gradient(90deg, rgb(255 255 255 / 10%), rgb(255 255 255 / 1%) 50%, rgb(0 0 0 / 11%));
+
+	position: relative;
+	margin: 0 -0.5px;
+	animation: iftp-btn-stripes-sweep 560ms linear calc(var(--i) / var(--n) * 120ms) both;
+}
+
+.iftp-btn-fx--stripes > .is-odd {
+	--br: 1.03;
+
+	animation-name: iftp-btn-stripes-sweep-odd;
+}
+
+@keyframes iftp-btn-stripes-sweep {
+
+	0% {
+		transform: scaleY(0);
+		transform-origin: 50% 0;
+		animation-timing-function: cubic-bezier(0.3, 0.6, 0.3, 1);
+	}
+
+	46% {
+		transform: scaleY(1);
+		transform-origin: 50% 0;
+		animation-timing-function: linear;
+	}
+
+	54% {
+		transform: scaleY(1);
+		transform-origin: 50% 100%;
+		animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+	}
+
+	100% {
+		transform: scaleY(0);
+		transform-origin: 50% 100%;
+	}
+}
+
+@keyframes iftp-btn-stripes-sweep-odd {
+
+	0% {
+		transform: scaleY(0);
+		transform-origin: 50% 100%;
+		animation-timing-function: cubic-bezier(0.3, 0.6, 0.3, 1);
+	}
+
+	46% {
+		transform: scaleY(1);
+		transform-origin: 50% 100%;
+		animation-timing-function: linear;
+	}
+
+	54% {
+		transform: scaleY(1);
+		transform-origin: 50% 0;
+		animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+	}
+
+	100% {
+		transform: scaleY(0);
+		transform-origin: 50% 0;
+	}
+}
+
+/* Confetti: the background, lit from the middle, with flecks bursting out of it; they keep flying once the popup shows. */
+.iftp-btn-fx--confetti {
+	overflow: visible;
+}
+
+.iftp-btn-fx--confetti > .is-fill {
+	--lit: radial-gradient(circle at 50% 50%, rgb(255 255 255 / 7%), rgb(255 255 255 / 1%) 60%, rgb(0 0 0 / 10%));
+
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	animation: iftp-btn-confetti-fill 640ms linear both;
+}
+
+.iftp-btn-fx--confetti > i {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: var(--w);
+	height: var(--h);
+	background: var(--fx-a);
+	border-radius: 2px;
+	box-shadow: 0 1px 3px rgb(0 0 0 / 14%);
+	animation: iftp-btn-confetti-burst 640ms cubic-bezier(0.1, 0.7, 0.3, 1) var(--d, 0ms) both;
+}
+
+.iftp-btn-fx--confetti > i:nth-child(4n+2) {
+	background: var(--fx-b);
+}
+
+.iftp-btn-fx--confetti > i:nth-child(4n+3) {
+	background: var(--iftp-surface, #fff);
+}
+
+.iftp-btn-fx--confetti > i:nth-child(4n) {
+	background: var(--iftp-ink, #000);
+}
+
+@keyframes iftp-btn-confetti-fill {
+
+	0% {
+		opacity: 0;
+		transform: scale(1.12);
+	}
+
+	40%,
+	52% {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(1);
+	}
+}
+
+@keyframes iftp-btn-confetti-burst {
+
+	0% {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+	}
+
+	12% {
+		opacity: 1;
+	}
+
+	80% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+		transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1) rotate(var(--r));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.iftp-btn-sheet[open],
+	.iftp-btn-sheet[open].is-closing,
+	.iftp-btn-sheet[open].is-closing::backdrop,
+	.iftp-btn-sheet--scene[open],
+	.iftp-btn-sheet--scene[open].is-closing,
+	.iftp-btn-sheet--scene[open].is-closing > .iftp-btn-form,
+	.iftp-btn-sheet--scene[open].is-closing > .iftp-btn-result__box,
+	.iftp-btn-sheet--scene[open] > .iftp-btn-form,
+	.iftp-btn-sheet--scene[open] > .iftp-btn-result__box,
+	.iftp-btn-sheet[open]::backdrop,
+	.iftp-btn-sheet[open] > .iftp-btn-form > * {
+		animation: none;
+	}
+
+	.iftp-btn-fx {
+		display: none;
+	}
+}
+
+.iftp-btn-sheet:focus {
+	outline: none;
+}
+
+.iftp-btn-sheet::backdrop {
+	background: var(--iftp-backdrop, rgb(12 22 40 / 48%));
+	backdrop-filter: blur(var(--iftp-backdrop-blur, 3px));
+}
+
+.iftp-btn-sheet > .iftp-btn-form {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+@keyframes iftp-btn-rise {
+
+	from {
+		opacity: 0;
+		transform: translateY(12px) scale(0.98);
+	}
+}
+
+/* A button's own font choice, over the site's. */
+.iftp-btn-sheet.iftp-btn-font--theme,
+.iftp-btn-font--theme .iftp-btn-form {
+	font-family: inherit;
+}
+
+.iftp-btn-sheet.iftp-btn-font--system,
+.iftp-btn-font--system .iftp-btn-form {
+	font-family: var(--iftp-font);
+}
+
+/* --------------------------------------------------------------------------
+   Scene: the dialog fills the screen with the pay page's background (the pagebg classes below), and the
+   form or outcome box is the card on it. A click outside the card still lands on the dialog, which closes it.
+   -------------------------------------------------------------------------- */
+.iftp-btn-sheet--scene {
+	width: 100vw;
+	max-width: none;
+	height: 100vh;
+	height: 100dvh;
+	max-height: none;
+	margin: 0;
+	border-radius: 0;
+	box-shadow: none;
+	isolation: isolate;
+	backdrop-filter: none;
+}
+
+.iftp-btn-sheet--scene[open] {
+	display: grid;
+	place-items: center;
+	padding: 24px 16px;
+	animation: var(--iftp-s-in, iftp-btn-iris) var(--iftp-s-time, 720ms) var(--iftp-s-ease, cubic-bezier(0.3, 0.7, 0.2, 1));
+}
+
+.iftp-btn-sheet--scene::backdrop {
+	background: none;
+	backdrop-filter: none;
+}
+
+/* The layers stay inside the dialog; two classes, so this beats the pay page's fixed layers further down. */
+.iftp-btn-sheet.iftp-btn-sheet--scene::before,
+.iftp-btn-sheet.iftp-btn-sheet--scene::after {
+	position: absolute;
+}
+
+.iftp-btn-sheet--scene > .iftp-btn-form,
+.iftp-btn-sheet--scene > .iftp-btn-result__box {
+	width: 100%;
+	max-width: var(--iftp-sheet-w);
+	max-height: min(760px, calc(100dvh - 48px));
+	color: var(--iftp-ink);
+	background: var(--iftp-card-bg, var(--iftp-surface));
+	border-radius: var(--iftp-radius);
+	box-shadow: var(--iftp-card-ring, 0 0 #0000), var(--iftp-shadow);
+	overflow: hidden;
+	backdrop-filter: var(--iftp-card-filter, none);
+	animation: iftp-btn-rise 240ms var(--iftp-ease);
+}
+
+.iftp-btn-sheet--scene > .iftp-btn-result__box {
+	overflow-y: auto;
+}
+
+@keyframes iftp-btn-fade {
+
+	from {
+		opacity: 0;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Checkout form (in a dialog, or on the pay page)
+   -------------------------------------------------------------------------- */
+.iftp-btn-form {
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	position: var(--iftp-edge-pos, static);
+	padding-top: var(--iftp-card-pad, 0);
+	color: var(--iftp-ink);
+	font-family: var(--iftp-font);
+	font-size: 15px;
+	line-height: 1.45;
+	text-align: left;
+}
+
+.iftp-btn-form *,
+.iftp-btn-form *::before,
+.iftp-btn-form *::after {
+	box-sizing: border-box;
+}
+
+/* The awning edge: a layer across the top of the card, the form dropped clear of it (CheckoutLook::card_awning). */
+.iftp-btn-form::before {
+	position: absolute;
+	inset: 0 0 auto;
+	z-index: 2;
+	height: var(--iftp-edge-h, 0);
+	content: var(--iftp-edge-on, none);
+	background: var(--iftp-edge-bg, none);
+	filter: var(--iftp-edge-fx, none);
+	pointer-events: none;
+}
+
+.iftp-btn-form__header {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 28px;
+	padding: 18px 22px 0;
+}
+
+.iftp-btn-form__site {
+	color: var(--iftp-muted);
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+/* With the switch in it the header is a bar of its own: room under it, and a hairline so the scrolled form never runs into it. */
+.iftp-btn-form__header--tools {
+	padding-bottom: 12px;
+	box-shadow: 0 1px 0 var(--iftp-line);
+}
+
+/* The preview's colour mode switch, in the demo page's checkout only: Light, System, Dark, in the form's own colours. */
+.iftp-btn-form__scheme {
+	display: inline-flex;
+	flex: none;
+	gap: 2px;
+	margin: 0 0 0 auto;
+	padding: 2px;
+	background: var(--iftp-inset);
+	border-radius: 999px;
+}
+
+.iftp-btn-form__scheme .iftp-btn-scheme__option {
+	display: inline-grid;
+	place-items: center;
+	width: 26px;
+	height: 24px;
+	margin: 0;
+	padding: 0;
+	color: var(--iftp-muted);
+	background: transparent;
+	border: 0;
+	border-radius: 999px;
+	box-shadow: none;
+	cursor: pointer;
+	transition: background-color 140ms var(--iftp-ease), color 140ms var(--iftp-ease);
+}
+
+.iftp-btn-form__scheme .iftp-btn-scheme__option:hover {
+	color: var(--iftp-ink);
+}
+
+.iftp-btn-form__scheme .iftp-btn-scheme__option[aria-pressed="true"] {
+	color: var(--iftp-on-brand);
+	background: var(--iftp-brand);
+}
+
+.iftp-btn-form__scheme .iftp-btn-scheme__option:focus-visible {
+	outline: none;
+	box-shadow: var(--iftp-ring);
+}
+
+.iftp-btn-form__close {
+	display: inline-grid;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	margin: -4px -6px -4px 0;
+	padding: 0;
+	color: var(--iftp-muted);
+	background: transparent;
+	border: 0;
+	border-radius: 999px;
+	cursor: pointer;
+}
+
+.iftp-btn-form__close:hover {
+	color: var(--iftp-ink);
+	background: var(--iftp-inset);
+}
+
+/* Scrollbars in the checkout take the form's own colours, not the browser's. */
+.iftp-btn-form,
+.iftp-btn-form *,
+.iftp-btn-result__box {
+	scrollbar-color: color-mix(in srgb, var(--iftp-brand) 45%, var(--iftp-inset)) transparent;
+	scrollbar-width: thin;
+}
+
+/* The body scrolls on its own; the soft shadows at its edges only show while there's more to scroll to. */
+.iftp-btn-form__body {
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 16px 22px 6px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+
+	/* A see-through card sets --iftp-body-bg to transparent; the shading needs a solid one to hide behind. */
+	background: var(--iftp-body-bg,
+		linear-gradient(var(--iftp-surface) 30%, transparent) top / 100% 28px no-repeat local,
+		linear-gradient(transparent, var(--iftp-surface) 70%) bottom / 100% 28px no-repeat local,
+		radial-gradient(farthest-side at 50% 0, rgb(16 30 54 / 14%), transparent) top / 100% 10px no-repeat scroll,
+		radial-gradient(farthest-side at 50% 100%, rgb(16 30 54 / 14%), transparent) bottom / 100% 10px no-repeat scroll,
+		var(--iftp-surface));
+}
+
+.iftp-btn-form__step {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	align-content: start;
+	gap: 16px 12px;
+}
+
+.iftp-btn-form__step[hidden] {
+	display: none;
+}
+
+/* Shown or hidden by an earlier answer (checkout.js bindConditions). */
+.iftp-btn-form [data-iftp-btn-when][hidden] {
+	display: none;
+}
+
+.iftp-btn-form [data-iftp-btn-when].is-revealed {
+	animation: iftp-btn-reveal 220ms var(--iftp-ease);
+}
+
+@keyframes iftp-btn-reveal {
+
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+}
+
+.iftp-btn-form__step > * {
+	grid-column: 1 / -1;
+}
+
+.iftp-btn-form__step > .iftp-btn-form__field--half {
+	grid-column: auto;
+}
+
+/* Side-by-side fields share the label and input rows, so a label that wraps keeps both inputs level. */
+@supports (grid-template-rows: subgrid) {
+
+	.iftp-btn-form__step > .iftp-btn-form__field--half {
+		grid-row: span 2;
+		grid-template-rows: subgrid;
+		row-gap: 6px;
+	}
+
+	.iftp-btn-form__step > .iftp-btn-form__field--half:has(> .iftp-btn-form__help) {
+		grid-row: span 3;
+	}
+}
+
+.iftp-btn-form__step.is-forward {
+	animation: iftp-btn-step-forward 260ms var(--iftp-ease);
+}
+
+.iftp-btn-form__step.is-backward {
+	animation: iftp-btn-step-backward 260ms var(--iftp-ease);
+}
+
+@keyframes iftp-btn-step-forward {
+
+	from {
+		opacity: 0;
+		transform: translateX(14px);
+	}
+}
+
+@keyframes iftp-btn-step-backward {
+
+	from {
+		opacity: 0;
+		transform: translateX(-14px);
+	}
+}
+
+.iftp-btn-form__summary {
+	display: grid;
+	gap: 4px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid var(--iftp-line);
+}
+
+.iftp-btn-form .iftp-btn-form__title {
+	margin: 0;
+	padding: 0;
+	color: var(--iftp-ink);
+	font-family: inherit;
+	font-size: 19px;
+	font-weight: 700;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+	text-transform: none;
+}
+
+.iftp-btn-form .iftp-btn-form__text {
+	margin: 0;
+	color: var(--iftp-muted);
+	font-size: 14px;
+}
+
+.iftp-btn-form .iftp-btn-form__amount {
+	margin: 6px 0 0;
+	color: var(--iftp-ink);
+	font-size: 30px;
+	font-weight: 750;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+	font-variant-numeric: tabular-nums;
+}
+

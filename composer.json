@@ -14,5 +14,9 @@
     "config": {
         "optimize-autoloader": true,
         "sort-packages": true
+    },
+    "scripts": {
+        "test:unit:pretty": "../vendor/bin/phpunit -c phpunit.xml.dist --testdox",
+        "test:int:pretty": "../vendor/bin/phpunit -c phpunit.integration.xml.dist --testdox"
     }
 }

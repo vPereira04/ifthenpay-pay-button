@@ -21,8 +21,8 @@ class IfthenpayClient {
 	private const API_BASE = 'https://api.ifthenpay.com';
 
 	// ifthenpay tags this plugin's Gateway Keys and callbacks with its own type.
-	public const GATEWAY_TYPE = 'forminator';//'iftpbtn';
-	public const CALLBACK_CMS = 'forminator';//'iftpbtn';
+	public const GATEWAY_TYPE = 'forminator';// 'iftpbtn';
+	public const CALLBACK_CMS = 'forminator';// 'iftpbtn';
 
 	// The methods catalog is the same for every ifthenpay account and rarely changes, so I keep it for a while.
 	public const CATALOG_TRANSIENT = 'iftp_btn_methods_catalog';

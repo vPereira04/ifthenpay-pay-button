@@ -1,6 +1,6 @@
 <?php
 /**
- * Configuration › Gateway AJAX router.
+ * Backoffice connection and Gateway methods AJAX router.
  *
  * @package Ifthenpay\PayButton
  */
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Admin AJAX for the Configuration screen's Gateway tab.
+ * Admin AJAX for the Configuration screen's Backoffice tab and the button editor's Gateway tab.
  */
 class SettingsController {
 
@@ -77,8 +77,7 @@ class SettingsController {
 	public function register(): void {
 		add_action( 'wp_ajax_iftp_btn_connect', array( $this, 'connect' ) );
 		add_action( 'wp_ajax_iftp_btn_disconnect', array( $this, 'disconnect' ) );
-		add_action( 'wp_ajax_iftp_btn_select_gateway_key', array( $this, 'select_gateway_key' ) );
-		add_action( 'wp_ajax_iftp_btn_save_settings', array( $this, 'save_settings' ) );
+		add_action( 'wp_ajax_iftp_btn_gateway_methods', array( $this, 'gateway_methods' ) );
 		add_action( 'wp_ajax_iftp_btn_request_activation', array( $this, 'request_activation' ) );
 		add_action( 'wp_ajax_iftp_btn_send_summary_test', array( $this, 'send_summary_test' ) );
 	}
@@ -113,7 +112,7 @@ class SettingsController {
 			);
 		}
 
-		$this->webhooks->register_webhook( $this->settings->get_gateway_key() );
+		$this->webhooks->register_all();
 
 		wp_send_json_success();
 	}
@@ -131,56 +130,22 @@ class SettingsController {
 	}
 
 	/**
-	 * Switches the active Gateway Key and re-renders the methods table for it.
+	 * The methods table of one Gateway Key, for the button editor to swap in when its Gateway Key changes.
 	 */
-	public function select_gateway_key(): void {
+	public function gateway_methods(): void {
 		$this->guard_connected();
 
 		$gateway_key = $this->post_text( 'gateway_key' );
 
-		if ( ! $this->sync->switch_gateway_key( $gateway_key ) ) {
+		if ( ! in_array( $gateway_key, $this->settings->get_gateway_keys(), true ) ) {
 			wp_send_json_error( array( 'message' => __( 'Unknown Gateway Key.', 'ifthenpay-pay-button' ) ), 400 );
 		}
 
-		$this->webhooks->register_webhook( $gateway_key );
-
-		wp_send_json_success( array( 'tableHtml' => $this->methods_table->render() ) );
-	}
-
-	/**
-	 * Saves the Gateway tab in one call. The default can only be a method that's enabled.
-	 */
-	public function save_settings(): void {
-		$this->guard_connected();
-
-		$gateway_key = $this->post_text( 'gateway_key' );
-
-		if ( '' !== $gateway_key && $gateway_key !== $this->settings->get_gateway_key() && ! $this->sync->switch_gateway_key( $gateway_key ) ) {
-			wp_send_json_error( array( 'message' => __( 'Unknown Gateway Key.', 'ifthenpay-pay-button' ) ), 400 );
-		}
-
-		$enabled_entities = $this->post_list( 'enabled_methods' );
-		$default_method   = $this->post_text( 'default_method' );
-		$methods          = $this->settings->get_methods();
-		$enabled_now      = array();
-
-		foreach ( $methods as &$method ) {
-			$method['enabled'] = in_array( $method['entity'], $enabled_entities, true ) && '' !== $method['account'];
-
-			if ( $method['enabled'] ) {
-				$enabled_now[] = $method['entity'];
-			}
-		}
-		unset( $method );
-
-		$this->settings->set_methods( $methods );
-		$this->settings->set_default_method( in_array( $default_method, $enabled_now, true ) ? $default_method : '' );
-		$this->settings->set_description( $this->post_text( 'description' ) );
-		$this->settings->set_expiry_days( absint( $this->post_text( 'expiry_days', '3' ) ) );
-
-		$this->webhooks->register_webhook( $this->settings->get_gateway_key() );
-
-		wp_send_json_success( array( 'tableHtml' => $this->methods_table->render() ) );
+		wp_send_json_success(
+			array(
+				'tableHtml' => $this->methods_table->render( $gateway_key, array(), $this->post_text( 'default_method' ), 'config[methods][]', 'config[default_method]' ),
+			)
+		);
 	}
 
 	/**
@@ -190,9 +155,9 @@ class SettingsController {
 		$this->guard_connected();
 
 		$entity      = strtoupper( $this->post_text( 'entity' ) );
-		$gateway_key = $this->settings->get_gateway_key();
+		$gateway_key = $this->settings->resolve_gateway_key( $this->post_text( 'gateway_key' ) );
 
-		if ( '' === $entity || '' === $gateway_key || ! in_array( $entity, array_column( $this->settings->get_methods(), 'entity' ), true ) ) {
+		if ( '' === $entity || '' === $gateway_key || ! in_array( $entity, array_column( $this->settings->get_methods( $gateway_key ), 'entity' ), true ) ) {
 			wp_send_json_error( array( 'message' => __( 'Missing method or Gateway Key.', 'ifthenpay-pay-button' ) ), 400 );
 		}
 
@@ -250,24 +215,6 @@ class SettingsController {
 	private function post_text( string $key, string $fallback = '' ): string {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- every handler runs guard() first.
 		return isset( $_POST[ $key ] ) && is_string( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : $fallback;
-	}
-
-	/**
-	 * A POST array of single-line strings.
-	 *
-	 * @param string $key The POST key.
-	 * @return array<int, string>
-	 */
-	private function post_list( string $key ): array {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- every handler runs guard() first.
-		if ( ! isset( $_POST[ $key ] ) || ! is_array( $_POST[ $key ] ) ) {
-			return array();
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every handler runs guard() first; each value is sanitized right here.
-		$values = array_map( static fn( $value ): string => is_string( $value ) ? sanitize_text_field( $value ) : '', wp_unslash( $_POST[ $key ] ) );
-
-		return array_values( array_filter( $values, static fn( string $value ): bool => '' !== $value ) );
 	}
 
 	/**

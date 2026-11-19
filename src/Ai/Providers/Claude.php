@@ -106,7 +106,7 @@ class Claude extends Provider {
 			$this->headers( $key ),
 			array(
 				'model'       => $model,
-				'max_tokens'  => static::MAX_TOKENS,
+				'max_tokens'  => $this->answer,
 				'temperature' => $this->temperature,
 				'system'      => $system,
 				'messages'    => array_map(
@@ -119,7 +119,7 @@ class Claude extends Provider {
 				'tools'       => array(
 					array(
 						'name'         => self::TOOL,
-						'description'  => 'Set the whole pay button: its checkout, form, spots, button design and checkout design, plus your reply to the merchant.',
+						'description'  => 'Change the pay button: its checkout, form, spots, button design and checkout design, plus your reply to the merchant. Send only the parts that change, or all of them for a new button.',
 						'input_schema' => $schema,
 					),
 				),

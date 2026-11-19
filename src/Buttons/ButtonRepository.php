@@ -79,7 +79,7 @@ class ButtonRepository {
 	}
 
 	/**
-	 * Every button that isn't trashed, newest first.
+	 * Every button that isn't trashed, newest first. By ID, which only ever grows, so the order is the order they were made in.
 	 *
 	 * @return array<int, Button>
 	 */
@@ -89,7 +89,7 @@ class ButtonRepository {
 				'post_type'   => self::POST_TYPE,
 				'post_status' => array( 'publish', 'draft' ),
 				'numberposts' => -1,
-				'orderby'     => 'date',
+				'orderby'     => 'ID',
 				'order'       => 'DESC',
 			)
 		);
@@ -124,6 +124,14 @@ class ButtonRepository {
 
 		if ( $id > 0 ) {
 			$postarr['ID'] = $id;
+
+			// wp_insert_post() gives an existing post today's date when none is passed, so every edit would make the button "new".
+			$existing = get_post( $id );
+
+			if ( $existing instanceof \WP_Post && '0000-00-00 00:00:00' !== $existing->post_date_gmt ) {
+				$postarr['post_date']     = $existing->post_date;
+				$postarr['post_date_gmt'] = $existing->post_date_gmt;
+			}
 		}
 
 		$saved = wp_insert_post( wp_slash( $postarr ), true );

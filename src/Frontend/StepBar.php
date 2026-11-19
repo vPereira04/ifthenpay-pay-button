@@ -23,6 +23,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class StepBar {
 
+	// A pizza holds at most this many wedges; more pages start another pizza.
+	private const WEDGES_PER_PIZZA = 6;
+
 	/**
 	 * Prints the bar.
 	 *
@@ -49,14 +52,41 @@ class StepBar {
 			esc_html( CheckoutTexts::get( 'step_of' ) ),
 			array(
 				'{step}'  => $args['live'] ? '<span data-iftp-btn-step-now>' . ( $current + 1 ) . '</span>' : (string) ( $current + 1 ),
-				'{steps}' => (string) $count,
+				'{steps}' => $args['live'] ? '<span data-iftp-btn-step-total>' . $count . '</span>' : (string) $count,
 			)
 		);
+		// Pizza: at most six wedges to a pizza, the pages dealt out evenly (8 pages: 4 and 4), so each wedge knows its place.
+		// Every style gets the variables, so the look preview can switch to Pizza without a reload.
+		$pizzas = max( 1, (int) ceil( $count / self::WEDGES_PER_PIZZA ) );
+		$base   = intdiv( $count, $pizzas );
+		$extra  = $count % $pizzas;
+		$places = array();
+		$placed = 0;
+
+		for ( $pizza = 0; $pizza < $pizzas; $pizza++ ) {
+			$size = $base + ( $pizza < $extra ? 1 : 0 );
+
+			for ( $wedge = 0; $wedge < $size; $wedge++ ) {
+				$places[ $placed++ ] = array( $pizza, $wedge, $size );
+			}
+		}
 		?>
-		<div class="iftp-btn-steps iftp-btn-steps--<?php echo esc_attr( $style ); ?>"<?php echo $args['live'] ? ' data-iftp-btn-steps' : ''; ?> style="--iftp-steps: <?php echo esc_attr( (string) $count ); ?>">
+		<div class="iftp-btn-steps iftp-btn-steps--<?php echo esc_attr( $style ); ?>"<?php echo $args['live'] ? ' data-iftp-btn-steps' : ''; ?> style="--iftp-steps: <?php echo esc_attr( (string) $count ); ?>; --iftp-pizzas: <?php echo esc_attr( (string) $pizzas ); ?>">
 			<div class="iftp-btn-steps__head">
 				<span class="iftp-btn-steps__title"<?php echo $args['live'] ? ' id="' . esc_attr( $args['id'] ) . '-step-title" data-iftp-btn-step-title aria-live="polite"' : ''; ?><?php echo $args['texts'] && 0 === $current ? ' data-iftp-text="first_step"' : ''; ?>><?php echo esc_html( $titles[ $current ] ); ?></span>
-				<span class="iftp-btn-steps__count"<?php echo $args['texts'] ? ' data-iftp-text="step_of" data-step="' . esc_attr( (string) ( $current + 1 ) ) . '" data-steps="' . esc_attr( (string) $count ) . '"' : ''; ?>><?php echo wp_kses( $step_of, array( 'span' => array( 'data-iftp-btn-step-now' => true ) ) ); ?></span>
+				<span class="iftp-btn-steps__count"<?php echo $args['texts'] ? ' data-iftp-text="step_of" data-step="' . esc_attr( (string) ( $current + 1 ) ) . '" data-steps="' . esc_attr( (string) $count ) . '"' : ''; ?>>
+				<?php
+				echo wp_kses(
+					$step_of,
+					array(
+						'span' => array(
+							'data-iftp-btn-step-now'   => true,
+							'data-iftp-btn-step-total' => true,
+						),
+					)
+				);
+				?>
+													</span>
 				<span class="iftp-btn-steps__pct" aria-hidden="true"<?php echo $args['live'] ? ' data-iftp-btn-step-pct' : ''; ?>><?php echo esc_html( round( $share * 100 ) . '%' ); ?></span>
 			</div>
 			<ol class="iftp-btn-steps__track">
@@ -64,6 +94,11 @@ class StepBar {
 					<?php
 					$state = $index < $current ? ' is-done' : ( $index === $current ? ' is-current' : '' );
 					$vars  = '--iftp-i: ' . $index . ( $index === $current ? '; --iftp-fill: ' . round( $args['fill'], 3 ) : '' );
+
+					if ( isset( $places[ $index ] ) ) {
+						$vars  .= '; --iftp-p: ' . $places[ $index ][0] . '; --iftp-w: ' . $places[ $index ][1] . '; --iftp-n: ' . $places[ $index ][2];
+						$state .= 0 === $places[ $index ][1] ? ' is-pizza-first' : '';
+					}
 					?>
 					<li class="iftp-btn-steps__bar<?php echo esc_attr( $state ); ?>"<?php echo $index === $current ? ' aria-current="step"' : ''; ?><?php echo $args['live'] ? ' data-iftp-btn-bar data-title="' . esc_attr( $title ) . '"' : ''; ?> style="<?php echo esc_attr( $vars ); ?>">
 						<span class="iftp-btn-steps__seg"><span class="iftp-btn-steps__fill"></span></span>

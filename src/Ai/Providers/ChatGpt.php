@@ -20,10 +20,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class ChatGpt extends Provider {
 
-	private const BASE = 'https://api.openai.com/v1/';
-
 	// Reasoning counts against the output budget too.
 	protected const MAX_TOKENS = 16000;
+
+	/**
+	 * The API's address, with the trailing slash. Providers with the same API change it.
+	 */
+	protected function base(): string {
+		return 'https://api.openai.com/v1/';
+	}
 
 	/**
 	 * The provider's id, as stored.
@@ -60,7 +65,7 @@ class ChatGpt extends Provider {
 	 * @return array<string, string>|WP_Error
 	 */
 	public function models( string $key ) {
-		$response = $this->request( 'GET', self::BASE . 'models', $this->headers( $key ) );
+		$response = $this->request( 'GET', $this->base() . 'models', $this->headers( $key ) );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -86,6 +91,13 @@ class ChatGpt extends Provider {
 		$ordered = array_unique( array_merge( self::rank( $ids, '/^gpt-(\d+(?:\.\d+)?)-mini(?:-\d{4}-\d{2}-\d{2})?$/' ), self::rank( $ids, '/^gpt-(\d+(?:\.\d+)?)(?:-\d{4}-\d{2}-\d{2})?$/' ), $ids ) );
 
 		return array_combine( $ordered, $ordered );
+	}
+
+	/**
+	 * Strict structured output wants every property in the answer, so the whole button comes back each time.
+	 */
+	public function patches(): bool {
+		return false;
 	}
 
 	/**
@@ -124,10 +136,47 @@ class ChatGpt extends Provider {
 					'schema' => self::strict( $schema ),
 				),
 			),
-			'max_completion_tokens' => static::MAX_TOKENS,
+			'max_completion_tokens' => $this->answer,
 		);
 
-		// Reasoning models take the thinking setting but no temperature; older ones the other way round.
+		$body = $this->tune( $body, $model );
+
+		$response = $this->request( 'POST', $this->base() . 'chat/completions', $this->headers( $key ), $body );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$choice = is_array( $response['choices'][0] ?? null ) ? $response['choices'][0] : array();
+
+		if ( is_string( $choice['message']['refusal'] ?? null ) && '' !== $choice['message']['refusal'] ) {
+			return new WP_Error(
+				'iftp_btn_ai_refused',
+				sprintf(
+					/* translators: %s: the AI provider, e.g. ChatGPT */
+					__( '%s would not answer that. Try saying it another way.', 'ifthenpay-pay-button' ),
+					$this->label()
+				)
+			);
+		}
+
+		if ( 'length' === ( $choice['finish_reason'] ?? '' ) || ! is_string( $choice['message']['content'] ?? null ) ) {
+			return $this->cut_off();
+		}
+
+		return $this->decode_text( $choice['message']['content'] );
+	}
+
+	/**
+	 * Adds what the model takes for thinking and creativity to the request.
+	 *
+	 * Reasoning models take the thinking setting but no temperature; older ones the other way round.
+	 *
+	 * @param array<string, mixed> $body  The request.
+	 * @param string               $model The model id.
+	 * @return array<string, mixed>
+	 */
+	protected function tune( array $body, string $model ): array {
 		if ( 1 === preg_match( '/^(o\d|gpt-([5-9]|\d{2}))/', $model ) ) {
 			$efforts                  = array(
 				'quick'    => 'low',
@@ -139,23 +188,7 @@ class ChatGpt extends Provider {
 			$body['temperature'] = $this->temperature;
 		}
 
-		$response = $this->request( 'POST', self::BASE . 'chat/completions', $this->headers( $key ), $body );
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$choice = is_array( $response['choices'][0] ?? null ) ? $response['choices'][0] : array();
-
-		if ( is_string( $choice['message']['refusal'] ?? null ) && '' !== $choice['message']['refusal'] ) {
-			return new WP_Error( 'iftp_btn_ai_refused', __( 'ChatGPT would not answer that. Try saying it another way.', 'ifthenpay-pay-button' ) );
-		}
-
-		if ( 'length' === ( $choice['finish_reason'] ?? '' ) || ! is_string( $choice['message']['content'] ?? null ) ) {
-			return $this->cut_off();
-		}
-
-		return $this->decode_text( $choice['message']['content'] );
+		return $body;
 	}
 
 	/**
@@ -164,7 +197,7 @@ class ChatGpt extends Provider {
 	 * @param string $key The API key.
 	 * @return array<string, string>
 	 */
-	private function headers( string $key ): array {
+	protected function headers( string $key ): array {
 		return array( 'Authorization' => 'Bearer ' . $key );
 	}
 

@@ -27,7 +27,7 @@ body.iftp-btn-screen {
 body.iftp-btn-screen .iftp-btn-btn--ai {
 	border: 1.5px solid transparent;
 	background:
-		linear-gradient(var(--iftp-raised), var(--iftp-raised)) padding-box,
+		linear-gradient(var(--iftp-raised-solid), var(--iftp-raised-solid)) padding-box,
 		var(--iftp-ai-grad) border-box;
 	color: var(--iftp-ink);
 	box-shadow: var(--iftp-shadow-1);
@@ -80,7 +80,18 @@ body.iftp-btn-screen .iftp-btn-btn--ai:hover {
 }
 
 .iftp-btn-studio__chat {
+	position: relative;
+	flex-direction: row;
 	overflow: hidden;
+}
+
+/* The conversation: everything that was the chat's column before the list of chats joined it. */
+.iftp-btn-studio__convo {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -315,7 +326,7 @@ body.iftp-btn-screen .iftp-btn-btn--ai:hover {
 .iftp-btn-studio__composer:focus-within {
 	border-color: transparent;
 	background:
-		linear-gradient(var(--iftp-raised), var(--iftp-raised)) padding-box,
+		linear-gradient(var(--iftp-raised-solid), var(--iftp-raised-solid)) padding-box,
 		var(--iftp-ai-grad) border-box;
 	box-shadow: 0 8px 24px -12px rgb(109 74 224 / 45%);
 }
@@ -383,6 +394,368 @@ body.iftp-btn-screen .iftp-btn-studio__composer textarea.iftp-btn-studio__input:
 .iftp-btn-studio__fine [data-iftp-studio-model] {
 	color: var(--iftp-muted);
 	font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Chats: a rail beside the conversation on wide screens, a panel over it on narrower ones
+   -------------------------------------------------------------------------- */
+.iftp-btn-studio__history {
+	position: absolute;
+	z-index: 6;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 16px 12px 12px;
+	background: var(--iftp-raised);
+	transform: translateX(-102%);
+	visibility: hidden;
+	transition: transform var(--iftp-mid) var(--iftp-ease), visibility 0s linear var(--iftp-mid);
+}
+
+.iftp-btn-studio.is-history-open .iftp-btn-studio__history {
+	transform: none;
+	visibility: visible;
+	transition: transform var(--iftp-mid) var(--iftp-ease);
+}
+
+.iftp-btn-studio__history-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 6px;
+}
+
+.iftp-btn-studio__history-title {
+	margin: 0;
+	padding: 0;
+	color: var(--iftp-ink);
+	font-size: 15px;
+	font-weight: 700;
+}
+
+.iftp-btn-studio__history-close,
+.iftp-btn-studio__chats-toggle,
+.iftp-btn-studio__chat-action {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	border: 0;
+	background: none;
+	color: var(--iftp-muted);
+	font: inherit;
+	cursor: pointer;
+}
+
+.iftp-btn-studio__history-close {
+	padding: 6px;
+	border-radius: var(--iftp-r-sm);
+}
+
+.iftp-btn-studio__newchat {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 10px 12px;
+	border: 1.5px dashed rgb(109 74 224 / 40%);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-ai-tint);
+	color: var(--iftp-ink);
+	font: inherit;
+	font-size: 13.5px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), transform var(--iftp-mid) var(--iftp-spring);
+}
+
+.iftp-btn-studio__newchat:hover {
+	border-color: rgb(109 74 224 / 70%);
+	transform: translateY(-1px);
+}
+
+.iftp-btn-studio__chats {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 2px;
+	min-height: 0;
+	margin: 0;
+	padding: 0 0 4px;
+	list-style: none;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.iftp-btn-studio__chat-item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	margin: 0;
+	border-radius: var(--iftp-r-sm);
+	transition: background-color var(--iftp-fast) var(--iftp-ease);
+}
+
+.iftp-btn-studio__chat-item:hover,
+.iftp-btn-studio__chat-item:focus-within {
+	background: rgb(18 26 44 / 5%);
+}
+
+.iftp-btn-studio__chat-item.is-current {
+	background: var(--iftp-ai-tint);
+	box-shadow: inset 0 0 0 1px rgb(109 74 224 / 18%);
+}
+
+.iftp-btn-studio__chat-open {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+	padding: 9px 10px;
+	border: 0;
+	border-radius: var(--iftp-r-sm);
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+span.iftp-btn-studio__chat-open {
+	cursor: default;
+}
+
+.iftp-btn-studio__chat-open:focus-visible,
+.iftp-btn-studio__chat-action:focus-visible,
+.iftp-btn-studio__newchat:focus-visible,
+.iftp-btn-studio__history-close:focus-visible,
+.iftp-btn-studio__chats-toggle:focus-visible,
+.iftp-btn-studio__chat-rename:focus-visible {
+	outline: none;
+	box-shadow: var(--iftp-ring);
+}
+
+.iftp-btn-studio__chat-name {
+	overflow: hidden;
+	color: var(--iftp-ink);
+	font-size: 13.5px;
+	font-weight: 600;
+	line-height: 1.3;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.iftp-btn-studio__chat-meta {
+	display: flex;
+	gap: 6px;
+	min-width: 0;
+	color: var(--iftp-faint);
+	font-size: 11.5px;
+	white-space: nowrap;
+}
+
+.iftp-btn-studio__chat-sub {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.iftp-btn-studio__chat-when {
+	flex: none;
+}
+
+/* On top of the row's end, so names get the whole width until the row is hovered. */
+.iftp-btn-studio__chat-actions {
+	position: absolute;
+	top: 50%;
+	right: 4px;
+	display: flex;
+	gap: 2px;
+	padding: 2px;
+	border-radius: var(--iftp-r-sm);
+	background: var(--iftp-raised);
+	box-shadow: 0 0 0 1px var(--iftp-line);
+	opacity: 0;
+	transform: translateY(-50%);
+	transition: opacity var(--iftp-fast) var(--iftp-ease);
+}
+
+.iftp-btn-studio__chat-item:hover .iftp-btn-studio__chat-actions,
+.iftp-btn-studio__chat-item:focus-within .iftp-btn-studio__chat-actions {
+	opacity: 1;
+}
+
+/* No hover on a touch screen: the actions stay in reach. */
+@media (hover: none) {
+
+	.iftp-btn-studio__chat-actions {
+		opacity: 1;
+	}
+}
+
+.iftp-btn-studio__chat-action {
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: var(--iftp-r-xs);
+}
+
+.iftp-btn-studio__chat-action:hover {
+	background: rgb(18 26 44 / 8%);
+	color: var(--iftp-ink);
+}
+
+.iftp-btn-studio__chat-action--delete:hover {
+	background: var(--iftp-failed-bg);
+	color: var(--iftp-failed);
+}
+
+.iftp-btn-studio__chat-rename {
+	flex: 1;
+	min-width: 0;
+	margin: 6px 8px;
+	padding: 6px 8px;
+	border: 1.5px solid rgb(109 74 224 / 50%);
+	border-radius: var(--iftp-r-xs);
+	background: var(--iftp-inset);
+	color: var(--iftp-ink);
+	font: inherit;
+	font-size: 13.5px;
+	font-weight: 600;
+}
+
+.iftp-btn-studio__chat-empty {
+	margin: 0;
+	padding: 14px 10px;
+	color: var(--iftp-faint);
+	font-size: 12.5px;
+	line-height: 1.5;
+}
+
+.iftp-btn-studio__history-fine {
+	margin: 0;
+	padding: 0 8px;
+	color: var(--iftp-faint);
+	font-size: 11.5px;
+}
+
+/* While an answer is on its way, the list waits. */
+.iftp-btn-studio.is-busy .iftp-btn-studio__chat-item:not(.is-current),
+.iftp-btn-studio.is-busy .iftp-btn-studio__newchat {
+	opacity: 0.55;
+}
+
+/* The bar over the conversation: the list's toggle and the chat's name. */
+.iftp-btn-studio__bar {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 10px;
+	min-height: 46px;
+	padding: 8px 14px;
+	border-bottom: 1px solid var(--iftp-line);
+}
+
+.iftp-btn-studio__chats-toggle {
+	flex: none;
+	padding: 6px 10px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-pill);
+	color: var(--iftp-ink-2);
+	font-size: 12.5px;
+	font-weight: 600;
+}
+
+.iftp-btn-studio__chats-toggle:hover {
+	border-color: rgb(109 74 224 / 45%);
+	background: #f6f4ff;
+}
+
+.iftp-btn-studio__bar-title {
+	overflow: hidden;
+	min-width: 0;
+	color: var(--iftp-muted);
+	font-size: 12.5px;
+	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Room for the rail: it sits beside the conversation, always open. */
+@media (min-width: 1480px) {
+
+	.iftp-btn-studio__grid {
+		grid-template-columns: minmax(600px, 680px) minmax(0, 1fr);
+	}
+
+	.iftp-btn-studio__history {
+		position: static;
+		flex: 0 0 236px;
+		width: 236px;
+		min-width: 0;
+		overflow: hidden;
+		border-right: 1px solid var(--iftp-line);
+		background: var(--iftp-surface);
+		transform: none;
+		visibility: visible;
+		transition: none;
+	}
+
+	.iftp-btn-studio__history-close,
+	.iftp-btn-studio__chats-toggle {
+		display: none;
+	}
+
+	.iftp-btn-studio .iftp-btn-studio__history-collapse {
+		display: inline-flex;
+	}
+
+	/* Collapsed: a slim strip with the two things that matter, and the conversation takes the room. */
+	.iftp-btn-studio.is-rail-collapsed .iftp-btn-studio__history {
+		flex-basis: 56px;
+		align-items: center;
+		width: 56px;
+		padding: 16px 8px 12px;
+	}
+
+	.iftp-btn-studio.is-rail-collapsed .iftp-btn-studio__history-title,
+	.iftp-btn-studio.is-rail-collapsed .iftp-btn-studio__chats,
+	.iftp-btn-studio.is-rail-collapsed .iftp-btn-studio__history-fine,
+	.iftp-btn-studio.is-rail-collapsed .iftp-btn-studio__newchat-text {
+		display: none;
+	}
+
+	.iftp-btn-studio.is-rail-collapsed .iftp-btn-studio__history-head {
+		padding: 0;
+	}
+
+	.iftp-btn-studio.is-rail-collapsed .iftp-btn-studio__newchat {
+		width: 40px;
+		height: 40px;
+		padding: 0;
+		border-radius: 50%;
+	}
+}
+
+.iftp-btn-studio__history-collapse {
+	display: none;
+	padding: 6px;
+	border: 0;
+	border-radius: var(--iftp-r-sm);
+	background: none;
+	color: var(--iftp-muted);
+	cursor: pointer;
+}
+
+.iftp-btn-studio__history-collapse:hover {
+	background: rgb(18 26 44 / 8%);
+	color: var(--iftp-ink);
+}
+
+.iftp-btn-studio__history-collapse:focus-visible {
+	outline: none;
+	box-shadow: var(--iftp-ring);
 }
 
 /* --------------------------------------------------------------------------
@@ -456,16 +829,6 @@ body.iftp-btn-screen .iftp-btn-studio__composer textarea.iftp-btn-studio__input:
 	background: var(--iftp-raised);
 	color: var(--iftp-ink);
 	box-shadow: var(--iftp-shadow-1);
-}
-
-.iftp-btn-studio__button {
-	display: flex;
-	align-items: center;
-	min-width: 0;
-}
-
-.iftp-btn-studio__button .iftp-btn-pay {
-	margin: 0;
 }
 
 .iftp-btn-studio__frame {
@@ -875,7 +1238,7 @@ body.iftp-btn-screen .iftp-btn-studio__composer textarea.iftp-btn-studio__input:
 	border: 1.5px solid transparent;
 	border-radius: var(--iftp-r-xl);
 	background:
-		linear-gradient(var(--iftp-raised), var(--iftp-raised)) padding-box,
+		linear-gradient(var(--iftp-raised-solid), var(--iftp-raised-solid)) padding-box,
 		var(--iftp-ai-grad) border-box;
 	box-shadow: var(--iftp-shadow-3);
 }

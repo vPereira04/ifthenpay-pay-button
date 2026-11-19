@@ -21,13 +21,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  * A handful of base choices (colours, corners, field style, width, backdrop) that become CSS variables over
  * checkout.css's tokens; the shades in between are mixed in CSS from these. Then the merchant's own CSS, last.
  *
- * @phpstan-type Look array{accent: string, accent_text: string, surface: string, ink: string, radius: int, field_radius: int, fields: string, frame: string, font: string, width: string, backdrop: string, paid: string, pending: string, failed: string, popup_icon: string, popup_align: string, steps: string, logos: bool, secure: bool, pay_bg: string, pay_color: string, pay_image: int, pay_dim: int, pay_logo: bool, pay_back: bool, pay_grad: string, pay_color2: string, pay_fx: string, pay_fx_size: int, pay_fx_strength: int, pay_fx_still: bool, pay_blur_type: string, pay_blur: int, pay_video_src: string, pay_video: int, pay_video_url: string, pay_video_blur: int, pay_video_loop: string, pay_video_start: int, pay_video_end: int, card_opacity: int, card_blur: int, dark: string, dark_surface: string, dark_ink: string, dark_accent: string, scene: bool, css: string}
+ * @phpstan-type Look array{accent: string, accent_text: string, surface: string, ink: string, radius: int, field_radius: int, fields: string, frame: string, card_skin: string, card_skin_strength: int, font: string, width: string, backdrop: string, anim: string, paid: string, pending: string, failed: string, popup_icon: string, popup_align: string, steps: string, logos: bool, secure: bool, pay_bg: string, pay_color: string, pay_image: int, pay_dim: int, pay_logo: bool, pay_mark: string, pay_mark_id: int, pay_mark_place: string, pay_mark_size: int, pay_back: bool, pay_grad: string, pay_color2: string, pay_fx: string, pay_fx_size: int, pay_fx_strength: int, pay_fx_still: bool, pay_blur_type: string, pay_blur: int, pay_video_src: string, pay_video: int, pay_video_url: string, pay_video_blur: int, pay_video_loop: string, pay_video_start: int, pay_video_end: int, card_opacity: int, card_blur: int, dark: string, dark_surface: string, dark_ink: string, dark_accent: string, scene: bool, css: string}
  */
 class CheckoutLook {
 
-	public const FIELD_STYLES = array( 'outline', 'soft', 'underline' );
-	public const FRAMES       = array( 'none', 'hairline', 'gilded' );
-	public const FONTS        = array( 'system', 'theme' );
+	public const FIELD_STYLES = array( 'outline', 'soft', 'underline', 'pixel', 'well', 'stamp', 'marker', 'doily' );
+	public const FRAMES       = array( 'none', 'hairline', 'gilded', 'pixel', 'matte', 'glow', 'long', 'awning' );
+	public const CARD_SKINS   = array( 'none', 'dots', 'notebook', 'graph', 'polka', 'corner', 'pizzeria' );
+	public const MARK_SRCS    = array( 'site', 'image' );
+	public const MARK_PLACES  = array( 'above', 'inside' );
+	public const FONTS        = array( 'system', 'theme', 'inter', 'outfit', 'grotesk', 'playfair', 'mono', 'pixelify', 'silkscreen', 'vt323', 'press-start', 'fredoka', 'pacifico', 'chewy' );
+
+	// The bundled fonts' stacks (assets/fonts, declared in checkout.css). 'system' and 'theme' aren't here.
+	public const FONT_STACKS  = array(
+		'inter'       => '"Iftp Inter", -apple-system, "Segoe UI", sans-serif',
+		'outfit'      => '"Iftp Outfit", -apple-system, "Segoe UI", sans-serif',
+		'grotesk'     => '"Iftp Space Grotesk", -apple-system, "Segoe UI", sans-serif',
+		'playfair'    => '"Iftp Playfair Display", Georgia, "Times New Roman", serif',
+		'mono'        => '"Iftp Space Mono", ui-monospace, Menlo, Consolas, monospace',
+		'pixelify'    => '"Iftp Pixelify Sans", ui-monospace, Menlo, Consolas, monospace',
+		'silkscreen'  => '"Iftp Silkscreen", ui-monospace, Menlo, Consolas, monospace',
+		'vt323'       => '"Iftp VT323", ui-monospace, Menlo, Consolas, monospace',
+		'press-start' => '"Iftp Press Start 2P", ui-monospace, Menlo, Consolas, monospace',
+		'fredoka'     => '"Iftp Fredoka", "Segoe UI Rounded", -apple-system, "Segoe UI", sans-serif',
+		'pacifico'    => '"Iftp Pacifico", "Brush Script MT", cursive',
+		'chewy'       => '"Iftp Chewy", "Comic Sans MS", cursive',
+	);
 	public const WIDTHS       = array(
 		'compact' => 400,
 		'regular' => 440,
@@ -36,55 +55,16 @@ class CheckoutLook {
 	public const BACKDROPS    = array( 'blur', 'dim', 'light' );
 	public const POPUP_ICONS  = array( 'soft', 'solid' );
 	public const POPUP_ALIGNS = array( 'center', 'left' );
-	public const STEP_STYLES  = array( 'bars', 'labels', 'line', 'numbers', 'dots', 'ring', 'text', 'chevrons', 'stairs', 'pills', 'counter', 'gauge' );
+	public const STEP_STYLES  = array( 'bars', 'labels', 'line', 'numbers', 'dots', 'ring', 'text', 'chevrons', 'stairs', 'pills', 'counter', 'gauge', 'pixel', 'donuts', 'pizza' );
 	public const PAY_BGS      = array( 'glow', 'plain', 'gradient', 'image', 'video' );
 	public const PAY_GRADS    = array( 'soft', 'aurora', 'diagonal' );
-	public const PAY_FX       = array( 'none', 'crystals', 'waves', 'bokeh', 'grain', 'dots', 'grid', 'stripes', 'rings', 'liquid', 'mesh', 'tide', 'gilt', 'rays', 'spotlight', 'starlight', 'satin', 'confetti' );
+	public const PAY_FX       = array( 'none', 'crystals', 'waves', 'bokeh', 'grain', 'dots', 'grid', 'stripes', 'rings', 'liquid', 'mesh', 'tide', 'gilt', 'rays', 'spotlight', 'starlight', 'satin', 'confetti', 'hexagons', 'diamonds', 'scales', 'chevrons', 'bubbles', 'fireflies', 'pixels', 'sprinkles', 'pizza', 'gingham', 'pitch', 'court', 'track', 'code', 'diner', 'ecg', 'waveform', 'sky' );
+	public const ANIMS        = array( 'grow', 'rise', 'slide', 'zoom', 'blur', 'drawer', 'voxel', 'waves', 'shutter', 'curtain', 'iris', 'ripple', 'pixelate', 'shatter', 'stripes', 'confetti', 'none' );
 	public const PAY_BLURS    = array( 'none', 'soft', 'frosted', 'tilt', 'vignette' );
 	public const VIDEO_SRCS   = array( 'file', 'link' );
 	public const VIDEO_TYPES  = array( 'video/mp4', 'video/webm' );
 	public const VIDEO_LOOPS  = array( 'all', 'part' );
 	public const DARK_MODES   = array( 'off', 'auto' );
-
-	// The colours that change in dark mode; checkout.css swaps each for its --iftp-dark-* twin.
-	public const DARK_VARS = array( '--iftp-brand', '--iftp-on-brand', '--iftp-surface', '--iftp-ink', '--iftp-card-bg', '--iftp-chip-bg', '--iftp-logo-filter', '--iftp-page-bg', '--iftp-page-glow', '--iftp-page-glow2', '--iftp-page-orb', '--iftp-page-orb2' );
-
-	// The generated patterns repeat every this many facets (or wave spacings) each way.
-	public const CRYSTAL_CELLS = 6;
-
-	// Lines in one wave tile, and lights in one bokeh tile.
-	private const WAVE_LINES   = 12;
-	private const BOKEH_LIGHTS = 22;
-
-	// The liquid's blobs: centre, radius, how far it drifts each way, seconds a round trip, accent (0) or second (1).
-	private const LIQUID_BLOBS = array(
-		array( 180, 220, 90, 140, 90, 19, 0 ),
-		array( 420, 140, 68, -110, 120, 23, 1 ),
-		array( 760, 260, 105, -130, 100, 21, 0 ),
-		array( 860, 640, 83, -90, -140, 25, 1 ),
-		array( 560, 820, 113, 120, -90, 17, 0 ),
-		array( 200, 700, 98, 110, -120, 24, 1 ),
-		array( 500, 480, 60, -160, -60, 15, 0 ),
-		array( 680, 520, 53, 140, 110, 20, 1 ),
-		array( 320, 460, 45, 80, 140, 18, 0 ),
-	);
-
-	// The mesh's clouds: centre, radius, how far it drifts each way, seconds a round trip, accent (0), second (1) or white (2).
-	private const MESH_CLOUDS = array(
-		array( 200, 250, 320, 260, 180, 26, 0 ),
-		array( 800, 200, 300, -240, 220, 31, 1 ),
-		array( 700, 800, 340, -200, -240, 29, 0 ),
-		array( 250, 780, 280, 240, -200, 34, 1 ),
-		array( 520, 480, 220, -180, 160, 23, 2 ),
-	);
-
-	// The tide's waves, back to front: baseline, height, length, seconds a wavelength, accent (0) or second (1), opacity %.
-	private const TIDE_LAYERS = array(
-		array( 620, 40, 500, 16, 1, 30 ),
-		array( 700, 50, 640, 12, 0, 38 ),
-		array( 780, 36, 420, 10, 1, 48 ),
-		array( 860, 46, 520, 8, 0, 60 ),
-	);
 
 	public const MAX_RADIUS       = 32;
 	public const MAX_FIELD_RADIUS = 24;
@@ -99,54 +79,61 @@ class CheckoutLook {
 	 */
 	public static function defaults(): array {
 		return array(
-			'accent'          => '#00609c',
-			'accent_text'     => '',
-			'surface'         => '#fdfdfe',
-			'ink'             => '#121a2c',
-			'radius'          => 20,
-			'field_radius'    => 10,
-			'fields'          => 'outline',
-			'frame'           => 'none',
-			'font'            => 'system',
-			'width'           => 'regular',
-			'backdrop'        => 'blur',
-			'paid'            => '#0b6b35',
-			'pending'         => '#8a5300',
-			'failed'          => '#a3201f',
-			'popup_icon'      => 'soft',
-			'popup_align'     => 'center',
-			'steps'           => 'bars',
-			'logos'           => true,
-			'secure'          => true,
-			'pay_bg'          => 'glow',
-			'pay_color'       => '',
-			'pay_image'       => 0,
-			'pay_dim'         => 35,
-			'pay_logo'        => false,
-			'pay_back'        => true,
-			'pay_grad'        => 'soft',
-			'pay_color2'      => '',
-			'pay_fx'          => 'none',
-			'pay_fx_size'     => 140,
-			'pay_fx_strength' => 50,
-			'pay_fx_still'    => true,
-			'pay_blur_type'   => 'none',
-			'pay_blur'        => 12,
-			'pay_video_src'   => 'file',
-			'pay_video'       => 0,
-			'pay_video_url'   => '',
-			'pay_video_blur'  => 0,
-			'pay_video_loop'  => 'all',
-			'pay_video_start' => 0,
-			'pay_video_end'   => 0,
-			'card_opacity'    => 100,
-			'card_blur'       => 16,
-			'dark'            => 'off',
-			'dark_surface'    => '#131a2a',
-			'dark_ink'        => '#eef2f8',
-			'dark_accent'     => '',
-			'scene'           => true,
-			'css'             => '',
+			'accent'             => '#00609c',
+			'accent_text'        => '',
+			'surface'            => '#fdfdfe',
+			'ink'                => '#121a2c',
+			'radius'             => 14,
+			'field_radius'       => 6,
+			'fields'             => 'outline',
+			'frame'              => 'none',
+			'card_skin'          => 'none',
+			'card_skin_strength' => 50,
+			'font'               => 'system',
+			'width'              => 'regular',
+			'backdrop'           => 'blur',
+			'anim'               => 'grow',
+			'paid'               => '#0b6b35',
+			'pending'            => '#8a5300',
+			'failed'             => '#a3201f',
+			'popup_icon'         => 'soft',
+			'popup_align'        => 'center',
+			'steps'              => 'bars',
+			'logos'              => true,
+			'secure'             => true,
+			'pay_bg'             => 'glow',
+			'pay_color'          => '',
+			'pay_image'          => 0,
+			'pay_dim'            => 35,
+			'pay_logo'           => false,
+			'pay_mark'           => 'site',
+			'pay_mark_id'        => 0,
+			'pay_mark_place'     => 'above',
+			'pay_mark_size'      => 160,
+			'pay_back'           => true,
+			'pay_grad'           => 'soft',
+			'pay_color2'         => '',
+			'pay_fx'             => 'none',
+			'pay_fx_size'        => 140,
+			'pay_fx_strength'    => 50,
+			'pay_fx_still'       => true,
+			'pay_blur_type'      => 'none',
+			'pay_blur'           => 12,
+			'pay_video_src'      => 'file',
+			'pay_video'          => 0,
+			'pay_video_url'      => '',
+			'pay_video_blur'     => 0,
+			'pay_video_loop'     => 'all',
+			'pay_video_start'    => 0,
+			'pay_video_end'      => 0,
+			'card_opacity'       => 100,
+			'card_blur'          => 16,
+			'dark'               => 'off',
+			'dark_surface'       => '#131a2a',
+			'dark_ink'           => '#eef2f8',
+			'dark_accent'        => '',
+			'scene'              => true,
+			'css'                => '',
 		);
 	}
 
@@ -160,6 +147,7 @@ class CheckoutLook {
 	public static function presets(): array {
 		$base = array(
 			'frame'           => 'none',
+			'font'            => 'system',
 			'pay_bg'          => 'glow',
 			'pay_grad'        => 'soft',
 			'pay_color'       => '',
@@ -173,17 +161,17 @@ class CheckoutLook {
 		);
 
 		$presets = array(
-			'ifthenpay' => array(
+			'ifthenpay'  => array(
 				'label'        => __( 'ifthenpay', 'ifthenpay-pay-button' ),
 				'accent'       => '#00609c',
 				'surface'      => '#fdfdfe',
 				'ink'          => '#121a2c',
-				'radius'       => 20,
-				'field_radius' => 10,
+				'radius'       => 14,
+				'field_radius' => 6,
 				'fields'       => 'outline',
 				'pay_color2'   => '#00a7e2',
 			),
-			'midnight'  => array(
+			'midnight'   => array(
 				'label'           => __( 'Midnight', 'ifthenpay-pay-button' ),
 				'accent'          => '#7cc4ff',
 				'surface'         => '#141c2f',
@@ -201,7 +189,7 @@ class CheckoutLook {
 				'card_opacity'    => 84,
 				'card_blur'       => 18,
 			),
-			'paper'     => array(
+			'paper'      => array(
 				'label'           => __( 'Paper', 'ifthenpay-pay-button' ),
 				'accent'          => '#1f1f1f',
 				'surface'         => '#fbfaf7',
@@ -215,7 +203,7 @@ class CheckoutLook {
 				'pay_fx_size'     => 160,
 				'pay_fx_strength' => 45,
 			),
-			'meadow'    => array(
+			'meadow'     => array(
 				'label'           => __( 'Meadow', 'ifthenpay-pay-button' ),
 				'accent'          => '#0b6b35',
 				'surface'         => '#fbfdfb',
@@ -230,7 +218,7 @@ class CheckoutLook {
 				'pay_fx_size'     => 170,
 				'pay_fx_strength' => 35,
 			),
-			'ocean'     => array(
+			'ocean'      => array(
 				'label'           => __( 'Ocean', 'ifthenpay-pay-button' ),
 				'accent'          => '#0077b6',
 				'surface'         => '#f7fbfd',
@@ -248,7 +236,7 @@ class CheckoutLook {
 				'card_opacity'    => 88,
 				'card_blur'       => 16,
 			),
-			'sunset'    => array(
+			'sunset'     => array(
 				'label'        => __( 'Sunset', 'ifthenpay-pay-button' ),
 				'accent'       => '#e4505b',
 				'surface'      => '#fffaf6',
@@ -263,7 +251,7 @@ class CheckoutLook {
 				'card_opacity' => 92,
 				'card_blur'    => 14,
 			),
-			'prism'     => array(
+			'prism'      => array(
 				'label'           => __( 'Prism', 'ifthenpay-pay-button' ),
 				'accent'          => '#5b5bd6',
 				'surface'         => '#ffffff',
@@ -278,10 +266,11 @@ class CheckoutLook {
 				'pay_fx'          => 'crystals',
 				'pay_fx_size'     => 140,
 				'pay_fx_strength' => 55,
+				'pay_fx_still'    => false,
 				'card_opacity'    => 72,
 				'card_blur'       => 20,
 			),
-			'blossom'   => array(
+			'blossom'    => array(
 				'label'           => __( 'Blossom', 'ifthenpay-pay-button' ),
 				'accent'          => '#c93f7d',
 				'surface'         => '#fffafc',
@@ -297,7 +286,7 @@ class CheckoutLook {
 				'card_opacity'    => 90,
 				'card_blur'       => 14,
 			),
-			'neon'      => array(
+			'neon'       => array(
 				'label'           => __( 'Neon', 'ifthenpay-pay-button' ),
 				'accent'          => '#22d3ee',
 				'surface'         => '#0f1424',
@@ -315,7 +304,7 @@ class CheckoutLook {
 				'card_opacity'    => 80,
 				'card_blur'       => 18,
 			),
-			'noir'      => array(
+			'noir'       => array(
 				'label'           => __( 'Noir', 'ifthenpay-pay-button' ),
 				'accent'          => '#e8b931',
 				'surface'         => '#131313',
@@ -329,7 +318,7 @@ class CheckoutLook {
 				'pay_fx_size'     => 140,
 				'pay_fx_strength' => 30,
 			),
-			'latte'     => array(
+			'latte'      => array(
 				'label'           => __( 'Latte', 'ifthenpay-pay-button' ),
 				'accent'          => '#8b5e34',
 				'surface'         => '#fffdf9',
@@ -344,7 +333,109 @@ class CheckoutLook {
 				'pay_fx_size'     => 180,
 				'pay_fx_strength' => 30,
 			),
-			'premium'   => array(
+			'pixel'      => array(
+				'label'           => __( 'Pixel', 'ifthenpay-pay-button' ),
+				'accent'          => '#22c55e',
+				'accent_text'     => '#07130b',
+				'surface'         => '#1b1340',
+				'ink'             => '#f5f1ff',
+				'radius'          => 0,
+				'field_radius'    => 0,
+				'fields'          => 'pixel',
+				'frame'           => 'pixel',
+				'font'            => 'pixelify',
+				'steps'           => 'pixel',
+				'pay_bg'          => 'gradient',
+				'pay_grad'        => 'diagonal',
+				'pay_color'       => '#0f0a24',
+				'pay_color2'      => '#ff3d81',
+				'pay_fx'          => 'pixels',
+				'pay_fx_size'     => 120,
+				'pay_fx_strength' => 60,
+				'pay_fx_still'    => false,
+				'card_opacity'    => 100,
+			),
+			'terminal'   => array(
+				'label'           => __( 'Terminal', 'ifthenpay-pay-button' ),
+				'accent'          => '#4ade80',
+				'accent_text'     => '#04130a',
+				'surface'         => '#0a120d',
+				'ink'             => '#c8f7d6',
+				'radius'          => 2,
+				'field_radius'    => 0,
+				'fields'          => 'underline',
+				'frame'           => 'hairline',
+				'font'            => 'vt323',
+				'steps'           => 'counter',
+				'pay_bg'          => 'plain',
+				'pay_color'       => '#040806',
+				'pay_color2'      => '#4ade80',
+				'pay_fx'          => 'grid',
+				'pay_fx_size'     => 100,
+				'pay_fx_strength' => 45,
+				'pay_fx_still'    => false,
+				'card_opacity'    => 100,
+			),
+			'brutal'     => array(
+				'label'           => __( 'Brutal', 'ifthenpay-pay-button' ),
+				'accent'          => '#ffd60a',
+				'accent_text'     => '#111111',
+				'surface'         => '#fffdf5',
+				'ink'             => '#111111',
+				'radius'          => 0,
+				'field_radius'    => 0,
+				'fields'          => 'pixel',
+				'frame'           => 'pixel',
+				'font'            => 'grotesk',
+				'steps'           => 'labels',
+				'pay_bg'          => 'plain',
+				'pay_color'       => '#ff7ab8',
+				'pay_color2'      => '#111111',
+				'pay_fx'          => 'stripes',
+				'pay_fx_size'     => 90,
+				'pay_fx_strength' => 40,
+				'pay_fx_still'    => true,
+				'card_opacity'    => 100,
+			),
+			'editorial'  => array(
+				'label'           => __( 'Editorial', 'ifthenpay-pay-button' ),
+				'accent'          => '#7a1f2b',
+				'surface'         => '#fbf7ef',
+				'ink'             => '#231a14',
+				'radius'          => 4,
+				'field_radius'    => 0,
+				'fields'          => 'underline',
+				'frame'           => 'hairline',
+				'font'            => 'playfair',
+				'steps'           => 'labels',
+				'pay_bg'          => 'plain',
+				'pay_color'       => '#efe6d6',
+				'pay_color2'      => '#b08d57',
+				'pay_fx'          => 'grain',
+				'pay_fx_size'     => 180,
+				'pay_fx_strength' => 30,
+				'card_opacity'    => 100,
+			),
+			'typewriter' => array(
+				'label'           => __( 'Typewriter', 'ifthenpay-pay-button' ),
+				'accent'          => '#1f2937',
+				'surface'         => '#f6f0e1',
+				'ink'             => '#1f2937',
+				'radius'          => 3,
+				'field_radius'    => 2,
+				'fields'          => 'outline',
+				'frame'           => 'hairline',
+				'font'            => 'mono',
+				'steps'           => 'line',
+				'pay_bg'          => 'plain',
+				'pay_color'       => '#e4dac2',
+				'pay_color2'      => '#8a6d3b',
+				'pay_fx'          => 'dots',
+				'pay_fx_size'     => 110,
+				'pay_fx_strength' => 35,
+				'card_opacity'    => 100,
+			),
+			'premium'    => array(
 				'label'           => __( 'Premium', 'ifthenpay-pay-button' ),
 				'accent'          => '#c9a24a',
 				'accent_text'     => '#17130a',
@@ -365,7 +456,7 @@ class CheckoutLook {
 				'card_opacity'    => 92,
 				'card_blur'       => 18,
 			),
-			'emerald'   => array(
+			'emerald'    => array(
 				'label'           => __( 'Emerald', 'ifthenpay-pay-button' ),
 				'accent'          => '#3ddc97',
 				'surface'         => '#0f1f1a',
@@ -385,7 +476,7 @@ class CheckoutLook {
 				'card_opacity'    => 86,
 				'card_blur'       => 18,
 			),
-			'rose'      => array(
+			'rose'       => array(
 				'label'           => __( 'Rosé', 'ifthenpay-pay-button' ),
 				'accent'          => '#b5546b',
 				'surface'         => '#fffbfa',
@@ -403,7 +494,7 @@ class CheckoutLook {
 				'card_opacity'    => 90,
 				'card_blur'       => 16,
 			),
-			'slate'     => array(
+			'slate'      => array(
 				'label'           => __( 'Slate', 'ifthenpay-pay-button' ),
 				'accent'          => '#9ab4ff',
 				'surface'         => '#1b1f2a',
@@ -420,7 +511,7 @@ class CheckoutLook {
 				'card_opacity'    => 94,
 				'card_blur'       => 16,
 			),
-			'sunrise'   => array(
+			'sunrise'    => array(
 				'label'           => __( 'Sunrise', 'ifthenpay-pay-button' ),
 				'accent'          => '#d9480f',
 				'surface'         => '#fffcf7',
@@ -438,7 +529,7 @@ class CheckoutLook {
 				'card_opacity'    => 92,
 				'card_blur'       => 14,
 			),
-			'lavender'  => array(
+			'lavender'   => array(
 				'label'           => __( 'Lavender', 'ifthenpay-pay-button' ),
 				'accent'          => '#7c5cc4',
 				'surface'         => '#fdfcff',
@@ -457,9 +548,141 @@ class CheckoutLook {
 				'card_opacity'    => 80,
 				'card_blur'       => 20,
 			),
+			'honeycomb'  => array(
+				'label'           => __( 'Honeycomb', 'ifthenpay-pay-button' ),
+				'accent'          => '#b86e00',
+				'surface'         => '#fffdf7',
+				'ink'             => '#2a1d05',
+				'radius'          => 16,
+				'field_radius'    => 8,
+				'fields'          => 'outline',
+				'pay_bg'          => 'gradient',
+				'pay_grad'        => 'soft',
+				'pay_color'       => '#fdf3d8',
+				'pay_color2'      => '#f5b942',
+				'pay_fx'          => 'hexagons',
+				'pay_fx_size'     => 150,
+				'pay_fx_strength' => 60,
+				'pay_fx_still'    => false,
+				'card_opacity'    => 94,
+				'card_blur'       => 12,
+			),
+			'harlequin'  => array(
+				'label'           => __( 'Harlequin', 'ifthenpay-pay-button' ),
+				'accent'          => '#a3123f',
+				'surface'         => '#fffafb',
+				'ink'             => '#2b0d18',
+				'radius'          => 10,
+				'field_radius'    => 6,
+				'fields'          => 'underline',
+				'frame'           => 'hairline',
+				'pay_bg'          => 'plain',
+				'pay_color'       => '#f6e4e8',
+				'pay_fx'          => 'diamonds',
+				'pay_fx_size'     => 130,
+				'pay_fx_strength' => 55,
+				'card_opacity'    => 96,
+				'card_blur'       => 10,
+			),
+			'koi'        => array(
+				'label'           => __( 'Koi', 'ifthenpay-pay-button' ),
+				'accent'          => '#0f766e',
+				'surface'         => '#0c1d24',
+				'ink'             => '#e6f4f2',
+				'radius'          => 20,
+				'field_radius'    => 12,
+				'fields'          => 'soft',
+				'pay_bg'          => 'gradient',
+				'pay_grad'        => 'aurora',
+				'pay_color'       => '#05141a',
+				'pay_color2'      => '#f0803c',
+				'pay_fx'          => 'scales',
+				'pay_fx_size'     => 150,
+				'pay_fx_strength' => 55,
+				'pay_fx_still'    => false,
+				'card_opacity'    => 86,
+				'card_blur'       => 18,
+			),
+			'arrow'      => array(
+				'label'           => __( 'Arrow', 'ifthenpay-pay-button' ),
+				'accent'          => '#2563eb',
+				'surface'         => '#ffffff',
+				'ink'             => '#0f1a33',
+				'radius'          => 12,
+				'field_radius'    => 8,
+				'fields'          => 'outline',
+				'pay_bg'          => 'gradient',
+				'pay_grad'        => 'diagonal',
+				'pay_color'       => '#e8eefc',
+				'pay_color2'      => '#7aa2ff',
+				'pay_fx'          => 'chevrons',
+				'pay_fx_size'     => 160,
+				'pay_fx_strength' => 55,
+				'pay_fx_still'    => false,
+				'card_opacity'    => 92,
+				'card_blur'       => 14,
+			),
+			'soda'       => array(
+				'label'           => __( 'Soda', 'ifthenpay-pay-button' ),
+				'accent'          => '#0891b2',
+				'surface'         => '#fbfeff',
+				'ink'             => '#0a2630',
+				'radius'          => 30,
+				'field_radius'    => 18,
+				'fields'          => 'soft',
+				'pay_bg'          => 'gradient',
+				'pay_grad'        => 'aurora',
+				'pay_color'       => '#e2f6fb',
+				'pay_color2'      => '#5eead4',
+				'pay_fx'          => 'bubbles',
+				'pay_fx_size'     => 140,
+				'pay_fx_strength' => 65,
+				'pay_fx_still'    => false,
+				'card_opacity'    => 82,
+				'card_blur'       => 18,
+			),
+			'twilight'   => array(
+				'label'           => __( 'Twilight', 'ifthenpay-pay-button' ),
+				'accent'          => '#f2c14e',
+				'accent_text'     => '#1c1405',
+				'surface'         => '#141a2e',
+				'ink'             => '#f1efe6',
+				'radius'          => 22,
+				'field_radius'    => 12,
+				'fields'          => 'soft',
+				'pay_bg'          => 'gradient',
+				'pay_grad'        => 'aurora',
+				'pay_color'       => '#070b1a',
+				'pay_color2'      => '#f2c14e',
+				'pay_fx'          => 'fireflies',
+				'pay_fx_size'     => 130,
+				'pay_fx_strength' => 70,
+				'pay_fx_still'    => false,
+				'card_opacity'    => 84,
+				'card_blur'       => 18,
+			),
+			'lava'       => array(
+				'label'           => __( 'Lava', 'ifthenpay-pay-button' ),
+				'accent'          => '#ea580c',
+				'surface'         => '#fffaf5',
+				'ink'             => '#2a1208',
+				'radius'          => 26,
+				'field_radius'    => 14,
+				'fields'          => 'soft',
+				'pay_bg'          => 'gradient',
+				'pay_grad'        => 'aurora',
+				'pay_color'       => '#fff1e2',
+				'pay_color2'      => '#f43f5e',
+				'pay_fx'          => 'liquid',
+				'pay_fx_size'     => 160,
+				'pay_fx_strength' => 60,
+				'pay_fx_still'    => false,
+				'card_opacity'    => 88,
+				'card_blur'       => 16,
+			),
 		);
 
-		return array_map( static fn( array $preset ): array => $preset + $base, $presets );
+		return ButtonDesign::by_colour( array_map( static fn( array $preset ): array => $preset + $base, $presets ), 'accent' );
 	}
 
 	/**
@@ -471,6 +694,42 @@ class CheckoutLook {
 	 */
 	public static function for_button( ?Button $button, CheckoutSettings $settings ): array {
 		return null !== $button && Button::LOOK_OWN === $button->config['look_mode'] ? $button->config['look'] : $settings->get_look();
+	}
+
+	/**
+	 * The class that tells the checkout popup how to open and close.
+	 *
+	 * @param Look $look The look.
+	 */
+	public static function anim_class( array $look ): string {
+		return 'iftp-btn-anim--' . $look['anim'];
+	}
+
+	/**
+	 * What each opening is called, in the order they're offered.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function anim_options(): array {
+		return array(
+			'grow'     => __( 'Grow from the button', 'ifthenpay-pay-button' ),
+			'rise'     => __( 'Fade and rise', 'ifthenpay-pay-button' ),
+			'slide'    => __( 'Slide up', 'ifthenpay-pay-button' ),
+			'zoom'     => __( 'Zoom', 'ifthenpay-pay-button' ),
+			'blur'     => __( 'Blur focus', 'ifthenpay-pay-button' ),
+			'drawer'   => __( 'Side drawer', 'ifthenpay-pay-button' ),
+			'voxel'    => __( 'Voxel (breaking blocks)', 'ifthenpay-pay-button' ),
+			'waves'    => __( 'Waves from the sides', 'ifthenpay-pay-button' ),
+			'shutter'  => __( 'Shutter (flipping blinds)', 'ifthenpay-pay-button' ),
+			'curtain'  => __( 'Curtain (parts from the middle)', 'ifthenpay-pay-button' ),
+			'iris'     => __( 'Iris (a circle opens)', 'ifthenpay-pay-button' ),
+			'ripple'   => __( 'Ripple (rings spread out)', 'ifthenpay-pay-button' ),
+			'pixelate' => __( 'Pixel dissolve', 'ifthenpay-pay-button' ),
+			'shatter'  => __( 'Shatter (glass shards fall)', 'ifthenpay-pay-button' ),
+			'stripes'  => __( 'Stripes (bars sweep across)', 'ifthenpay-pay-button' ),
+			'confetti' => __( 'Confetti burst', 'ifthenpay-pay-button' ),
+			'none'     => __( 'None', 'ifthenpay-pay-button' ),
+		);
 	}
 
 	/**
@@ -514,14 +773,17 @@ class CheckoutLook {
 
 		$choice = static fn( string $key, array $allowed, string $fallback ): string => is_string( $input[ $key ] ?? null ) && in_array( $input[ $key ], $allowed, true ) ? $input[ $key ] : $fallback;
 
-		$look['fields']      = $choice( 'fields', self::FIELD_STYLES, $look['fields'] );
-		$look['frame']       = $choice( 'frame', self::FRAMES, $look['frame'] );
-		$look['font']        = $choice( 'font', self::FONTS, $look['font'] );
-		$look['width']       = $choice( 'width', array_keys( self::WIDTHS ), $look['width'] );
-		$look['backdrop']    = $choice( 'backdrop', self::BACKDROPS, $look['backdrop'] );
-		$look['popup_icon']  = $choice( 'popup_icon', self::POPUP_ICONS, $look['popup_icon'] );
-		$look['popup_align'] = $choice( 'popup_align', self::POPUP_ALIGNS, $look['popup_align'] );
-		$look['steps']       = $choice( 'steps', self::STEP_STYLES, $look['steps'] );
+		$look['fields']             = $choice( 'fields', self::FIELD_STYLES, $look['fields'] );
+		$look['frame']              = $choice( 'frame', self::FRAMES, $look['frame'] );
+		$look['card_skin']          = $choice( 'card_skin', self::CARD_SKINS, $look['card_skin'] );
+		$look['card_skin_strength'] = is_numeric( $input['card_skin_strength'] ?? null ) ? max( 0, min( 100, (int) $input['card_skin_strength'] ) ) : $look['card_skin_strength'];
+		$look['font']               = $choice( 'font', self::FONTS, $look['font'] );
+		$look['width']              = $choice( 'width', array_keys( self::WIDTHS ), $look['width'] );
+		$look['backdrop']           = $choice( 'backdrop', self::BACKDROPS, $look['backdrop'] );
+		$look['anim']               = $choice( 'anim', self::ANIMS, $look['anim'] );
+		$look['popup_icon']         = $choice( 'popup_icon', self::POPUP_ICONS, $look['popup_icon'] );
+		$look['popup_align']        = $choice( 'popup_align', self::POPUP_ALIGNS, $look['popup_align'] );
+		$look['steps']              = $choice( 'steps', self::STEP_STYLES, $look['steps'] );
 
 		$look['radius']       = is_numeric( $input['radius'] ?? null ) ? max( 0, min( self::MAX_RADIUS, (int) $input['radius'] ) ) : $look['radius'];
 		$look['field_radius'] = is_numeric( $input['field_radius'] ?? null ) ? max( 0, min( self::MAX_FIELD_RADIUS, (int) $input['field_radius'] ) ) : $look['field_radius'];
@@ -530,6 +792,16 @@ class CheckoutLook {
 		$look['pay_color'] = empty( $input['pay_color_auto'] ) && is_string( $input['pay_color'] ?? null ) ? ButtonDesign::hex( $input['pay_color'] ) : '';
 		$look['pay_image'] = is_numeric( $input['pay_image'] ?? null ) && wp_attachment_is_image( (int) $input['pay_image'] ) ? (int) $input['pay_image'] : 0;
 		$look['pay_dim']   = is_numeric( $input['pay_dim'] ?? null ) ? max( 0, min( 80, (int) $input['pay_dim'] ) ) : $look['pay_dim'];
+
+		// The picture above or in the card: the site's logo, or an image from the media library (no image means the logo).
+		$look['pay_mark']       = $choice( 'pay_mark', self::MARK_SRCS, $look['pay_mark'] );
+		$look['pay_mark_id']    = is_numeric( $input['pay_mark_id'] ?? null ) && wp_attachment_is_image( (int) $input['pay_mark_id'] ) ? (int) $input['pay_mark_id'] : 0;
+		$look['pay_mark_place'] = $choice( 'pay_mark_place', self::MARK_PLACES, $look['pay_mark_place'] );
+		$look['pay_mark_size']  = is_numeric( $input['pay_mark_size'] ?? null ) ? max( 40, min( 480, (int) $input['pay_mark_size'] ) ) : $look['pay_mark_size'];
+
+		if ( 'image' === $look['pay_mark'] && 0 === $look['pay_mark_id'] ) {
+			$look['pay_mark'] = 'site';
+		}
 
 		$look['pay_grad']        = $choice( 'pay_grad', self::PAY_GRADS, $look['pay_grad'] );
 		$look['pay_fx']          = $choice( 'pay_fx', self::PAY_FX, $look['pay_fx'] );
@@ -620,6 +892,11 @@ class CheckoutLook {
 			'outline'   => array( 'var(--iftp-chip-bg)', 'var(--iftp-line-strong)', '1px', $look['field_radius'] . 'px', '12px' ),
 			'soft'      => array( 'var(--iftp-inset)', 'transparent', '1px', $look['field_radius'] . 'px', '12px' ),
 			'underline' => array( 'transparent', 'var(--iftp-line-strong)', '0 0 1.5px', '0', '2px' ),
+			'pixel'     => array( 'var(--iftp-chip-bg)', 'var(--iftp-ink)', '3px', '0', '12px' ),
+			'well'      => array( 'var(--iftp-inset)', 'transparent', '1px', $look['field_radius'] . 'px', '14px', 'solid' ),
+			'stamp'     => array( 'transparent', 'var(--iftp-line-strong)', '2px', $look['field_radius'] . 'px', '12px', 'dashed' ),
+			'marker'    => array( 'var(--iftp-inset)', 'var(--iftp-brand)', '0 0 0 4px', '0 8px 8px 0', '14px' ),
+			'doily'     => array( 'radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--iftp-brand) 9%, var(--iftp-chip-bg)), var(--iftp-chip-bg) 78%)', 'color-mix(in srgb, var(--iftp-brand) 20%, var(--iftp-line-strong))', '1px', max( 10, $look['field_radius'] ) . 'px', '18px' ),
 		);
 		$field     = $fields[ $look['fields'] ];
 		$backdrops = array(
@@ -638,10 +915,55 @@ class CheckoutLook {
 				'0 0 0 1px color-mix(in srgb, var(--iftp-second) 28%, transparent)',
 				'0 22px 60px -22px color-mix(in srgb, var(--iftp-second) 55%, transparent)',
 			),
+			// A hard ink edge and a stepped drop shadow: no blur anywhere.
+			'pixel'    => array( 'inset 0 0 0 4px var(--iftp-ink)', '8px 8px 0 0 color-mix(in srgb, var(--iftp-ink) 35%, transparent)' ),
+			// A picture-frame mat: a tinted band just inside the edge, closed by a fine line.
+			'matte'    => array(
+				'inset 0 0 0 8px color-mix(in srgb, var(--iftp-brand) 9%, transparent)',
+				'inset 0 0 0 9px color-mix(in srgb, var(--iftp-brand) 35%, transparent)',
+			),
+			// A lit edge in the brand colour with a soft halo.
+			'glow'     => array(
+				'inset 0 0 0 1px color-mix(in srgb, var(--iftp-brand) 80%, transparent)',
+				'0 0 0 1px color-mix(in srgb, var(--iftp-brand) 40%, transparent)',
+				'0 0 26px 2px color-mix(in srgb, var(--iftp-brand) 45%, transparent)',
+			),
+			// The awning is drawn by a layer over the card's top (card_awning()); here only a fine line.
+			'awning'   => array( 'inset 0 0 0 1px color-mix(in srgb, var(--iftp-brand) 28%, transparent)' ),
+			// A flat long shadow running off the lower right, in four solid steps.
+			'long'     => array(
+				'3px 3px 0 0 %1$s',
+				'6px 6px 0 0 %1$s',
+				'9px 9px 0 0 %1$s',
+				'12px 12px 0 0 %1$s',
+			),
 		);
-		$ring  = array_merge( $edges[ $look['frame'] ], $glass && 'none' === $look['frame'] ? array( 'inset 0 0 0 1px rgb(255 255 255 / 22%)' ) : array() );
+		$edges['long'] = array_map( static fn( string $shadow ): string => sprintf( $shadow, 'color-mix(in srgb, var(--iftp-brand) 35%, var(--iftp-surface))' ), $edges['long'] );
+		// The button wears the same choices: the sharp pixel bevel, the fields' own touch, then the card edge's.
+		$sharp         = 'pixel' === $look['frame'] || 'pixel' === $look['fields'];
+		$field_bevels  = array(
+			'well'   => 'inset 0 -4px 0 0 rgb(0 0 0 / 24%), inset 0 2px 0 0 rgb(255 255 255 / 22%)',
+			'marker' => 'inset 6px 0 0 0 rgb(0 0 0 / 28%)',
+			'stamp'  => 'inset 0 0 0 3px var(--iftp-surface)',
+			'doily'  => 'inset 0 0 0 3px var(--iftp-brand), inset 0 0 0 4px color-mix(in srgb, var(--iftp-on-brand) 45%, transparent)',
+		);
+		$edge_bevels   = array(
+			'matte' => 'inset 0 0 0 2px color-mix(in srgb, var(--iftp-on-brand) 35%, transparent)',
+			'glow'  => '0 0 18px -2px color-mix(in srgb, var(--iftp-brand) 60%, transparent)',
+			'long'  => '3px 3px 0 0 color-mix(in srgb, var(--iftp-brand) 35%, var(--iftp-surface))',
+		);
+		$submit_bevel  = array_filter(
+			array(
+				$sharp ? 'inset -4px -4px 0 rgb(0 0 0 / 26%), inset 4px 4px 0 rgb(255 255 255 / 28%)' : ( $field_bevels[ $look['fields'] ] ?? '' ),
+				$edge_bevels[ $look['frame'] ] ?? '',
+			)
+		);
+		$submit_radius = 'marker' === $look['fields'] ? '0 8px 8px 0' : 'calc(var(--iftp-field-r) + 2px)';
+		$ring          = array_merge( $edges[ $look['frame'] ], $glass && 'none' === $look['frame'] ? array( 'inset 0 0 0 1px rgb(255 255 255 / 22%)' ) : array() );
 
-		return self::palette( $look ) + array(
+		$font = isset( self::FONT_STACKS[ $look['font'] ] ) ? array( '--iftp-font' => self::FONT_STACKS[ $look['font'] ] ) : array();
+
+		return $font + self::palette( $look ) + array(
 			'--iftp-paid'            => $look['paid'],
 			'--iftp-pending'         => $look['pending'],
 			'--iftp-failed'          => $look['failed'],
@@ -650,8 +972,16 @@ class CheckoutLook {
 			'--iftp-field-bg'        => $field[0],
 			'--iftp-field-bd'        => $field[1],
 			'--iftp-field-bw'        => $field[2],
+			'--iftp-field-bs'        => $field[5] ?? 'solid',
+			'--iftp-field-shadow'    => 'well' === $look['fields'] ? 'inset 0 2px 5px color-mix(in srgb, var(--iftp-ink) 22%, transparent)' : '0 0 0 0 transparent',
+			'--iftp-field-outline'   => 'doily' === $look['fields'] ? '1px dotted color-mix(in srgb, var(--iftp-brand) 75%, transparent)' : 'none',
+			'--iftp-field-outline-o' => 'doily' === $look['fields'] ? '-5px' : '0px',
 			'--iftp-field-px'        => $field[4],
-			'--iftp-field-focus'     => 'underline' === $look['fields'] ? '0 1px 0 0 var(--iftp-brand)' : 'var(--iftp-ring)',
+			'--iftp-field-focus'     => self::field_focus( $look['fields'] ),
+			'--iftp-submit-r'        => $sharp ? '0' : $submit_radius,
+			'--iftp-submit-bevel'    => array() !== $submit_bevel ? implode( ', ', $submit_bevel ) : 'none',
+			'--iftp-submit-bd'       => 'stamp' === $look['fields'] ? '2px dashed var(--iftp-brand)' : '0',
+			'--iftp-submit-clip'     => 'stamp' === $look['fields'] ? 'padding-box' : 'border-box',
 			'--iftp-sheet-w'         => self::WIDTHS[ $look['width'] ] . 'px',
 			'--iftp-backdrop'        => $backdrops[ $look['backdrop'] ][0],
 			'--iftp-backdrop-blur'   => $backdrops[ $look['backdrop'] ][1],
@@ -660,10 +990,121 @@ class CheckoutLook {
 			'--iftp-card-filter'     => $glass && $look['card_blur'] > 0 ? 'blur(' . $look['card_blur'] . 'px) saturate(1.6)' : 'none',
 			'--iftp-card-ring'       => array() !== $ring ? implode( ', ', $ring ) : '0 0 #0000',
 			'--iftp-body-bg'         => $glass ? 'transparent' : 'initial',
+			'--iftp-mark-size'       => $look['pay_mark_size'] . 'px',
+			'--iftp-skin-a'          => (string) ( $look['card_skin_strength'] / 100 ),
 			'--iftp-page-image'      => self::page_image( $look ),
 			'--iftp-page-dim'        => 'rgb(0 0 0 / ' . $look['pay_dim'] . '%)',
 			'--iftp-page-video-blur' => $look['pay_video_blur'] . 'px',
-		) + self::dark_palette( $look ) + self::page_effects( $look );
+		) + self::card_awning( $look['frame'] ) + self::dark_palette( $look ) + self::page_effects( $look );
+	}
+
+	/**
+	 * What a focused field wears: underline a line under it, pixel a hard offset block, the rest the soft ring.
+	 *
+	 * @param string $fields One of FIELD_STYLES.
+	 */
+	private static function field_focus( string $fields ): string {
+		$focus = array(
+			'underline' => '0 1px 0 0 var(--iftp-brand)',
+			'pixel'     => '4px 4px 0 0 var(--iftp-brand)',
+			'well'      => 'inset 0 2px 5px color-mix(in srgb, var(--iftp-ink) 22%, transparent), var(--iftp-ring)',
+		);
+
+		return $focus[ $fields ] ?? 'var(--iftp-ring)';
+	}
+
+	/**
+	 * The card designs: flat, still backgrounds for the card itself, drawn in CSS from the accent and the text colour so
+	 * they follow the look (and its dark colours). 'bg' is a list of background layers. look.js reads this same
+	 * table for the live preview.
+	 *
+	 * @return array<string, array{bg: string}>
+	 */
+	public static function card_skins(): array {
+		$ink   = 'var(--iftp-ink)';
+		$brand = 'var(--iftp-brand)';
+		// Every colour is scaled by --iftp-skin-a (the strength slider, 0 to 1), so the merchant sets how loud a design is.
+		$tint = static fn( string $color, int $full ): string => sprintf( 'color-mix(in srgb, %1$s calc(var(--iftp-skin-a, 0.5) * %2$d%%), transparent)', $color, $full );
+
+		return array(
+			'none'     => array(
+				'bg' => '',
+			),
+			// Fine dots, like a dotted notebook page.
+			'dots'     => array(
+				'bg' => 'radial-gradient(' . $tint( $ink, 40 ) . ' 0.9px, transparent 1.3px) 0 0 / 12px 12px',
+			),
+			// Ruled lines and a rose margin.
+			'notebook' => array(
+				'bg' => 'linear-gradient(90deg, transparent 38px, ' . $tint( '#e25656', 140 ) . ' 38px 39px, transparent 39px), repeating-linear-gradient(transparent 0 29px, ' . $tint( $brand, 36 ) . ' 29px 30px)',
+			),
+			// Graph paper: a fine grid with a stronger line every fifth square.
+			'graph'    => array(
+				'bg' => 'linear-gradient(' . $tint( $brand, 30 ) . ' 1px, transparent 1px) 0 0 / 100px 100px, linear-gradient(90deg, ' . $tint( $brand, 30 ) . ' 1px, transparent 1px) 0 0 / 100px 100px, linear-gradient(' . $tint( $brand, 14 ) . ' 1px, transparent 1px) 0 0 / 20px 20px, linear-gradient(90deg, ' . $tint( $brand, 14 ) . ' 1px, transparent 1px) 0 0 / 20px 20px',
+			),
+			// Small soft dots in two offset rows.
+			'polka'    => array(
+				'bg' => 'radial-gradient(' . $tint( $brand, 22 ) . ' 4px, transparent 4.5px) 0 0 / 28px 28px, radial-gradient(' . $tint( $brand, 22 ) . ' 4px, transparent 4.5px) 14px 14px / 28px 28px',
+			),
+			// A soft glow from the top corner and a fainter one from the bottom.
+			'corner'   => array(
+				'bg' => 'radial-gradient(circle at 100% 0, ' . $tint( $brand, 48 ) . ', transparent 55%), radial-gradient(circle at 0 100%, ' . $tint( $brand, 24 ) . ', transparent 45%)',
+			),
+			// A tomato-red edge along the top over a faint cardboard weave, like a pizza box.
+			'pizzeria' => array(
+				'bg' => 'linear-gradient(' . $tint( '#c8321f', 190 ) . ', ' . $tint( '#c8321f', 190 ) . ') 0 0 / 100% 4px no-repeat, repeating-linear-gradient(135deg, transparent 0 11px, ' . $tint( '#b07c3e', 30 ) . ' 11px 12px)',
+			),
+		);
+	}
+
+	/**
+	 * A card design's background layers as CSS, each followed by a comma, or '' for the plain card.
+	 *
+	 * @param string $skin One of CARD_SKINS.
+	 */
+	public static function skin_layers( string $skin ): string {
+		$bg = self::card_skins()[ $skin ]['bg'] ?? '';
+
+		return '' === $bg ? '' : $bg . ', ';
+	}
+
+	/**
+	 * The awning edge: eight bold stripes across the top with a scalloped valance hanging under them, drawn as a layer
+	 * over the card (outside the content, which drops clear of it). The admin preview builds the same in look.js.
+	 *
+	 * @param string $frame One of FRAMES.
+	 * @return array<string, string>
+	 */
+	private static function card_awning( string $frame ): array {
+		if ( 'awning' !== $frame ) {
+			return array(
+				'--iftp-edge-on'  => 'none',
+				'--iftp-edge-pos' => 'static',
+				'--iftp-edge-h'   => '0px',
+				'--iftp-edge-bg'  => 'none',
+				'--iftp-edge-fx'  => 'none',
+				'--iftp-card-pad' => '0px',
+			);
+		}
+
+		$white = 'color-mix(in srgb, var(--iftp-brand) 6%, #fff)';
+
+		return array(
+			'--iftp-edge-on'  => '""',
+			'--iftp-edge-pos' => 'relative',
+			'--iftp-edge-h'   => '36px',
+			'--iftp-edge-bg'  => implode(
+				', ',
+				array(
+					'radial-gradient(ellipse 25% 100% at 25% 0, var(--iftp-brand) 97%, transparent) 0 23px / 25% 13px repeat-x',
+					"radial-gradient(ellipse 25% 100% at 75% 0, $white 97%, transparent) 0 23px / 25% 13px repeat-x",
+					'linear-gradient(rgb(255 255 255 / 32%), rgb(255 255 255 / 0%) 55%) 0 0 / 100% 24px no-repeat',
+					"repeating-linear-gradient(90deg, var(--iftp-brand) 0 12.5%, $white 12.5% 25%) 0 0 / 100% 24px no-repeat",
+				)
+			),
+			'--iftp-edge-fx'  => 'drop-shadow(0 3px 3px rgb(0 0 0 / 22%))',
+			'--iftp-card-pad' => '32px',
+		);
 	}
 
 	/**
@@ -682,7 +1123,7 @@ class CheckoutLook {
 			'--iftp-on-brand'    => '' !== $look['accent_text'] ? $look['accent_text'] : ButtonDesign::on_color( $look['accent'] ),
 			'--iftp-surface'     => $look['surface'],
 			'--iftp-ink'         => $look['ink'],
-			'--iftp-card-bg'     => $card < 100 ? self::alpha( $look['surface'], $card ) : $look['surface'],
+			'--iftp-card-bg'     => self::skin_layers( $look['card_skin'] ) . ( $card < 100 ? self::alpha( $look['surface'], $card ) : $look['surface'] ),
 			// Fields and choices stay a little more solid than the card, so they still read as boxes.
 			'--iftp-chip-bg'     => $card < 100 ? self::alpha( $look['surface'], min( 100, $card + 30 ) ) : $look['surface'],
 			// The colour logo disappears on a dark background, so it turns white there.
@@ -754,7 +1195,7 @@ class CheckoutLook {
 			'--iftp-page-crystal'       => $look['pay_fx_size'] . 'px',
 			'--iftp-page-pattern'       => self::pattern( $look ),
 			'--iftp-page-pattern-still' => self::moving( $look, true ),
-			'--iftp-page-pattern-tile'  => ( self::CRYSTAL_CELLS * $look['pay_fx_size'] ) . 'px',
+			'--iftp-page-pattern-tile'  => ( Backgrounds::CRYSTAL_CELLS * $look['pay_fx_size'] ) . 'px',
 			'--iftp-page-fx-light'      => 'rgb(255 255 255 / ' . round( $strength * 0.5 ) . '%)',
 			'--iftp-page-fx-dark'       => 'rgb(0 0 0 / ' . round( $strength * 0.28 ) . '%)',
 			'--iftp-page-fx-opacity'    => (string) round( $strength / 100, 2 ),
@@ -774,11 +1215,11 @@ class CheckoutLook {
 	private static function pattern( array $look ): string {
 		switch ( $look['pay_fx'] ) {
 			case 'crystals':
-				return self::crystals( $look['pay_fx_size'], $look['pay_fx_strength'] );
+				return Backgrounds::crystals( $look['pay_fx_size'], $look['pay_fx_strength'] );
 			case 'waves':
-				return self::waves( $look['pay_fx_size'], $look['pay_fx_strength'] );
+				return Backgrounds::waves( $look['pay_fx_size'], $look['pay_fx_strength'] );
 			case 'bokeh':
-				return self::bokeh( $look['pay_fx_size'], $look['pay_fx_strength'], $look['accent'], self::second_color( $look ) );
+				return Backgrounds::bokeh( $look['pay_fx_size'], $look['pay_fx_strength'], $look['accent'], self::second_color( $look ) );
 		}
 
 		return self::moving( $look, false );
@@ -794,263 +1235,20 @@ class CheckoutLook {
 	private static function moving( array $look, bool $still ): string {
 		switch ( $look['pay_fx'] ) {
 			case 'liquid':
-				return self::liquid( $look['pay_fx_size'], $look['accent'], self::second_color( $look ), $still );
+				return Backgrounds::liquid( $look['pay_fx_size'], $look['accent'], self::second_color( $look ), $still );
 			case 'mesh':
-				return self::mesh( $look['pay_fx_size'], $look['accent'], self::second_color( $look ), $still );
+				return Backgrounds::mesh( $look['pay_fx_size'], $look['accent'], self::second_color( $look ), $still );
 			case 'tide':
-				return self::tide( $look['pay_fx_size'], $look['accent'], self::second_color( $look ), $still );
+				return Backgrounds::tide( $look['pay_fx_size'], $look['accent'], self::second_color( $look ), $still );
+			case 'confetti':
+				return Backgrounds::confetti( $look['pay_fx_size'], $look['accent'], self::second_color( $look ), $still );
+			case 'bubbles':
+				return Backgrounds::bubbles( $look['pay_fx_size'], $look['accent'], self::second_color( $look ), $still );
+			case 'fireflies':
+				return Backgrounds::fireflies( $look['pay_fx_size'], $look['accent'], self::second_color( $look ), $still );
 		}
 
 		return 'none';
-	}
-
-	/**
-	 * The crystal mesh as an SVG data URI: a jittered grid of points joined into triangles, so every facet
-	 * shares its edges with its neighbours. Points on the tile's far edges repeat the near ones, so it tiles
-	 * without seams. A fixed seed keeps it the same on every page; buttons.js draws the same mesh for the preview.
-	 *
-	 * @param int $size     The facet size in pixels.
-	 * @param int $strength 0–100, how much light and shade the facets get.
-	 */
-	public static function crystals( int $size, int $strength ): string {
-		$cells = self::CRYSTAL_CELLS;
-		$tile  = $cells * $size;
-		$seed  = 20261022;
-		// Park–Miller: small enough to give the same numbers in PHP and JavaScript.
-		$random = static function () use ( &$seed ): float {
-			$seed = ( $seed * 16807 ) % 2147483647;
-
-			return $seed / 2147483647;
-		};
-		$points = array();
-
-		for ( $i = 0; $i < $cells; $i++ ) {
-			for ( $j = 0; $j < $cells; $j++ ) {
-				$points[ $i ][ $j ] = array( $i * $size + ( $random() - 0.5 ) * $size * 0.8, $j * $size + ( $random() - 0.5 ) * $size * 0.8 );
-			}
-		}
-
-		$point = static function ( int $i, int $j ) use ( $points, $cells, $tile ): array {
-			$base = $points[ $i % $cells ][ $j % $cells ];
-
-			return array( $base[0] + ( $i >= $cells ? $tile : 0 ), $base[1] + ( $j >= $cells ? $tile : 0 ) );
-		};
-
-		$light  = $strength / 100;
-		$shapes = '';
-
-		for ( $i = 0; $i < $cells; $i++ ) {
-			for ( $j = 0; $j < $cells; $j++ ) {
-				$a = $point( $i, $j );
-				$b = $point( $i + 1, $j );
-				$c = $point( $i + 1, $j + 1 );
-				$d = $point( $i, $j + 1 );
-
-				$triangles = $random() < 0.5 ? array( array( $a, $b, $c ), array( $a, $c, $d ) ) : array( array( $a, $b, $d ), array( $b, $c, $d ) );
-
-				foreach ( $triangles as $triangle ) {
-					$shade = $random() * 2 - 1;
-					$fill  = $shade > 0 ? '#fff' : '#000';
-					$alpha = round( abs( $shade ) * $light * ( $shade > 0 ? 0.55 : 0.25 ), 3 );
-
-					// A facet that crosses the tile's edge is drawn again on the other side, so the seams close.
-					foreach ( self::tile_offsets( $triangle, $tile ) as $offset ) {
-						$path = '';
-
-						foreach ( $triangle as $at => $corner ) {
-							$path .= ( 0 === $at ? 'M' : 'L' ) . round( $corner[0] + $offset[0], 1 ) . ' ' . round( $corner[1] + $offset[1], 1 );
-						}
-
-						$shapes .= sprintf( "<path d='%sZ' fill='%s' fill-opacity='%s'/>", $path, $fill, $alpha );
-					}
-				}
-			}
-		}
-
-		$svg = sprintf(
-			"<svg xmlns='http://www.w3.org/2000/svg' width='%1\$d' height='%1\$d' viewBox='0 0 %1\$d %1\$d'><g stroke='#fff' stroke-opacity='%2\$s' stroke-width='1' stroke-linejoin='round'>%3\$s</g></svg>",
-			$tile,
-			round( $light * 0.22, 3 ),
-			$shapes
-		);
-
-		return 'url("data:image/svg+xml,' . str_replace( array( '<', '>', '#' ), array( '%3C', '%3E', '%23' ), $svg ) . '")';
-	}
-
-	/**
-	 * Where else a triangle has to be drawn so a tile repeats seamlessly: shifted a tile back from any edge it crosses.
-	 *
-	 * @param array<int, array{0: float, 1: float}> $triangle Its corners.
-	 * @param int                                   $tile     The tile's size.
-	 * @return array<int, array{0: int, 1: int}>
-	 */
-	private static function tile_offsets( array $triangle, int $tile ): array {
-		$xs = array_column( $triangle, 0 );
-		$ys = array_column( $triangle, 1 );
-		$dx = array( 0 );
-		$dy = array( 0 );
-
-		if ( min( $xs ) < 0 ) {
-			$dx[] = $tile;
-		}
-
-		if ( max( $xs ) > $tile ) {
-			$dx[] = -$tile;
-		}
-
-		if ( min( $ys ) < 0 ) {
-			$dy[] = $tile;
-		}
-
-		if ( max( $ys ) > $tile ) {
-			$dy[] = -$tile;
-		}
-
-		$offsets = array();
-
-		foreach ( $dx as $x ) {
-			foreach ( $dy as $y ) {
-				$offsets[] = array( $x, $y );
-			}
-		}
-
-		return $offsets;
-	}
-
-	/**
-	 * Waves as an SVG data URI: contour lines that drift closer and further apart, like silk or a relief map,
-	 * with the bands between them lit and shaded. Each line's shape comes round again after a tile both ways,
-	 * so it tiles without seams. buttons.js draws the same waves for the preview.
-	 *
-	 * @param int $size     A wave's spacing times two, in pixels.
-	 * @param int $strength 0–100, how much light and shade the bands get.
-	 */
-	public static function waves( int $size, int $strength ): string {
-		$tile   = self::CRYSTAL_CELLS * $size;
-		$lines  = self::WAVE_LINES;
-		$gap    = $tile / $lines;
-		$steps  = 12;
-		$light  = $strength / 100;
-		$circle = 2 * M_PI;
-		// The phases drift from line to line but meet again after a tile, so neighbours never cross.
-		$y   = static function ( int $k, int $at ) use ( $gap, $steps, $lines, $circle ): float {
-			$x = $at / $steps;
-
-			return ( $k + 0.5 ) * $gap + 1.2 * $gap * ( sin( $circle * $x + 0.6 + 0.9 * sin( $circle * $k / $lines ) ) + 0.4 * sin( 2 * $circle * $x + 2.1 + 0.7 * cos( $circle * $k / $lines ) ) );
-		};
-		$num = static fn( float $value ): string => (string) self::js_round( $value, 10 );
-		$x   = static fn( int $at ): float => $at * $tile / $steps;
-		// A line as smooth curves (Catmull-Rom), from its left end or, backwards, from its right.
-		$curve = static function ( int $k, bool $back, float $dy ) use ( $y, $x, $steps, $num ): string {
-			$path = '';
-
-			for ( $n = 0; $n < $steps; $n++ ) {
-				$from = $back ? $steps - $n : $n;
-				$to   = $back ? $from - 1 : $from + 1;
-				$prev = $back ? $from + 1 : $from - 1;
-				$next = $back ? $to - 1 : $to + 1;
-
-				$path .= 'C' . $num( $x( $from ) + ( $x( $to ) - $x( $prev ) ) / 6 ) . ' ' . $num( $y( $k, $from ) + ( $y( $k, $to ) - $y( $k, $prev ) ) / 6 + $dy )
-					. ' ' . $num( $x( $to ) - ( $x( $next ) - $x( $from ) ) / 6 ) . ' ' . $num( $y( $k, $to ) - ( $y( $k, $next ) - $y( $k, $from ) ) / 6 + $dy )
-					. ' ' . $num( $x( $to ) ) . ' ' . $num( $y( $k, $to ) + $dy );
-			}
-
-			return $path;
-		};
-		// Where a line reaches, top and bottom, and so where else it has to be drawn for the seams to close.
-		$shifts = static function ( int $top, int $low ) use ( $y, $steps, $tile ): array {
-			$tops  = array();
-			$lows  = array();
-			$shift = array( 0 );
-
-			for ( $at = 0; $at <= $steps; $at++ ) {
-				$tops[] = $y( $top, $at );
-				$lows[] = $y( $low, $at );
-			}
-
-			if ( min( $tops ) < 0 ) {
-				$shift[] = $tile;
-			}
-
-			if ( max( $lows ) > $tile ) {
-				$shift[] = -$tile;
-			}
-
-			return $shift;
-		};
-		$bands  = '';
-		$edges  = '';
-
-		for ( $k = 0; $k < $lines; $k++ ) {
-			$shade = sin( $circle * 2 * ( $k + 0.5 ) / $lines );
-			$fill  = $shade > 0 ? '#fff' : '#000';
-			$alpha = self::js_round( abs( $shade ) * $light * ( $shade > 0 ? 0.5 : 0.3 ), 1000 );
-
-			foreach ( $shifts( $k, $k + 1 ) as $dy ) {
-				$bands .= sprintf( "<path d='M0 %s%sL%d %s%sZ' fill='%s' fill-opacity='%s'/>", $num( $y( $k, 0 ) + $dy ), $curve( $k, false, $dy ), $tile, $num( $y( $k + 1, $steps ) + $dy ), $curve( $k + 1, true, $dy ), $fill, $alpha );
-			}
-
-			foreach ( $shifts( $k, $k ) as $dy ) {
-				$edges .= 'M0 ' . $num( $y( $k, 0 ) + $dy ) . $curve( $k, false, $dy );
-			}
-		}
-
-		$svg = sprintf(
-			"<svg xmlns='http://www.w3.org/2000/svg' width='%1\$d' height='%1\$d' viewBox='0 0 %1\$d %1\$d'>%2\$s<path d='%3\$s' fill='none' stroke='#fff' stroke-opacity='%4\$s' stroke-width='1.2'/></svg>",
-			$tile,
-			$bands,
-			$edges,
-			self::js_round( $light * 0.7, 1000 )
-		);
-
-		return 'url("data:image/svg+xml,' . str_replace( array( '<', '>', '#' ), array( '%3C', '%3E', '%23' ), $svg ) . '")';
-	}
-
-	/**
-	 * Bokeh as an SVG data URI: out-of-focus lights in the accent, the second colour and white, the big ones
-	 * fainter, each with the brighter rim a real lens gives. Lights over the tile's edge are drawn again on the
-	 * other side, so it tiles without seams. buttons.js draws the same lights for the preview.
-	 *
-	 * @param int    $size     A middling light's radius, in pixels.
-	 * @param int    $strength 0–100, how bright the lights are.
-	 * @param string $color    The accent.
-	 * @param string $color2   The second colour.
-	 */
-	public static function bokeh( int $size, int $strength, string $color, string $color2 ): string {
-		$tile = self::CRYSTAL_CELLS * $size;
-		$seed = 20261023;
-		// Park–Miller, as in crystals().
-		$random = static function () use ( &$seed ): float {
-			$seed = ( $seed * 16807 ) % 2147483647;
-
-			return $seed / 2147483647;
-		};
-		$light  = $strength / 100;
-		$defs   = '';
-		$shapes = '';
-
-		foreach ( array( $color, $color2, '#ffffff' ) as $at => $hex ) {
-			$defs .= sprintf( "<radialGradient id='b%1\$d'><stop offset='0' stop-color='%2\$s' stop-opacity='.62'/><stop offset='.8' stop-color='%2\$s' stop-opacity='.5'/><stop offset='.93' stop-color='%2\$s' stop-opacity='.6'/><stop offset='1' stop-color='%2\$s' stop-opacity='0'/></radialGradient>", $at, $hex );
-		}
-
-		for ( $n = 0; $n < self::BOKEH_LIGHTS; $n++ ) {
-			$x     = $random() * $tile;
-			$y     = $random() * $tile;
-			$grow  = $random();
-			$pick  = $random();
-			$r     = $size * ( 0.2 + $grow * 0.95 );
-			$fill  = $pick < 0.42 ? 0 : 1;
-			$fill  = $pick < 0.8 ? $fill : 2;
-			$alpha = self::js_round( $light * ( 0.75 - $grow * 0.45 ), 1000 );
-
-			foreach ( self::tile_offsets( array( array( $x - $r, $y - $r ), array( $x + $r, $y + $r ) ), $tile ) as $offset ) {
-				$shapes .= sprintf( "<circle cx='%s' cy='%s' r='%s' fill='url(#b%d)' opacity='%s'/>", self::js_round( $x + $offset[0], 10 ), self::js_round( $y + $offset[1], 10 ), self::js_round( $r, 10 ), $fill, $alpha );
-			}
-		}
-
-		$svg = sprintf( "<svg xmlns='http://www.w3.org/2000/svg' width='%1\$d' height='%1\$d' viewBox='0 0 %1\$d %1\$d'><defs>%2\$s</defs>%3\$s</svg>", $tile, $defs, $shapes );
-
-		return 'url("data:image/svg+xml,' . str_replace( array( '<', '>', '#' ), array( '%3C', '%3E', '%23' ), $svg ) . '")';
 	}
 
 	/**
@@ -1063,140 +1261,6 @@ class CheckoutLook {
 		return '' !== $look['pay_color2'] ? $look['pay_color2'] : $look['accent'];
 	}
 
-	/**
-	 * Liquid as an SVG data URI: blobs in the accent and the second colour that drift, swell, merge and split.
-	 * A goo filter (blur, then a hard alpha edge) melts them together, and a light across the blurred shape
-	 * gives the wet shine. It covers the page rather than tiling. buttons.js draws the same liquid for the preview.
-	 *
-	 * @param int    $size   How big the blobs are; 140 is the drawing's own size.
-	 * @param string $color  The accent.
-	 * @param string $color2 The second colour.
-	 * @param bool   $still  Without the motion, for payers who ask for less.
-	 */
-	public static function liquid( int $size, string $color, string $color2, bool $still = false ): string {
-		$scale  = min( 1.8, max( 0.5, $size / 140 ) );
-		$spline = "calcMode='spline' keyTimes='0;.5;1' keySplines='.45 0 .55 1;.45 0 .55 1' repeatCount='indefinite'";
-		$blobs  = '';
-
-		foreach ( self::LIQUID_BLOBS as $blob ) {
-			list( $x, $y, $r, $dx, $dy, $dur, $tone ) = $blob;
-
-			$radius = (int) self::js_round( $r * $scale, 1 );
-			$motion = '';
-
-			if ( ! $still ) {
-				$motion = sprintf( "<animate attributeName='cx' values='%1\$d;%2\$d;%1\$d' dur='%3\$ds' %4\$s/>", $x, $x + $dx, $dur, $spline )
-					. sprintf( "<animate attributeName='cy' values='%1\$d;%2\$d;%1\$d' dur='%3\$ds' %4\$s/>", $y, $y + $dy, $dur + 4, $spline )
-					. sprintf( "<animate attributeName='r' values='%1\$d;%2\$d;%1\$d' dur='%3\$ds' %4\$s/>", $radius, (int) self::js_round( $radius * 1.25, 1 ), $dur + 7, $spline );
-			}
-
-			$blobs .= sprintf( "<circle cx='%d' cy='%d' r='%d' fill='%s'>%s</circle>", $x, $y, $radius, $tone ? $color2 : $color, $motion );
-		}
-
-		$svg = "<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='1000' viewBox='0 0 1000 1000' preserveAspectRatio='xMidYMid slice'>"
-			. "<filter id='g' filterUnits='userSpaceOnUse' x='-200' y='-200' width='1400' height='1400' color-interpolation-filters='sRGB'>"
-			. "<feGaussianBlur in='SourceGraphic' stdDeviation='30' result='b'/>"
-			. "<feColorMatrix in='b' values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 28 -11' result='goo'/>"
-			. "<feGaussianBlur in='goo' stdDeviation='9' result='soft'/>"
-			. "<feSpecularLighting in='soft' surfaceScale='7' specularConstant='.95' specularExponent='26' lighting-color='#fff' result='light'><feDistantLight azimuth='225' elevation='52'/></feSpecularLighting>"
-			. "<feComposite in='light' in2='goo' operator='in' result='shine'/>"
-			. "<feComposite in='shine' in2='goo' operator='arithmetic' k2='.85' k3='1'/>"
-			. "</filter><g filter='url(#g)'>" . $blobs . '</g></svg>';
-
-		return 'url("data:image/svg+xml,' . str_replace( array( '<', '>', '#' ), array( '%3C', '%3E', '%23' ), $svg ) . '")';
-	}
-
-	/**
-	 * The mesh as an SVG data URI: big clouds of the accent, the second colour and white, blurred until they melt
-	 * into one another, drifting so the colours keep shifting like a moving mesh gradient. It covers the page
-	 * rather than tiling. buttons.js draws the same mesh for the preview.
-	 *
-	 * @param int    $size   How big the clouds are; 140 is the drawing's own size.
-	 * @param string $color  The accent.
-	 * @param string $color2 The second colour.
-	 * @param bool   $still  Without the motion, for payers who ask for less.
-	 */
-	public static function mesh( int $size, string $color, string $color2, bool $still = false ): string {
-		$scale  = min( 1.8, max( 0.5, $size / 140 ) );
-		$spline = "calcMode='spline' keyTimes='0;.5;1' keySplines='.45 0 .55 1;.45 0 .55 1' repeatCount='indefinite'";
-		$tones  = array( $color, $color2, '#ffffff' );
-		$clouds = '';
-
-		foreach ( self::MESH_CLOUDS as $cloud ) {
-			list( $x, $y, $r, $dx, $dy, $dur, $tone ) = $cloud;
-
-			$radius = (int) self::js_round( $r * $scale, 1 );
-			$motion = '';
-
-			if ( ! $still ) {
-				$motion = sprintf( "<animate attributeName='cx' values='%1\$d;%2\$d;%1\$d' dur='%3\$ds' %4\$s/>", $x, $x + $dx, $dur, $spline )
-					. sprintf( "<animate attributeName='cy' values='%1\$d;%2\$d;%1\$d' dur='%3\$ds' %4\$s/>", $y, $y + $dy, $dur + 6, $spline );
-			}
-
-			$clouds .= sprintf( "<circle cx='%d' cy='%d' r='%d' fill='%s'>%s</circle>", $x, $y, $radius, $tones[ $tone ], $motion );
-		}
-
-		$svg = "<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='1000' viewBox='0 0 1000 1000' preserveAspectRatio='xMidYMid slice'>"
-			. "<filter id='m' filterUnits='userSpaceOnUse' x='-300' y='-300' width='1600' height='1600'><feGaussianBlur stdDeviation='90'/></filter>"
-			. "<g filter='url(#m)' fill-opacity='.85'>" . $clouds . '</g></svg>';
-
-		return 'url("data:image/svg+xml,' . str_replace( array( '<', '>', '#' ), array( '%3C', '%3E', '%23' ), $svg ) . '")';
-	}
-
-	/**
-	 * The tide as an SVG data URI: layered waves in the accent and the second colour, each rolling sideways a
-	 * wavelength at a time, the front ones faster, so the loop never shows a seam. It stretches to the screen,
-	 * so the waves fill the same lower part of a phone and a wide monitor. buttons.js draws the same tide for the preview.
-	 *
-	 * @param int    $size   How tall and long the waves are; 140 is the drawing's own size.
-	 * @param string $color  The accent.
-	 * @param string $color2 The second colour.
-	 * @param bool   $still  Without the motion, for payers who ask for less.
-	 */
-	public static function tide( int $size, string $color, string $color2, bool $still = false ): string {
-		$scale = min( 1.8, max( 0.5, $size / 140 ) );
-		$waves = '';
-
-		foreach ( self::TIDE_LAYERS as $at => $layer ) {
-			list( $base, $height, $length, $dur, $tone, $alpha ) = $layer;
-
-			$amp     = (int) self::js_round( $height * $scale, 1 );
-			$quarter = (int) self::js_round( $length * $scale / 4, 1 );
-			$start   = -4 * $quarter * (int) ceil( 1000 / ( 4 * $quarter ) ) - 4 * $quarter;
-			$end     = $start + 2 * $quarter;
-			$path    = 'M' . $start . ' ' . $base . 'Q' . ( $start + $quarter ) . ' ' . ( $base - $amp ) . ' ' . $end . ' ' . $base;
-
-			// Each T mirrors the last curve, so the crests and troughs alternate like a sine.
-			while ( $end < 2000 + 4 * $quarter ) {
-				$end  += 2 * $quarter;
-				$path .= 'T' . $end . ' ' . $base;
-			}
-
-			$path .= 'L' . $end . ' 1200L' . $start . ' 1200Z';
-			$roll  = '';
-
-			if ( ! $still ) {
-				$roll = sprintf( "<animateTransform attributeName='transform' type='translate' values='0 0;%d 0' dur='%ds' repeatCount='indefinite'/>", ( $at % 2 ? -4 : 4 ) * $quarter, $dur );
-			}
-
-			$waves .= sprintf( "<path d='%s' fill='%s' fill-opacity='%s' stroke='#fff' stroke-opacity='.35' stroke-width='2' vector-effect='non-scaling-stroke'>%s</path>", $path, $tone ? $color2 : $color, $alpha / 100, $roll );
-		}
-
-		$svg = "<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='1000' viewBox='0 0 1000 1000' preserveAspectRatio='none'>" . $waves . '</svg>';
-
-		return 'url("data:image/svg+xml,' . str_replace( array( '<', '>', '#' ), array( '%3C', '%3E', '%23' ), $svg ) . '")';
-	}
-
-	/**
-	 * Rounds like JavaScript's Math.round( value * scale ) / scale. PHP's round() nudges near-ties first, which
-	 * would make the waves and bokeh differ from the preview's by a digit here and there.
-	 *
-	 * @param float $value The number.
-	 * @param int   $scale 10 for one decimal, 1000 for three.
-	 */
-	private static function js_round( float $value, int $scale ): float {
-		return floor( $value * $scale + 0.5 ) / $scale;
-	}
 
 	/**
 	 * Whether an attachment is a video the pay page can loop: an MP4 or WebM from the Media Library.

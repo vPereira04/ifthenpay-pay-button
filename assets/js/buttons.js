@@ -817,11 +817,11 @@
 			return onColor( mix( design.color, design.color2 ) );
 		}
 
-		if ( design.variant === 'beam' ) {
+		if ( design.variant === 'beam' || design.variant === 'scanline' ) {
 			return '#ffffff';
 		}
 
-		return [ 'filled', 'split', 'halo', 'glass', '3d', 'brutal', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut' ].indexOf( design.variant ) === -1 ? design.color : onColor( design.color );
+		return [ 'filled', 'split', 'halo', 'glass', '3d', 'brutal', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut', 'checker', 'hazard', 'marquee', 'pixel' ].indexOf( design.variant ) === -1 ? design.color : onColor( design.color );
 	}
 
 	function toHex( parts ) {
@@ -997,6 +997,8 @@
 			effect: pick( 'effect' ) || 'none',
 			attention: pick( 'attention' ) || 'none',
 			upper: !! pick( 'upper' ),
+			font: pick( 'font' ) || '',
+			still: !! pick( 'still' ),
 			logos: !! pick( 'logos' ),
 		};
 
@@ -1031,6 +1033,8 @@
 			effect: stored.effect,
 			attention: stored.attention,
 			upper: !! stored.upper,
+			font: stored.font || '',
+			still: !! stored.still,
 			logos: !! stored.logos,
 			color2: stored.color2 || turn( stored.color, turnBy ),
 			ownText: stored.text || '',
@@ -1084,6 +1088,10 @@
 				classes.push( 'iftp-btn-pay__button--upper' );
 			}
 
+			if ( design.still ) {
+				classes.push( 'iftp-btn-pay__button--still' );
+			}
+
 			button.style.setProperty( '--iftp-pb-color', design.color );
 			button.style.setProperty( '--iftp-pb-color2', design.color2 );
 			button.style.setProperty( '--iftp-pb-text', design.text );
@@ -1096,6 +1104,10 @@
 			button.style.setProperty( '--iftp-pb-tint-strong', 'rgb(' + rgb + ' / 24%)' );
 			button.style.setProperty( '--iftp-pb-glass', 'rgb(' + rgb + ' / 62%)' );
 			button.style.setProperty( '--iftp-pb-glow', 'rgb(' + rgb + ' / 45%)' );
+
+			if ( ( config.lookFonts || {} )[ design.font ] ) {
+				button.style.setProperty( '--iftp-pb-font', config.lookFonts[ design.font ] );
+			}
 		} else {
 			classes.push( 'iftp-btn-pay__button--theme' );
 		}
@@ -1349,6 +1361,7 @@
 				set( 'effect', preset.effect );
 				set( 'attention', preset.attention );
 				set( 'upper', preset.upper );
+				set( 'font', preset.font || '' );
 				set( 'text_auto', ! preset.text );
 				set( 'color2_auto', ! preset.color2 );
 				set( 'border_color_auto', ! preset.border_color );
@@ -1402,7 +1415,7 @@
 					} );
 				};
 
-				[ 'variant', 'color', 'radius', 'border_width', 'border_style', 'size', 'full', 'icon', 'shadow', 'effect', 'attention', 'upper', 'logos' ].forEach( function ( key ) {
+				[ 'variant', 'color', 'radius', 'border_width', 'border_style', 'size', 'full', 'icon', 'shadow', 'effect', 'attention', 'upper', 'font', 'still', 'logos' ].forEach( function ( key ) {
 					set( key, saved[ key ] );
 				} );
 
@@ -3347,7 +3360,12 @@
 			outline: [ 'var(--iftp-surface)', 'var(--iftp-line-strong)', '1px', null, '12px' ],
 			soft: [ 'var(--iftp-inset)', 'transparent', '1px', null, '12px' ],
 			underline: [ 'transparent', 'var(--iftp-line-strong)', '0 0 1.5px', '0', '2px' ],
+			pixel: [ 'var(--iftp-chip-bg)', 'var(--iftp-ink)', '3px', '0', '12px' ],
+			well: [ 'var(--iftp-inset)', 'transparent', '1px', null, '14px', 'solid' ],
+			stamp: [ 'transparent', 'var(--iftp-line-strong)', '2px', null, '12px', 'dashed' ],
+			marker: [ 'var(--iftp-inset)', 'var(--iftp-brand)', '0 0 0 4px', '0 8px 8px 0', '14px' ],
 		};
+		const systemFont = '-apple-system, blinkmacsystemfont, "Segoe UI", "Inter", roboto, "Helvetica Neue", arial, sans-serif';
 
 		// Matches the zoom on .iftp-btn-look-preview__frame in the pay page view.
 		const pageZoom = 0.62;
@@ -3627,6 +3645,7 @@
 
 			// Same as CheckoutLook::variables(): the card's edge, then the glass ring.
 			const cardRing = function ( opacity ) {
+				const longColor = 'color-mix(in srgb, var(--iftp-brand) 35%, var(--iftp-surface))';
 				const edges = {
 					hairline: [ 'inset 0 0 0 1px color-mix(in srgb, var(--iftp-second) 65%, transparent)' ],
 					gilded: [
@@ -3635,11 +3654,40 @@
 						'0 0 0 1px color-mix(in srgb, var(--iftp-second) 28%, transparent)',
 						'0 22px 60px -22px color-mix(in srgb, var(--iftp-second) 55%, transparent)',
 					],
+					pixel: [ 'inset 0 0 0 4px var(--iftp-ink)', '8px 8px 0 0 color-mix(in srgb, var(--iftp-ink) 35%, transparent)' ],
+					matte: [
+						'inset 0 0 0 8px color-mix(in srgb, var(--iftp-brand) 9%, transparent)',
+						'inset 0 0 0 9px color-mix(in srgb, var(--iftp-brand) 35%, transparent)',
+					],
+					glow: [
+						'inset 0 0 0 1px color-mix(in srgb, var(--iftp-brand) 80%, transparent)',
+						'0 0 0 1px color-mix(in srgb, var(--iftp-brand) 40%, transparent)',
+						'0 0 26px 2px color-mix(in srgb, var(--iftp-brand) 45%, transparent)',
+					],
+					long: [ 3, 6, 9, 12 ].map( function ( step ) {
+						return step + 'px ' + step + 'px 0 0 ' + longColor;
+					} ),
 				};
 				const ring = edges[ read( 'frame' ) ] || ( opacity < 100 ? [ 'inset 0 0 0 1px rgb(255 255 255 / 22%)' ] : [] );
 
 				return ring.length ? ring.join( ', ' ) : '0 0 #0000';
 			};
+			// Same as CheckoutLook::variables(): the button wears the fields' and the card edge's touch too.
+			const sharp = read( 'frame' ) === 'pixel' || read( 'fields' ) === 'pixel';
+			const fieldBevels = {
+				well: 'inset 0 -4px 0 0 rgb(0 0 0 / 24%), inset 0 2px 0 0 rgb(255 255 255 / 22%)',
+				marker: 'inset 6px 0 0 0 rgb(0 0 0 / 28%)',
+				stamp: 'inset 0 0 0 3px var(--iftp-surface)',
+			};
+			const edgeBevels = {
+				matte: 'inset 0 0 0 2px color-mix(in srgb, var(--iftp-on-brand) 35%, transparent)',
+				glow: '0 0 18px -2px color-mix(in srgb, var(--iftp-brand) 60%, transparent)',
+				long: '3px 3px 0 0 color-mix(in srgb, var(--iftp-brand) 35%, var(--iftp-surface))',
+			};
+			const submitBevel = [
+				sharp ? 'inset -4px -4px 0 rgb(0 0 0 / 26%), inset 4px 4px 0 rgb(255 255 255 / 28%)' : fieldBevels[ read( 'fields' ) ] || '',
+				edgeBevels[ read( 'frame' ) ] || '',
+			].filter( Boolean );
 			const darkOn = read( 'dark' ) === 'auto';
 			const darkAccentAuto = !! read( 'dark_accent_auto' );
 			const darkAccent = darkAccentAuto ? accent : hex( read( 'dark_accent' ) ) || accent;
@@ -3684,13 +3732,20 @@
 				'--iftp-paid': hex( read( 'paid' ) ) || '#0b6b35',
 				'--iftp-pending': hex( read( 'pending' ) ) || '#8a5300',
 				'--iftp-failed': hex( read( 'failed' ) ) || '#a3201f',
+				'--iftp-font': ( config.lookFonts || {} )[ read( 'font' ) ] || systemFont,
 				'--iftp-radius': ( parseInt( read( 'radius' ), 10 ) || 0 ) + 'px',
 				'--iftp-field-r': field[ 3 ] === null ? fieldRadius : field[ 3 ],
 				'--iftp-field-bg': field[ 0 ],
 				'--iftp-field-bd': field[ 1 ],
 				'--iftp-field-bw': field[ 2 ],
+				'--iftp-field-bs': field[ 5 ] || 'solid',
+				'--iftp-field-shadow': read( 'fields' ) === 'well' ? 'inset 0 2px 5px color-mix(in srgb, var(--iftp-ink) 22%, transparent)' : 'none',
 				'--iftp-field-px': field[ 4 ],
-				'--iftp-field-focus': read( 'fields' ) === 'underline' ? '0 1px 0 0 var(--iftp-brand)' : 'var(--iftp-ring)',
+				'--iftp-field-focus': { underline: '0 1px 0 0 var(--iftp-brand)', pixel: '4px 4px 0 0 var(--iftp-brand)', well: 'inset 0 2px 5px color-mix(in srgb, var(--iftp-ink) 22%, transparent), var(--iftp-ring)' }[ read( 'fields' ) ] || 'var(--iftp-ring)',
+				'--iftp-submit-r': sharp ? '0' : read( 'fields' ) === 'marker' ? '0 8px 8px 0' : 'calc(var(--iftp-field-r) + 2px)',
+				'--iftp-submit-bevel': submitBevel.length ? submitBevel.join( ', ' ) : 'none',
+				'--iftp-submit-bd': read( 'fields' ) === 'stamp' ? '2px dashed var(--iftp-brand)' : '0',
+				'--iftp-submit-clip': read( 'fields' ) === 'stamp' ? 'padding-box' : 'border-box',
 				'--iftp-sheet-w': ( ( config.lookWidths || {} )[ read( 'width' ) ] || 440 ) + 'px',
 				'--iftp-result-align': read( 'popup_align' ) === 'left' ? 'start' : 'center',
 				'--iftp-card-filter': card < 100 && glassBlur > 0 ? 'blur(' + glassBlur + 'px) saturate(1.6)' : 'none',
@@ -3883,10 +3938,17 @@
 					return;
 				}
 
-				[ 'accent', 'surface', 'ink', 'radius', 'field_radius', 'fields', 'frame', 'pay_grad', 'pay_fx', 'pay_fx_size', 'pay_fx_strength', 'pay_fx_still', 'card_opacity', 'card_blur' ].forEach( function ( key ) {
+				[ 'accent', 'surface', 'ink', 'radius', 'field_radius', 'fields', 'frame', 'font', 'pay_grad', 'pay_fx', 'pay_fx_size', 'pay_fx_strength', 'pay_fx_still', 'card_opacity', 'card_blur' ].forEach( function ( key ) {
 					set( key, preset[ key ] );
 				} );
 				set( 'accent_text_auto', true );
+
+				// Only the Pixel look sets the progress style; picking another look drops a pixel one.
+				if ( preset.steps ) {
+					set( 'steps', preset.steps );
+				} else if ( read( 'steps' ) === 'pixel' ) {
+					set( 'steps', 'bars' );
+				}
 
 				// The background too; a blank colour means "auto", like the boxes' own checkboxes.
 				set( 'pay_bg', preset.pay_bg );

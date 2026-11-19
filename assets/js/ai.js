@@ -222,13 +222,19 @@
 		const progress = root.querySelector( '[data-iftp-studio-progress]' );
 		const empty = root.querySelector( '[data-iftp-studio-empty]' );
 		const building = root.querySelector( '[data-iftp-studio-building]' );
-		const buttonSlot = root.querySelector( '[data-iftp-studio-button]' );
 		const review = root.querySelector( '[data-iftp-studio-review]' );
 		const prices = root.querySelector( '[data-iftp-studio-prices]' );
 		const undo = root.querySelector( '[data-iftp-studio-undo]' );
 		const reset = root.querySelector( '[data-iftp-studio-reset]' );
 		const resetDialog = root.querySelector( '[data-iftp-studio-reset-dialog]' );
+		const draft = root.querySelector( '[data-iftp-studio-draft]' );
+		const rail = root.querySelector( '[data-iftp-studio-history]' );
+		const chatList = root.querySelector( '[data-iftp-studio-chats]' );
+		const chatTitle = root.querySelector( '[data-iftp-studio-chat-title]' );
+		const historyFine = root.querySelector( '[data-iftp-studio-history-fine]' );
+		const deleteDialog = root.querySelector( '[data-iftp-studio-delete-dialog]' );
 		let view = studio.view;
+		let chat = studio.chat;
 		let busy = false;
 		let lastMessage = '';
 		let thinkingTimer = 0;
@@ -295,7 +301,7 @@
 
 		function renderLog() {
 			log.textContent = '';
-			log.appendChild( bubble( 'assistant', studio.isNew ? i18n.welcomeNew : ( i18n.welcomeEdit || '%s' ).replace( '%s', studio.title ), 'iftp-btn-studio__msg--welcome' ) );
+			log.appendChild( bubble( 'assistant', studio.welcome || ( studio.isNew ? i18n.welcomeNew : ( i18n.welcomeEdit || '%s' ).replace( '%s', studio.title ) ), 'iftp-btn-studio__msg--welcome' ) );
 
 			view.messages.forEach( function ( message ) {
 				addMessage( message );
@@ -311,7 +317,7 @@
 		/* ---- Ideas */
 
 		function renderIdeas() {
-			const list = studio.isNew ? i18n.ideasNew : i18n.ideasEdit;
+			const list = studio.ideas || ( studio.isNew ? i18n.ideasNew : i18n.ideasEdit );
 
 			ideas.textContent = '';
 			ideas.hidden = view.messages.length > 0;
@@ -363,7 +369,6 @@
 			empty.hidden = show;
 			shell.hidden = ! show;
 			review.hidden = ! view.built;
-			buttonSlot.parentNode.hidden = ! show;
 			open.hidden = ! show;
 			open.href = view.preview;
 			frame.classList.toggle( 'has-preview', show );
@@ -373,8 +378,8 @@
 			}
 
 			undo.disabled = ! view.canUndo;
-			// Server-built, escaped markup from ButtonDesign::preview_markup().
-			buttonSlot.innerHTML = view.button;
+			draft.href = studio.draftUrl + ( studio.draftUrl.indexOf( '?' ) > -1 ? '&' : '?' ) + 'ai_draft=' + encodeURIComponent( chat );
+			renderChats();
 			url.textContent = ( studio.payBase || '' ) + ( studio.isNew ? slugOf( view.title ) : studio.slug );
 
 			prices.textContent = '';
@@ -398,9 +403,28 @@
 			}
 		}
 
+		// Light, System or Dark, from the switch above the preview. The demo page inside the frame follows the saved pick by itself;
+		// this covers a browser that won't keep it, and the full-page tab follows the same way.
+		const scheme = window.iftpBtnScheme;
+
+		function paintScheme() {
+			if ( ! scheme ) {
+				return;
+			}
+
+			try {
+				scheme.applyTo( iframe.contentDocument, scheme.mode() );
+			} catch ( e ) {}
+		}
+
 		iframe.addEventListener( 'load', function () {
+			paintScheme();
 			frame.classList.remove( 'is-loading' );
 		} );
+
+		if ( scheme ) {
+			scheme.subscribe( paintScheme );
+		}
 
 		root.querySelectorAll( '[data-iftp-studio-device]' ).forEach( function ( toggle, index, all ) {
 			toggle.addEventListener( 'click', function () {
@@ -557,7 +581,7 @@
 			const job = Date.now().toString( 36 ) + Math.random().toString( 36 ).slice( 2, 10 );
 			const waiting = wait( job );
 
-			post( 'iftp_btn_ai_send', { target: studio.target, message, job } )
+			post( 'iftp_btn_ai_send', { target: studio.target, chat, message, job } )
 				.then( function ( response ) {
 					return response && response.lost ? waiting.poll() : waiting.done( response );
 				} )
@@ -592,11 +616,12 @@
 				addMessage( view.messages[ view.messages.length - 1 ] );
 				scrollDown();
 				loadPreview();
+				syncUrl();
 				input.focus();
 			}
 
 			function check( finish ) {
-				return post( 'iftp_btn_ai_poll', { target: studio.target, job } ).then( function ( response ) {
+				return post( 'iftp_btn_ai_poll', { target: studio.target, chat, job } ).then( function ( response ) {
 					const state = response && response.success ? response.data.state : 'lost';
 
 					if ( 'done' === state ) {
@@ -632,7 +657,7 @@
 						return;
 					}
 
-					post( 'iftp_btn_ai_poll', { target: studio.target, job } )
+					post( 'iftp_btn_ai_poll', { target: studio.target, chat, job } )
 						.then( function ( response ) {
 							if ( response && response.success && 'working' === response.data.state ) {
 								setStage( response.data );
@@ -663,7 +688,7 @@
 				return;
 			}
 
-			post( 'iftp_btn_ai_poll', { target: studio.target, job: pending.job } ).then( function ( response ) {
+			post( 'iftp_btn_ai_poll', { target: studio.target, chat, job: pending.job } ).then( function ( response ) {
 				const status = response && response.success ? response.data : {};
 
 				if ( 'working' === status.state ) {
@@ -697,6 +722,301 @@
 			}
 		} );
 
+		/* ---- Chats */
+
+		let toDelete = null;
+
+		function newId() {
+			const letters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+			const bytes = window.crypto.getRandomValues( new Uint8Array( 10 ) );
+
+			return Array.prototype.map.call( bytes, function ( byte ) {
+				return letters.charAt( byte % letters.length );
+			} ).join( '' );
+		}
+
+		function chatsBusy() {
+			if ( busy ) {
+				toast( i18n.chatsBusy, true );
+			}
+
+			return busy;
+		}
+
+		function setHistory( open ) {
+			root.classList.toggle( 'is-history-open', open );
+			root.querySelectorAll( '.iftp-btn-studio__chats-toggle' ).forEach( function ( toggle ) {
+				toggle.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
+			} );
+		}
+
+		// The address follows the open chat, so a reload or a shared link comes back to it.
+		function syncUrl() {
+			const address = new URL( window.location.href );
+
+			if ( address.searchParams.get( 'chat' ) !== chat ) {
+				address.searchParams.set( 'chat', chat );
+				window.history.replaceState( null, '', address.toString() );
+			}
+		}
+
+		function chatName( item ) {
+			return item.title || i18n.untitled;
+		}
+
+		function renameInline( item, title ) {
+			const field = el( 'input', 'iftp-btn-studio__chat-rename' );
+			let done = false;
+
+			field.type = 'text';
+			field.value = item.title;
+			field.maxLength = 60;
+			field.setAttribute( 'aria-label', i18n.renameLabel );
+			title.replaceWith( field );
+			field.focus();
+			field.select();
+
+			function finish( save ) {
+				if ( done ) {
+					return;
+				}
+
+				done = true;
+
+				if ( ! save || field.value.trim() === item.title ) {
+					renderChats();
+					return;
+				}
+
+				post( 'iftp_btn_ai_chat_rename', { chat: item.id, title: field.value.trim() } ).then( function ( response ) {
+					if ( response && response.success ) {
+						view.chats = response.data.chats;
+					} else {
+						toast( errorOf( response ), true );
+					}
+
+					renderChats();
+				} );
+			}
+
+			field.addEventListener( 'keydown', function ( event ) {
+				if ( 'Enter' === event.key ) {
+					event.preventDefault();
+					finish( true );
+				} else if ( 'Escape' === event.key ) {
+					event.preventDefault();
+					finish( false );
+				}
+			} );
+			field.addEventListener( 'blur', function () {
+				finish( true );
+			} );
+		}
+
+		function iconButton( label, path, className ) {
+			const button = el( 'button', 'iftp-btn-studio__chat-action ' + className );
+
+			button.type = 'button';
+			button.title = label;
+			button.setAttribute( 'aria-label', label );
+			button.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + path + '</svg>';
+
+			return button;
+		}
+
+		function renderChats() {
+			const list = view.chats || [];
+			const known = list.some( function ( item ) {
+				return item.id === chat;
+			} );
+			const days = studio.keepDays || 0;
+
+			chatList.textContent = '';
+
+			// A chat that has no message yet isn't kept; it still shows, so the list says where you are.
+			if ( ! known ) {
+				const draftRow = el( 'li', 'iftp-btn-studio__chat-item is-current is-draft' );
+				const draftOpen = el( 'span', 'iftp-btn-studio__chat-open' );
+
+				draftOpen.appendChild( el( 'span', 'iftp-btn-studio__chat-name', i18n.newChat ) );
+				draftRow.appendChild( draftOpen );
+				chatList.appendChild( draftRow );
+			}
+
+			list.forEach( function ( item ) {
+				const row = el( 'li', 'iftp-btn-studio__chat-item' + ( item.id === chat ? ' is-current' : '' ) );
+				const open = el( 'button', 'iftp-btn-studio__chat-open' );
+				const name = el( 'span', 'iftp-btn-studio__chat-name', chatName( item ) );
+				const meta = el( 'span', 'iftp-btn-studio__chat-meta' );
+				const actions = el( 'span', 'iftp-btn-studio__chat-actions' );
+				const rename = iconButton( i18n.rename, '<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/><path d="m14.5 7.5 3 3"/>', 'iftp-btn-studio__chat-action--rename' );
+				const remove = iconButton( i18n.delete, '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a1.5 1.5 0 0 0 1.5 1.5h7A1.5 1.5 0 0 0 17 19l1-12M9 7V4.5h6V7"/>', 'iftp-btn-studio__chat-action--delete' );
+
+				open.type = 'button';
+				open.title = chatName( item );
+
+				if ( item.id === chat ) {
+					open.setAttribute( 'aria-current', 'true' );
+				}
+
+				meta.append( el( 'span', 'iftp-btn-studio__chat-sub', item.sub ), el( 'span', 'iftp-btn-studio__chat-when', '· ' + item.when ) );
+				open.append( name, meta );
+				open.addEventListener( 'click', function () {
+					openChat( item );
+				} );
+				rename.addEventListener( 'click', function () {
+					if ( ! chatsBusy() ) {
+						renameInline( item, name );
+					}
+				} );
+				remove.addEventListener( 'click', function () {
+					if ( chatsBusy() ) {
+						return;
+					}
+
+					toDelete = item;
+					deleteDialog.querySelector( '[data-iftp-studio-delete-name]' ).textContent = '“' + chatName( item ) + '”';
+					deleteDialog.showModal();
+				} );
+				actions.append( rename, remove );
+				row.append( open, actions );
+				chatList.appendChild( row );
+			} );
+
+			if ( ! list.length ) {
+				chatList.appendChild( el( 'li', 'iftp-btn-studio__chat-empty', i18n.noChats ) );
+			}
+
+			const current = list.filter( function ( item ) {
+				return item.id === chat;
+			} )[ 0 ];
+
+			chatTitle.textContent = current ? chatName( current ) : i18n.newChat;
+			historyFine.textContent = days ? ( 1 === days ? i18n.keptForOne : ( i18n.keptFor || '' ).replace( '%d', days ) ) : '';
+		}
+
+		function show( response ) {
+			if ( ! response || ! response.success ) {
+				toast( errorOf( response ), true );
+				return false;
+			}
+
+			view = response.data;
+			chat = view.chat;
+			renderLog();
+			renderIdeas();
+			loadPreview();
+			syncUrl();
+			setHistory( false );
+			input.value = '';
+			autosize();
+			input.focus();
+
+			return true;
+		}
+
+		function openChat( item ) {
+			if ( item.id === chat || chatsBusy() ) {
+				setHistory( false );
+				return;
+			}
+
+			// Another button's chat lives on that button's own screen.
+			if ( String( item.target ) !== String( studio.target ) ) {
+				window.location.href = item.url;
+				return;
+			}
+
+			post( 'iftp_btn_ai_open', { target: studio.target, chat: item.id } ).then( show );
+		}
+
+		function newChat() {
+			if ( chatsBusy() ) {
+				return;
+			}
+
+			// Already on an empty one: nothing to make.
+			if ( ! view.messages.length && ! view.pending ) {
+				setHistory( false );
+				input.focus();
+				return;
+			}
+
+			post( 'iftp_btn_ai_open', { target: studio.target, chat: newId() } ).then( show );
+		}
+
+		root.querySelector( '[data-iftp-studio-new]' ).addEventListener( 'click', newChat );
+
+		// On a wide screen the list can fold into a slim strip, so the conversation gets the room; it remembers.
+		const collapse = root.querySelector( '[data-iftp-studio-collapse]' );
+
+		function setCollapsed( folded ) {
+			root.classList.toggle( 'is-rail-collapsed', folded );
+			collapse.setAttribute( 'aria-expanded', folded ? 'false' : 'true' );
+			collapse.setAttribute( 'aria-label', folded ? i18n.expandChats : i18n.collapseChats );
+
+			try {
+				window.localStorage.setItem( 'iftpBtnChatsFolded', folded ? '1' : '0' );
+			} catch ( e ) {}
+		}
+
+		collapse.addEventListener( 'click', function () {
+			setCollapsed( ! root.classList.contains( 'is-rail-collapsed' ) );
+		} );
+
+		try {
+			setCollapsed( '1' === window.localStorage.getItem( 'iftpBtnChatsFolded' ) );
+		} catch ( e ) {}
+
+		root.querySelectorAll( '[data-iftp-studio-history-toggle]' ).forEach( function ( toggle ) {
+			toggle.addEventListener( 'click', function () {
+				setHistory( ! root.classList.contains( 'is-history-open' ) );
+			} );
+		} );
+
+		rail.addEventListener( 'keydown', function ( event ) {
+			if ( 'Escape' === event.key && root.classList.contains( 'is-history-open' ) ) {
+				setHistory( false );
+			}
+		} );
+
+		deleteDialog.addEventListener( 'click', function ( event ) {
+			if ( event.target.closest( '[data-iftp-dialog-close]' ) ) {
+				deleteDialog.close();
+			}
+
+			if ( ! event.target.closest( '[data-iftp-studio-delete-confirm]' ) || ! toDelete ) {
+				return;
+			}
+
+			const gone = toDelete;
+
+			toDelete = null;
+			deleteDialog.close();
+
+			post( 'iftp_btn_ai_chat_delete', { chat: gone.id } ).then( function ( response ) {
+				if ( ! response || ! response.success ) {
+					toast( errorOf( response ), true );
+					return;
+				}
+
+				view.chats = response.data.chats;
+				toast( i18n.chatDeleted );
+
+				if ( gone.id !== chat ) {
+					renderChats();
+					return;
+				}
+
+				// The open one went: the next of this button's chats, or a fresh one.
+				const next = view.chats.filter( function ( item ) {
+					return String( item.target ) === String( studio.target );
+				} )[ 0 ];
+
+				post( 'iftp_btn_ai_open', { target: studio.target, chat: next ? next.id : newId() } ).then( show );
+			} );
+		} );
+
 		/* ---- Undo and start over */
 
 		function replace( response, note ) {
@@ -721,7 +1041,7 @@
 			}
 
 			setBusy( true );
-			post( 'iftp_btn_ai_undo', { target: studio.target } ).then( function ( response ) {
+			post( 'iftp_btn_ai_undo', { target: studio.target, chat } ).then( function ( response ) {
 				setBusy( false );
 				replace( response, i18n.undone );
 			} );
@@ -742,7 +1062,7 @@
 				}
 
 				resetDialog.close();
-				post( 'iftp_btn_ai_reset', { target: studio.target } ).then( function ( response ) {
+				post( 'iftp_btn_ai_reset', { target: studio.target, chat } ).then( function ( response ) {
 					replace( response );
 					input.focus();
 				} );
@@ -752,6 +1072,7 @@
 		renderLog();
 		renderIdeas();
 		loadPreview();
+		syncUrl();
 		resume();
 		input.focus();
 	}

@@ -49,7 +49,8 @@ class GatewaySync {
 	}
 
 	/**
-	 * First-time connection: stores the Backoffice Key if it has a Gateway Key row, and builds its methods table.
+	 * First-time connection: stores the Backoffice Key if it has a Gateway Key row, and builds the methods of every Gateway Key.
+	 * The first key is the default one, for buttons that don't pick their own.
 	 *
 	 * @param string $backoffice_key The Backoffice Key to connect.
 	 */
@@ -64,13 +65,13 @@ class GatewaySync {
 		$this->settings->set_backoffice_key( $backoffice_key );
 		$this->settings->set_gateway_keys( $gateway_keys );
 		$this->settings->set_gateway_key( $gateway_keys[0] );
-		$this->settings->set_methods( $this->build_methods( $this->find_row_for_gateway_key( $rows, $gateway_keys[0] ) ?? array() ) );
+		$this->build_all( $rows, $gateway_keys );
 
 		return true;
 	}
 
 	/**
-	 * Re-fetches the Gateway Key list and rebuilds the methods table for the selected key.
+	 * Re-fetches the Gateway Key list and rebuilds the methods of every key.
 	 */
 	public function sync(): bool {
 		$rows         = $this->client->get_gateway_keys( $this->settings->get_backoffice_key() );
@@ -82,52 +83,40 @@ class GatewaySync {
 
 		$this->settings->set_gateway_keys( $gateway_keys );
 
-		$gateway_key = $this->settings->get_gateway_key();
-
-		if ( ! in_array( $gateway_key, $gateway_keys, true ) ) {
-			$gateway_key = $gateway_keys[0];
-			$this->settings->set_gateway_key( $gateway_key );
+		if ( ! in_array( $this->settings->get_gateway_key(), $gateway_keys, true ) ) {
+			$this->settings->set_gateway_key( $gateway_keys[0] );
 		}
 
-		$this->settings->set_methods( $this->build_methods( $this->find_row_for_gateway_key( $rows, $gateway_key ) ?? array() ) );
+		$this->build_all( $rows, $gateway_keys );
 
 		return true;
 	}
 
 	/**
-	 * Switches the active Gateway Key and rebuilds its methods table. The default method belonged to the old key, so it goes.
-	 *
-	 * @param string $gateway_key The Gateway Key to switch to.
-	 */
-	public function switch_gateway_key( string $gateway_key ): bool {
-		if ( ! in_array( $gateway_key, $this->settings->get_gateway_keys(), true ) ) {
-			return false;
-		}
-
-		$rows = $this->client->get_gateway_keys( $this->settings->get_backoffice_key() );
-
-		$this->settings->set_gateway_key( $gateway_key );
-		$this->settings->set_methods( $this->build_methods( $this->find_row_for_gateway_key( $rows, $gateway_key ) ?? array() ) );
-		$this->settings->set_default_method( '' );
-
-		return true;
-	}
-
-	/**
-	 * Whether the stored settings are missing the Gateway Key list or a catalog field, and need a resync.
+	 * Whether the stored settings are missing the Gateway Key list, a key's methods or a catalog field, and need a resync.
 	 */
 	public function needs_backfill(): bool {
 		if ( ! $this->settings->is_connected() ) {
 			return false;
 		}
 
-		if ( array() === $this->settings->get_gateway_keys() || array() === $this->settings->get_methods() ) {
+		$gateway_keys = $this->settings->get_gateway_keys();
+
+		if ( array() === $gateway_keys ) {
 			return true;
 		}
 
-		foreach ( $this->settings->get_methods() as $method ) {
-			if ( ! array_key_exists( 'logo', $method ) || ! array_key_exists( 'visible', $method ) || '' === $method['alias'] ) {
+		foreach ( $gateway_keys as $gateway_key ) {
+			$methods = $this->settings->get_methods( $gateway_key );
+
+			if ( array() === $methods ) {
 				return true;
+			}
+
+			foreach ( $methods as $method ) {
+				if ( ! array_key_exists( 'logo', $method ) || ! array_key_exists( 'visible', $method ) || '' === $method['alias'] ) {
+					return true;
+				}
 			}
 		}
 
@@ -135,17 +124,33 @@ class GatewaySync {
 	}
 
 	/**
+	 * Builds and stores the methods of every Gateway Key, from one fetch of the catalog.
+	 *
+	 * @param array<int, array<string, mixed>> $rows         The Gateway Key rows.
+	 * @param array<int, string>               $gateway_keys Their keys.
+	 */
+	private function build_all( array $rows, array $gateway_keys ): void {
+		$catalog = $this->client->get_available_methods();
+
+		foreach ( $gateway_keys as $gateway_key ) {
+			$this->settings->set_methods( $this->build_methods( $this->find_row_for_gateway_key( $rows, $gateway_key ) ?? array(), $gateway_key, $catalog ), $gateway_key );
+		}
+	}
+
+	/**
 	 * Merges ifthenpay's methods catalog with the accounts provisioned on this gateway row.
 	 * I keep `IsVisible: false` entries too, so the entries screens can still show their icon/alias.
 	 *
-	 * @param array<string, mixed> $gateway_row The Gateway Key row to resolve accounts from.
+	 * @param array<string, mixed>             $gateway_row The Gateway Key row to resolve accounts from.
+	 * @param string                           $gateway_key Its Gateway Key.
+	 * @param array<int, array<string, mixed>> $catalog     ifthenpay's methods catalog.
 	 * @return array<int, Method>
 	 */
-	private function build_methods( array $gateway_row ): array {
-		$existing = array_column( $this->settings->get_methods(), null, 'entity' );
+	private function build_methods( array $gateway_row, string $gateway_key, array $catalog ): array {
+		$existing = array_column( $this->settings->get_methods( $gateway_key ), null, 'entity' );
 		$methods  = array();
 
-		foreach ( $this->client->get_available_methods() as $entry ) {
+		foreach ( $catalog as $entry ) {
 			$entity  = is_scalar( $entry['Entity'] ?? null ) ? (string) $entry['Entity'] : '';
 			$account = $this->resolve_account( $gateway_row, $entity );
 			$visible = ! empty( $entry['IsVisible'] );

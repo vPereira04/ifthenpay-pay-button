@@ -9,10 +9,8 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Admin;
 
-use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
 use Ifthenpay\PayButton\Ai\AiSettings;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
-use Ifthenpay\PayButton\Checkout\MergeTags;
 use Ifthenpay\PayButton\Plugin;
 use Ifthenpay\PayButton\Repository\CheckoutSettings;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
@@ -22,15 +20,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Messages, Texts, Emails, Pay links and AI: what the payer reads, who gets emailed, where links live and how
- * the AI behaves. One form across the five tabs, so a save keeps them all; the Gateway tab saves on its own.
+ * Texts, Emails, Pay links and AI: what the payer reads, who gets emailed, where links live and how the AI
+ * behaves. One form across the four tabs, so a save keeps them all; the Backoffice tab saves on its own.
  */
 class ConfigurationForm {
 
 	public const FORM_ID     = 'iftp-btn-config-form';
 	public const SAVE_ACTION = 'iftp_btn_save_config';
 
-	private const TABS = array( 'messages', 'texts', 'emails', 'links', 'ai' );
+	private const TABS = array( 'texts', 'emails', 'links', 'ai' );
 
 	/**
 	 * Checkout settings.
@@ -65,7 +63,7 @@ class ConfigurationForm {
 	}
 
 	/**
-	 * The form and its five tabs.
+	 * The form and its four tabs.
 	 *
 	 * @param bool $connected Whether a Backoffice Key is connected.
 	 */
@@ -73,12 +71,9 @@ class ConfigurationForm {
 		?>
 		<form class="iftp-btn-config__form" id="<?php echo esc_attr( self::FORM_ID ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-iftp-config-form>
 			<input type="hidden" name="action" value="<?php echo esc_attr( self::SAVE_ACTION ); ?>" />
-			<input type="hidden" name="tab" value="gateway" data-iftp-tab-input />
+			<input type="hidden" name="tab" value="backoffice" data-iftp-tab-input />
 			<?php wp_nonce_field( self::SAVE_ACTION ); ?>
 
-			<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-messages" aria-labelledby="iftp-btn-tab-messages" data-iftp-panel="messages">
-				<?php $this->render_messages(); ?>
-			</div>
 			<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-texts" aria-labelledby="iftp-btn-tab-texts" data-iftp-panel="texts">
 				<?php $this->render_texts(); ?>
 			</div>
@@ -106,32 +101,7 @@ class ConfigurationForm {
 		}
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked by check_admin_referer() above.
-		$text     = static fn( string $key ): string => isset( $_POST[ $key ] ) && is_string( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : '';
-		$type     = $text( 'paid_type' );
-		$messages = array();
-		$titles   = array();
-
-		foreach ( CheckoutSettings::OUTCOMES as $outcome ) {
-			$messages[ $outcome ] = isset( $_POST['message'][ $outcome ] ) && is_string( $_POST['message'][ $outcome ] ) ? wp_kses_post( wp_unslash( $_POST['message'][ $outcome ] ) ) : '';
-			$titles[ $outcome ]   = isset( $_POST['title'][ $outcome ] ) && is_string( $_POST['title'][ $outcome ] ) ? mb_substr( sanitize_text_field( wp_unslash( $_POST['title'][ $outcome ] ) ), 0, 120 ) : '';
-		}
-
-		/**
-		 * The loop above fills every outcome.
-		 *
-		 * @var array{paid: string, pending: string, failed: string, cancelled: string} $messages
-		 * @var array{paid: string, pending: string, failed: string, cancelled: string} $titles
-		 */
-		$this->settings->set_confirmation(
-			array(
-				'paid_type'    => in_array( $type, CheckoutSettings::PAID_TYPES, true ) ? $type : 'popup',
-				'paid_page'    => absint( $text( 'paid_page' ) ),
-				'paid_url'     => esc_url_raw( $text( 'paid_url' ), array( 'http', 'https' ) ),
-				'show_details' => isset( $_POST['show_details'] ),
-				'messages'     => $messages,
-				'titles'       => $titles,
-			)
-		);
+		$text = static fn( string $key ): string => isset( $_POST[ $key ] ) && is_string( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : '';
 
 		// CheckoutTexts::sanitize() cleans each text, so here it's only unslashed.
 		$this->settings->set_texts( CheckoutTexts::sanitize( isset( $_POST['texts'] ) && is_array( $_POST['texts'] ) ? wp_unslash( $_POST['texts'] ) : array() ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -166,116 +136,6 @@ class ConfigurationForm {
 		// Back to the tab they saved from.
 		wp_safe_redirect( add_query_arg( 'iftp_notice', 'saved', ConfigurationPage::url() ) . ( in_array( $tab, self::TABS, true ) ? '#' . $tab : '' ) );
 		exit;
-	}
-
-	/**
-	 * The Messages tab: a title and a message per outcome, with merge tags.
-	 */
-	private function render_messages(): void {
-		$confirmation = $this->settings->get_confirmation();
-		$titles       = array(
-			'paid'      => __( 'Paid', 'ifthenpay-pay-button' ),
-			'pending'   => __( 'Pending', 'ifthenpay-pay-button' ),
-			'failed'    => __( 'Failed', 'ifthenpay-pay-button' ),
-			'cancelled' => __( 'Cancelled', 'ifthenpay-pay-button' ),
-		);
-		$hints        = array(
-			'paid'      => __( 'ifthenpay confirmed the payment.', 'ifthenpay-pay-button' ),
-			'pending'   => __( 'Back from ifthenpay, but not confirmed yet: a Multibanco or Payshop reference waiting to be paid.', 'ifthenpay-pay-button' ),
-			'failed'    => __( 'Declined, or the link expired.', 'ifthenpay-pay-button' ),
-			'cancelled' => __( 'The payer cancelled on the ifthenpay page.', 'ifthenpay-pay-button' ),
-		);
-		?>
-		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-confirm-title">
-			<div class="iftp-btn-panel__intro">
-				<h2 id="iftp-btn-confirm-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Confirmation type', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Back from ifthenpay, the payer lands on the page they paid from and sees one of these. If it changes later (pending turns paid), the popup comes back even if they closed it. Click a tag to drop in that payment\'s detail.', 'ifthenpay-pay-button' ); ?></p>
-			</div>
-			<div class="iftp-btn-panel__body iftp-btn-outcomes">
-				<?php // One outcome at a time; the preview follows the pick. ?>
-				<span class="iftp-btn-seg iftp-btn-outcomes__pick" role="group" aria-label="<?php esc_attr_e( 'Outcome', 'ifthenpay-pay-button' ); ?>">
-					<?php foreach ( $titles as $outcome => $outcome_title ) : ?>
-						<button type="button" class="iftp-btn-seg__button iftp-btn-outcomes__option iftp-btn-outcome--<?php echo esc_attr( $outcome ); ?>" data-iftp-outcome-pick="<?php echo esc_attr( $outcome ); ?>" aria-pressed="<?php echo 'paid' === $outcome ? 'true' : 'false'; ?>"><?php echo esc_html( $outcome_title ); ?></button>
-					<?php endforeach; ?>
-				</span>
-				<?php foreach ( $titles as $outcome => $outcome_title ) : ?>
-					<fieldset class="iftp-btn-outcome iftp-btn-outcome--<?php echo esc_attr( $outcome ); ?>" data-iftp-tag-scope data-iftp-outcome="<?php echo esc_attr( $outcome ); ?>"<?php echo 'paid' === $outcome ? '' : ' hidden'; ?>>
-						<legend class="iftp-btn-outcome__title"><?php echo esc_html( $outcome_title ); ?></legend>
-						<p class="iftp-btn-field__help"><?php echo esc_html( $hints[ $outcome ] ); ?></p>
-
-						<?php if ( 'paid' === $outcome ) : ?>
-							<div class="iftp-btn-segment iftp-btn-segment--compact" data-iftp-paid-segment>
-								<?php
-								foreach (
-									array(
-										'popup' => __( 'Popup message', 'ifthenpay-pay-button' ),
-										'page'  => __( 'WordPress page', 'ifthenpay-pay-button' ),
-										'url'   => __( 'Custom URL', 'ifthenpay-pay-button' ),
-									) as $type => $type_label
-								) :
-									?>
-									<label class="iftp-btn-segment__option">
-										<input type="radio" name="paid_type" value="<?php echo esc_attr( $type ); ?>" <?php checked( $confirmation['paid_type'], $type ); ?> data-iftp-paid-type />
-										<span class="iftp-btn-segment__title"><?php echo esc_html( $type_label ); ?></span>
-									</label>
-								<?php endforeach; ?>
-							</div>
-							<div class="iftp-btn-field" data-iftp-when-paid="page">
-								<label class="iftp-btn-field__label" for="iftp-btn-paid-page"><?php esc_html_e( 'Page', 'ifthenpay-pay-button' ); ?></label>
-								<?php
-								wp_dropdown_pages(
-									array(
-										'name'             => 'paid_page',
-										'id'               => 'iftp-btn-paid-page',
-										'class'            => 'iftp-btn-field__control',
-										'selected'         => (int) $confirmation['paid_page'],
-										'show_option_none' => esc_html__( 'Choose a page…', 'ifthenpay-pay-button' ),
-										'option_none_value' => '0',
-									)
-								);
-								?>
-							</div>
-							<div class="iftp-btn-field" data-iftp-when-paid="url">
-								<label class="iftp-btn-field__label" for="iftp-btn-paid-url"><?php esc_html_e( 'Address', 'ifthenpay-pay-button' ); ?></label>
-								<input type="url" class="iftp-btn-field__control" id="iftp-btn-paid-url" name="paid_url" value="<?php echo esc_attr( $confirmation['paid_url'] ); ?>" placeholder="https://" />
-							</div>
-						<?php endif; ?>
-
-						<div class="iftp-btn-outcome__words" <?php echo 'paid' === $outcome ? 'data-iftp-when-paid="popup"' : ''; ?>>
-							<div class="iftp-btn-field">
-								<label class="iftp-btn-field__label" for="iftp-btn-title-<?php echo esc_attr( $outcome ); ?>"><?php esc_html_e( 'Title', 'ifthenpay-pay-button' ); ?></label>
-								<input type="text" class="iftp-btn-field__control" id="iftp-btn-title-<?php echo esc_attr( $outcome ); ?>" name="title[<?php echo esc_attr( $outcome ); ?>]" maxlength="120" value="<?php echo esc_attr( $confirmation['titles'][ $outcome ] ); ?>" placeholder="<?php echo esc_attr( CheckoutSettings::default_titles()[ $outcome ] ); ?>" data-iftp-tag-target data-iftp-outcome-title="<?php echo esc_attr( $outcome ); ?>" />
-							</div>
-
-							<div class="iftp-btn-msg" data-iftp-msg data-iftp-outcome-message="<?php echo esc_attr( $outcome ); ?>">
-								<div class="iftp-btn-msg__bar" role="toolbar" aria-label="<?php esc_attr_e( 'Formatting', 'ifthenpay-pay-button' ); ?>">
-									<button type="button" class="iftp-btn-msg__tool" data-iftp-msg-cmd="bold" aria-label="<?php esc_attr_e( 'Bold', 'ifthenpay-pay-button' ); ?>"><strong>B</strong></button>
-									<button type="button" class="iftp-btn-msg__tool" data-iftp-msg-cmd="italic" aria-label="<?php esc_attr_e( 'Italic', 'ifthenpay-pay-button' ); ?>"><em>I</em></button>
-									<button type="button" class="iftp-btn-msg__tool" data-iftp-msg-cmd="createLink" aria-label="<?php esc_attr_e( 'Link', 'ifthenpay-pay-button' ); ?>">
-										<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.7.7M9.5 6.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.7-.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-									</button>
-									<span class="iftp-btn-msg__views" role="group" aria-label="<?php esc_attr_e( 'Editor view', 'ifthenpay-pay-button' ); ?>">
-										<button type="button" class="iftp-btn-msg__view" data-iftp-msg-view="normal" aria-pressed="true"><?php esc_html_e( 'Normal', 'ifthenpay-pay-button' ); ?></button>
-										<button type="button" class="iftp-btn-msg__view" data-iftp-msg-view="raw" aria-pressed="false"><?php esc_html_e( 'Raw', 'ifthenpay-pay-button' ); ?></button>
-									</span>
-								</div>
-								<div class="iftp-btn-msg__normal" contenteditable="true" role="textbox" aria-multiline="true" aria-label="<?php echo esc_attr( $outcome_title ); ?>" data-iftp-msg-normal data-iftp-tag-target hidden></div>
-								<label class="screen-reader-text" for="iftp-btn-msg-<?php echo esc_attr( $outcome ); ?>"><?php echo esc_html( $outcome_title ); ?></label>
-								<textarea class="iftp-btn-field__control iftp-btn-msg__raw" id="iftp-btn-msg-<?php echo esc_attr( $outcome ); ?>" name="message[<?php echo esc_attr( $outcome ); ?>]" rows="3" data-iftp-msg-raw data-iftp-tag-target><?php echo esc_textarea( $confirmation['messages'][ $outcome ] ); ?></textarea>
-							</div>
-
-							<?php ButtonsPage::print_tags( MergeTags::available( true ) ); ?>
-						</div>
-					</fieldset>
-				<?php endforeach; ?>
-
-				<label class="iftp-btn-check">
-					<input type="checkbox" name="show_details" value="1" <?php checked( $confirmation['show_details'] ); ?> data-iftp-show-details />
-					<?php esc_html_e( 'Show the payment details (amount, reference, method) under the message', 'ifthenpay-pay-button' ); ?>
-				</label>
-			</div>
-		</section>
-		<?php
 	}
 
 	/**
@@ -421,7 +281,7 @@ class ConfigurationForm {
 					<p class="iftp-btn-panel__description"><?php esc_html_e( 'It builds pay buttons, so it opens once your ifthenpay account is connected.', 'ifthenpay-pay-button' ); ?></p>
 				</div>
 				<div class="iftp-btn-panel__body">
-					<button type="button" class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-goto-tab="gateway"><?php esc_html_e( 'Connect ifthenpay first', 'ifthenpay-pay-button' ); ?></button>
+					<button type="button" class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-goto-tab="backoffice"><?php esc_html_e( 'Connect ifthenpay first', 'ifthenpay-pay-button' ); ?></button>
 				</div>
 			</section>
 			<?php
@@ -464,6 +324,32 @@ class ConfigurationForm {
 					</select>
 					<p class="iftp-btn-field__help" id="iftp-btn-ai-keep-help"><?php esc_html_e( 'After that, a button\'s chat starts fresh. Saved buttons are never touched.', 'ifthenpay-pay-button' ); ?></p>
 				</div>
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-ai-answer"><?php esc_html_e( 'Longest answer', 'ifthenpay-pay-button' ); ?></label>
+					<select class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-ai-answer" name="ai[answer]" aria-describedby="iftp-btn-ai-answer-help">
+						<?php
+						$answer_names = array(
+							8192  => __( 'Short (8,192 tokens)', 'ifthenpay-pay-button' ),
+							16000 => __( 'Long (16,000 tokens)', 'ifthenpay-pay-button' ),
+							32000 => __( 'Longest (32,000 tokens)', 'ifthenpay-pay-button' ),
+						);
+						?>
+						<?php foreach ( AiSettings::ANSWER as $size ) : ?>
+							<option value="<?php echo esc_attr( (string) $size ); ?>" <?php selected( $ai['answer'], $size ); ?>><?php echo esc_html( $answer_names[ $size ] ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<p class="iftp-btn-field__help" id="iftp-btn-ai-answer-help"><?php esc_html_e( 'The most the AI may write in one answer. A button or checkout it draws in code is long, and a cap that is too small cuts it off. You only pay for what it writes. Some models stop at 16,000, so pick Long if one refuses the longest.', 'ifthenpay-pay-button' ); ?></p>
+				</div>
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-ai-wait"><?php esc_html_e( 'Wait for each model', 'ifthenpay-pay-button' ); ?></label>
+					<select class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-ai-wait" name="ai[wait]" aria-describedby="iftp-btn-ai-wait-help">
+						<?php foreach ( AiSettings::WAIT as $seconds ) : ?>
+							<?php /* translators: %d: seconds */ ?>
+							<option value="<?php echo esc_attr( (string) $seconds ); ?>" <?php selected( $ai['wait'], $seconds ); ?>><?php echo esc_html( 0 === $seconds ? __( 'Follow Thinking', 'ifthenpay-pay-button' ) : sprintf( __( '%d seconds', 'ifthenpay-pay-button' ), $seconds ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<p class="iftp-btn-field__help" id="iftp-btn-ai-wait-help"><?php esc_html_e( 'How long one model may take before the next one is tried. Long answers, like a drawn checkout, can need two minutes. Your host has to allow a request to last as long as this and a second try; if a message ends with a timeout page, lower it.', 'ifthenpay-pay-button' ); ?></p>
+				</div>
 			</div>
 		</section>
 
@@ -483,7 +369,7 @@ class ConfigurationForm {
 						'balanced' => array( __( 'Balanced', 'ifthenpay-pay-button' ), __( 'A little slower, more careful.', 'ifthenpay-pay-button' ) ),
 						'deep'     => array( __( 'Deep', 'ifthenpay-pay-button' ), __( 'Slowest and dearest, for big forms.', 'ifthenpay-pay-button' ) ),
 					),
-					__( 'Gemini and ChatGPT only. Claude always answers straight away.', 'ifthenpay-pay-button' )
+					__( 'Gemini and ChatGPT\'s reasoning models only. Claude always answers straight away.', 'ifthenpay-pay-button' )
 				);
 				$this->print_ai_choice(
 					'creativity',

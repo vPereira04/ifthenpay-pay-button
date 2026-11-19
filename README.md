@@ -76,25 +76,27 @@ No other plugin is needed.
 
 (screenshot 1)
 
-#### Step 2 — Choose the Gateway Key and the payment methods
+#### Step 2 — In the button's Configuration tab, choose the Gateway Key and the payment methods
 
-1. Choose your **Gateway Key** (only needed if you have more than one).
-2. Switch on the **payment methods** to offer and star the **default** one the ifthenpay page opens on.
-3. For a method that isn't active on your contract yet, click **Request Activation**.
-4. Click **Save Settings**.
+Each button picks its own Gateway Key and methods, so this is done in the button's editor (create one in Step 5, then come back here).
+
+1. Open the **Configuration** tab and choose your **Gateway Key** (only needed if you have more than one).
+2. Switch on the **payment methods** to offer and star the **default** one the ifthenpay page opens on. For a method that isn't active on your contract yet, click **Request Activation**.
+3. Click **Save button**.
 
 (screenshot 2)
 
-#### Step 3 — Set the ifthenpay page description, link expiry and weekly summary
+#### Step 3 — Set the ifthenpay page description and how long a pay link stays open
+
+Still in the button's **Configuration** tab, under **Hosted payment page**:
 
 1. **Description**: what the payer reads on the ifthenpay page. Click a **tag** to fill in each payment's details, e.g. `{button}`.
 2. **Expiry days**: how long an unpaid payment link stays open before it's marked Expired.
-3. Optional: a **weekly summary** email every Monday.
-4. Click **Save Settings**.
+3. Click **Save button**.
 
 (screenshot 3)
 
-These settings apply to every button. Further down, **Display** sets how the plugin's admin screens and Dashboard widget look.
+These two settings belong to the button. **Configuration** in the plugin menu holds what applies to every button: the Backoffice key, texts, emails, pay links and the AI.
 
 #### Step 4 — Optional: connect your own AI
 
@@ -120,11 +122,10 @@ Gemini, Claude and ChatGPT are supported. The key is only used to build buttons,
 
 #### Step 6 — Set the button's checkout: title, pay link and amount
 
-1. On the **Checkout** tab, the **Title** and **Description** are what the payer sees at the top of the checkout.
-2. **Hosted payment page description** (optional): overrides the one in Configuration › Gateway for this button.
-3. **Pay link**: the address of the button's own pay page.
-4. Switch on **Take payments**.
-5. **Amount**: **Fixed**, **Payer chooses** (donations, tips, with suggested amounts) or **From the link** (another plugin sends the total).
+1. On the **Basics** tab, the **Title** and **Description** are what the payer sees at the top of the checkout.
+2. **Pay link**: the address of the button's own pay page.
+3. Switch on **Take payments**.
+4. **Amount**: **Fixed**, **Payer chooses** (donations, tips, with suggested amounts) or **From the link** (another plugin sends the total).
 
 (screenshot 6)
 
@@ -154,12 +155,11 @@ Gemini, Claude and ChatGPT are supported. The key is only used to build buttons,
 
 Below these, **Payer picks how many** lets the payer choose a quantity (capped by **Most in one payment**), and **Say when few are left** shows "Only X left" in the checkout. An unpaid payment keeps its spot until its ifthenpay link expires.
 
-#### Step 10 — Pick the button's methods, then place it on a page or share its pay link
+#### Step 10 — Place the button on a page or share its pay link
 
-1. **Payment methods**: leave them all unticked to offer every method switched on in Configuration › Gateway, or tick only the ones this button takes.
-2. Copy the **shortcode** and paste it on any page or post.
-3. Or share the **pay link**: the button's own pay page, for emails, social posts or a QR code.
-4. In the block editor, add the **ifthenpay Pay Button** block and pick this button.
+1. Copy the **shortcode** and paste it on any page or post.
+2. Or share the **pay link**: the button's own pay page, for emails, social posts or a QR code.
+3. In the block editor, add the **ifthenpay Pay Button** block and pick this button.
 
 (screenshot 10)
 
@@ -229,8 +229,9 @@ A button the AI builds starts switched off, so check its prices, then turn on Ta
 
 1. Open **Pay Button › Default Design**.
 2. **Start from a look** (each one sets the pay page background too), then tweak the colours, shape, fonts, pay page background and Custom CSS below.
-3. The **preview** follows every change: checkout, pay page and each popup.
-4. Click **Save Settings**.
+3. Or click **Edit with AI** and describe the look in a chat: the AI's version opens here as a draft to check and save.
+4. The **preview** follows every change: checkout, pay page and each popup.
+5. Click **Save Settings**.
 
 (screenshot 17)
 
@@ -240,7 +241,7 @@ A button set to **The site's look** in its **Checkout design** tab uses this one
 
 #### Optional — Choose what the payer sees after paying
 
-1. Open the **Messages** tab.
+1. Open **Pay Button › Default Design** and its **Messages** tab. A button can set its own in its **Configuration** tab.
 2. **When paid**: show a **popup message**, send the payer to a **WordPress page** or to a **custom URL**.
 3. Write the **title** and **message** for each outcome (Paid, Pending, Failed, Cancelled), with tags like `{name}` or `{payment_id}`.
 
@@ -253,15 +254,17 @@ A button set to **The site's look** in its **Checkout design** tab uses this one
 
 (screenshot 19)
 
-#### Optional — Pay link address and payment emails
+#### Optional — Payment emails and the weekly summary
 
-1. Open **Configuration › Pay links** and **Emails**.
-2. **Link base**: the start of every pay link, e.g. `/pay/your-button/`.
-3. **Receipt to the payer**, once ifthenpay confirms the payment.
-4. **Tell me about every payment**, sent to the address below.
+1. Open **Configuration › Emails**.
+2. **Receipt to the payer**, once ifthenpay confirms the payment.
+3. **Tell me about every payment**, sent to the address below.
+4. **Send the weekly summary**: an email every Monday with the week's payments.
 5. Click **Save Settings**.
 
 (screenshot 20)
+
+The start of every pay link, e.g. `/pay/your-button/`, is the **Link base** under **Configuration › Pay links**.
 
 #### Following your payments
 
@@ -285,7 +288,7 @@ Click **View** on a payment to open its details:
 
 The payer clicks a pay button on your page (screenshot 23), or opens its pay page, and fills in the checkout (screenshot 24). **Continue to payment** takes them to ifthenpay's secure page, where they choose a method and pay (screenshot 25). Back on your site, they see the Paid popup, or your page or URL, once ifthenpay confirms the payment (screenshot 26).
 
-Screenshots 27 to 30 show some of the designs you can make with **Checkout design**: a gradient with waves, a video background, dark mode and crystals.
+Screenshots 27 to 38 show some of the designs you can make with **Checkout design**: a gradient with waves, a video background, dark mode, crystals, and looks for a donut shop, a pizzeria, a football club, a clinic, a music release, a book shop with picture cards and more.
 
 ### Frequently Asked Questions
 
@@ -414,10 +417,10 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
 
 1. **(Admin Only) Step 1: connect your ifthenpay account with the Backoffice Key**
    ![Connect](.wordpress-org/screenshot-1.png)
-2. **(Admin Only) Step 2: choose the Gateway Key and the payment methods**
-   ![Gateway Key and payment methods](.wordpress-org/screenshot-2.png)
-3. **(Admin Only) Step 3: set the ifthenpay page description, link expiry and weekly summary**
-   ![Hosted payment page settings](.wordpress-org/screenshot-3.png)
+2. **(Admin Only) Step 2: in the button's Configuration tab, choose the Gateway Key and the payment methods**
+   ![Gateway Key and payment methods, in the button's Configuration tab](.wordpress-org/screenshot-2.png)
+3. **(Admin Only) Step 3: set the ifthenpay page description and how long a pay link stays open**
+   ![Hosted payment page: description and expiry days](.wordpress-org/screenshot-3.png)
 4. **(Admin Only) Step 4: optional — connect your own AI to build buttons from a chat**
    ![Connect an AI](.wordpress-org/screenshot-4.png)
 5. **(Admin Only) Step 5: the Buttons screen — create a button, or build one with AI**
@@ -430,8 +433,8 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
    ![Conditional question](.wordpress-org/screenshot-8.png)
 9. **(Admin Only) Step 9: optional — limit the spots, in total or per option**
    ![Spots](.wordpress-org/screenshot-9.png)
-10. **(Admin Only) Step 10: pick the methods for this button, then place it on a page or share its pay link**
-    ![Payment methods and Place it](.wordpress-org/screenshot-10.png)
+10. **(Admin Only) Step 10: place the button on a page or share its pay link**
+    ![Place it: shortcode and pay link](.wordpress-org/screenshot-10.png)
 11. **(Admin Only) Step 11: give the button's checkout its own look**
     ![Checkout design](.wordpress-org/screenshot-11.png)
 12. **(Admin Only) Step 12: page progress style and the pay page background**
@@ -446,12 +449,12 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
     ![Build with AI](.wordpress-org/screenshot-16.png)
 17. **(Admin Only) Default Design › Checkout & pay page: the look of every checkout, pay page and popup**
     ![Default Design, Checkout tab](.wordpress-org/screenshot-17.png)
-18. **(Admin Only) Configuration › Messages: what the payer sees after paying**
-    ![Checkout messages](.wordpress-org/screenshot-18.png)
+18. **(Admin Only) Default Design › Messages: what the payer sees after paying**
+    ![Default Design: messages after paying](.wordpress-org/screenshot-18.png)
 19. **(Admin Only) Configuration › Texts: every word the payer reads, in your own words or language**
     ![Checkout texts](.wordpress-org/screenshot-19.png)
-20. **(Admin Only) Configuration › Emails and Pay links: payment emails and the pay link address**
-    ![Links and emails](.wordpress-org/screenshot-20.png)
+20. **(Admin Only) Configuration › Emails: the payer's receipt, a note for every payment and the weekly summary**
+    ![Payment emails and the weekly summary](.wordpress-org/screenshot-20.png)
 21. **(Admin Only) Payments: every payment, its status and the totals**
     ![Payments](.wordpress-org/screenshot-21.png)
 22. **(Admin Only) A payment's details**
@@ -472,6 +475,22 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
     ![Dark mode](.wordpress-org/screenshot-29.png)
 30. **(Design Example) Crystals on an aurora, a wide card with the logo above it**
     ![Crystals and a wide card](.wordpress-org/screenshot-30.png)
+31. **(Design Example) Bubblegum pink and sprinkles: a donut shop**
+    ![Donut shop](.wordpress-org/screenshot-31.png)
+32. **(Design Example) Tomatoes, basil and olives with a step badge: a pizzeria**
+    ![Pizzeria](.wordpress-org/screenshot-32.png)
+33. **(Design Example) A football pitch behind the checkout, with suggested amounts**
+    ![Football club](.wordpress-org/screenshot-33.png)
+34. **(Design Example) A heartbeat line behind a booking form with a date and a time: a clinic**
+    ![Clinic](.wordpress-org/screenshot-34.png)
+35. **(Design Example) A dark card with a dedication field and picture options: a music release**
+    ![Music release](.wordpress-org/screenshot-35.png)
+36. **(Design Example) Picture cards in a sideways row: pick a book cover**
+    ![Picture cards in a row](.wordpress-org/screenshot-36.png)
+37. **(Design Example) Bubbles and quick amounts: a light-hearted donation page**
+    ![Donation page with bubbles](.wordpress-org/screenshot-37.png)
+38. **(Design Example) Gold on black with a soft progress: a cause to support**
+    ![Gold on black](.wordpress-org/screenshot-38.png)
 
 ### Examples
 
@@ -496,9 +515,9 @@ What you can do with the design options. Every button can keep the site-wide loo
 9. **Dark mode.** With "Follow the payer's device", payers whose phone or computer is set to dark get your dark colours.
    ![Dark mode](.wordpress-org/examples/example-9.png)
 10. **On a phone.** The pay page and the checkout fit any screen.
-    ![On a phone](.wordpress-org/examples/example-10.png)
+    <img class="iftp-shot iftp-shot--phone" src=".wordpress-org/examples/example-10.png" alt="On a phone" height="520">
 11. **A video background on a phone.**
-    ![Video background on a phone](.wordpress-org/examples/example-11.png)
+    <img class="iftp-shot iftp-shot--phone" src=".wordpress-org/examples/example-11.png" alt="Video background on a phone" height="520">
 12. **The Paid popup, in the button's own look.** The Pending, Failed and Cancelled popups match it too.
     ![Paid popup](.wordpress-org/examples/example-12.png)
 13. **(Admin Only) Start from a look, then tweak it.** The colours, the outcome colours and the glass card, with a live preview of the checkout, the pay page and each popup.

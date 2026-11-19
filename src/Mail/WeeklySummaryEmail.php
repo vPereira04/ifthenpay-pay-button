@@ -11,7 +11,7 @@ namespace Ifthenpay\PayButton\Mail;
 
 use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
 use Ifthenpay\PayButton\Reports\Insights;
-use Ifthenpay\PayButton\Repository\TransactionStore;
+use Ifthenpay\PayButton\Reports\TransactionReports;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -26,19 +26,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WeeklySummaryEmail {
 
 	/**
-	 * Transactions storage.
+	 * The aggregate reads.
 	 *
-	 * @var TransactionStore
+	 * @var TransactionReports
 	 */
-	private TransactionStore $transactions;
+	private TransactionReports $reports;
 
 	/**
 	 * Sets up the email.
 	 *
-	 * @param TransactionStore|null $transactions Transactions storage.
+	 * @param TransactionReports|null $reports The aggregate reads.
 	 */
-	public function __construct( ?TransactionStore $transactions = null ) {
-		$this->transactions = $transactions ?? new TransactionStore();
+	public function __construct( ?TransactionReports $reports = null ) {
+		$this->reports = $reports ?? new TransactionReports();
 	}
 
 	/**
@@ -67,10 +67,10 @@ class WeeklySummaryEmail {
 	 * @return array{subject: string, body: string}
 	 */
 	public function render(): array {
-		$period    = ( new Insights( $this->transactions ) )->period( '7d' );
+		$period    = ( new Insights( $this->reports ) )->period( '7d' );
 		$revenue   = $period['kpis']['revenue'];
-		$waiting   = $this->transactions->waiting();
-		$customers = $this->transactions->top_customers( time() - 7 * DAY_IN_SECONDS, time() + 1, 3 );
+		$waiting   = $this->reports->waiting();
+		$customers = $this->reports->top_customers( time() - 7 * DAY_IN_SECONDS, time() + 1, 3 );
 		$site      = wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
 
 		/* translators: 1: site name, 2: revenue, e.g. "1.234,56 €", 3: change, e.g. "▲ 12.4%" */

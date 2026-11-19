@@ -371,7 +371,14 @@ class EntryPresenter {
 
 		$catalog = array();
 
-		foreach ( $this->settings->get_methods() as $method ) {
+		// A payment can be from any Gateway Key, so every key's methods count; the default key's first.
+		$methods = $this->settings->get_methods();
+
+		foreach ( $this->settings->get_gateway_keys() as $gateway_key ) {
+			$methods = array_merge( $methods, $this->settings->get_methods( $gateway_key ) );
+		}
+
+		foreach ( $methods as $method ) {
 			if ( '' === $method['entity'] ) {
 				continue;
 			}

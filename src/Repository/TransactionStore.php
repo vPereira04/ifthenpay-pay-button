@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Repository;
 
+use Ifthenpay\PayButton\Checkout\TestMode;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -53,9 +55,9 @@ class TransactionStore {
 	// The list and CSV never show the snapshot, so I leave the LONGTEXT out of their reads.
 	private const LIST_COLUMNS = 't.ref, t.gateway_key, t.button_id, t.external_ref, t.source_url, t.amount, t.pay_method, t.request_id, t.transaction_id, t.payment_url, t.customer_name, t.customer_email, t.status, t.created_at, t.updated_at, t.spots, t.spot_option, t.hold_until';
 
-	private const CACHE_GROUP     = 'iftp_btn';
+	public const CACHE_GROUP      = 'iftp_btn';
 	private const ENTRY_CACHE_TTL = 600;
-	private const LIST_CACHE_TTL  = 30;
+	public const LIST_CACHE_TTL   = 30;
 
 	/**
 	 * The custom table name, including the site's table prefix.
@@ -150,17 +152,18 @@ class TransactionStore {
 	/**
 	 * Inserts a pending payment a button started. The link comes after, with record_payment_link().
 	 *
-	 * @param int                                                             $button_id    The button's post ID.
-	 * @param float                                                           $amount       The payment amount.
-	 * @param string                                                          $gateway_key  The Gateway Key the link is created under.
-	 * @param array<string, array{label: string, value: string}>              $snapshot     What the payer filled in, keyed by field.
-	 * @param string                                                          $external_ref The reference another plugin passed in the link, or ''.
-	 * @param string                                                          $source_url   The page the payment started on.
-	 * @param array{count: int, options: array<int, string>, hold_until: int} $spot The spots it takes on each option, the options, and until when an unpaid one keeps them.
+	 * @param int                                                                                         $button_id    The button's post ID.
+	 * @param float                                                                                       $amount       The payment amount.
+	 * @param string                                                                                      $gateway_key  The Gateway Key the link is created under.
+	 * @param array<string, array{label: string, value: string}>                                          $snapshot     What the payer filled in, keyed by field.
+	 * @param string                                                                                      $external_ref The reference another plugin passed in the link, or ''.
+	 * @param string                                                                                      $source_url   The page the payment started on.
+	 * @param array{count: int, options: array<int, string>, extra?: array<int, string>, hold_until: int} $spot The spots it takes on each option, the options (and those on other fields, tagged), and until when an unpaid one keeps them.
+	 * @param bool                                                                                        $test         Whether it's a test made from the demo page: its ref starts with TEST-.
 	 * @return string|null The generated ref, or null if the insert failed.
 	 */
-	public function create_for_button( int $button_id, float $amount, string $gateway_key, array $snapshot, string $external_ref, string $source_url, array $spot ): ?string {
-		$ref = $this->unique_ref( 'IFTP_', 10 );
+	public function create_for_button( int $button_id, float $amount, string $gateway_key, array $snapshot, string $external_ref, string $source_url, array $spot, bool $test = false ): ?string {
+		$ref = $test ? $this->unique_ref( TestMode::PREFIX, 10 ) : $this->unique_ref( 'IFTP_', 10 );
 
 		$inserted = $this->insert(
 			array(
@@ -173,7 +176,7 @@ class TransactionStore {
 				'status'         => self::STATUS_PENDING,
 				'field_snapshot' => $snapshot,
 				'spots'          => $spot['count'],
-				'spot_option'    => implode( "\n", $spot['options'] ),
+				'spot_option'    => implode( "\n", array_merge( $spot['options'], $spot['extra'] ?? array() ) ),
 				'hold_until'     => $spot['hold_until'],
 			)
 		);
@@ -207,7 +210,7 @@ class TransactionStore {
 		$now          = time();
 		$placeholders = implode( ', ', array_fill( 0, count( $button_ids ), '%d' ) );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- custom plugin table, cached below; $placeholders is only %d markers, and the values go in as one array.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- custom plugin table, cached below; $placeholders is only %d markers, and the values go in as one array.
 		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT button_id, spot_option, SUM(spots) AS taken, MIN(CASE WHEN status <> %s THEN hold_until END) AS held_until FROM %i WHERE button_id IN ({$placeholders}) AND spots > 0 AND (status = %s OR (status <> %s AND hold_until >= %d)) GROUP BY button_id, spot_option", array_merge( array( self::STATUS_PAID, self::table_name() ), $button_ids, array( self::STATUS_PAID, self::STATUS_EXPIRED, $now ) ) ), ARRAY_A );
 
 		$taken = array();
@@ -228,9 +231,21 @@ class TransactionStore {
 			);
 
 			// A Multiple choice payment holds its spots on every option it ticked, one line each.
+			// Options of the other fields are tagged with an "@"; they have their own counts and never use up the total.
+			$main = 0;
+
 			foreach ( explode( "\n", (string) $row['spot_option'] ) as $option ) {
-				$taken[ $id ]['total']             += $count;
+				if ( '@' !== substr( $option, 0, 1 ) ) {
+					$taken[ $id ]['total'] += $count;
+					++$main;
+				}
+
 				$taken[ $id ]['options'][ $option ] = ( $taken[ $id ]['options'][ $option ] ?? 0 ) + $count;
+			}
+
+			// A payment that picked nothing on the main field still takes a spot from the total.
+			if ( 0 === $main ) {
+				$taken[ $id ]['total'] += $count;
 			}
 		}
 
@@ -246,91 +261,6 @@ class TransactionStore {
 	 */
 	public function release_spots( string $ref ): bool {
 		return $this->update( $ref, array( 'hold_until' => 0 ) );
-	}
-
-	/**
-	 * Paid payments per button that started on or after a moment of its own: when its checkout opens began being counted.
-	 *
-	 * @param array<int, int> $since Button ID => Unix time.
-	 * @return array<int, int> Keyed by button ID; buttons with none are left out.
-	 */
-	public function paid_since( array $since ): array {
-		global $wpdb;
-
-		$since = array_filter( array_map( 'intval', $since ) );
-
-		if ( array() === $since ) {
-			return array();
-		}
-
-		$cache_key = 'since_' . $this->last_changed() . '_' . md5( (string) wp_json_encode( $since ) );
-		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
-
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
-
-		$where = implode( ' OR ', array_fill( 0, count( $since ), '(button_id = %d AND created_at >= %d)' ) );
-		$args  = array( self::table_name(), self::STATUS_PAID );
-
-		foreach ( $since as $id => $time ) {
-			$args[] = (int) $id;
-			$args[] = $time;
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- custom plugin table, cached below; $where is only fixed %d pairs, and the values go in as one array.
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT button_id, COUNT(*) AS paid FROM %i WHERE status = %s AND ({$where}) GROUP BY button_id", $args ), ARRAY_A );
-		$paid = array();
-
-		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
-			$paid[ (int) $row['button_id'] ] = (int) $row['paid'];
-		}
-
-		wp_cache_set( $cache_key, $paid, self::CACHE_GROUP, self::LIST_CACHE_TTL );
-
-		return $paid;
-	}
-
-	/**
-	 * Paid count and amount per button, plus the count of every payment it started.
-	 *
-	 * @param array<int, int> $button_ids The buttons' post IDs.
-	 * @return array<int, array{paid_count: int, paid_amount: float, count: int}> Keyed by button ID; buttons with no payments are left out.
-	 */
-	public function button_stats( array $button_ids ): array {
-		global $wpdb;
-
-		$button_ids = array_values( array_unique( array_filter( array_map( 'intval', $button_ids ) ) ) );
-
-		if ( array() === $button_ids ) {
-			return array();
-		}
-
-		$cache_key = 'buttons_' . $this->last_changed() . '_' . md5( implode( ',', $button_ids ) );
-		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
-
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
-
-		$placeholders = implode( ', ', array_fill( 0, count( $button_ids ), '%d' ) );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- custom plugin table, cached below; $placeholders is only %d markers, one per id, which the sniff can't count.
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT button_id, COUNT(*) AS total, SUM(CASE WHEN status = %s THEN 1 ELSE 0 END) AS paid_count, SUM(CASE WHEN status = %s THEN amount ELSE 0 END) AS paid_amount FROM %i WHERE button_id IN ({$placeholders}) GROUP BY button_id", array_merge( array( self::STATUS_PAID, self::STATUS_PAID, self::table_name() ), $button_ids ) ), ARRAY_A );
-
-		$stats = array();
-
-		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
-			$stats[ (int) $row['button_id'] ] = array(
-				'paid_count'  => (int) $row['paid_count'],
-				'paid_amount' => round( (float) $row['paid_amount'], 2 ),
-				'count'       => (int) $row['total'],
-			);
-		}
-
-		wp_cache_set( $cache_key, $stats, self::CACHE_GROUP, self::LIST_CACHE_TTL );
-
-		return $stats;
 	}
 
 	/**
@@ -801,145 +731,6 @@ class TransactionStore {
 	}
 
 	/**
-	 * The money still waiting: every pending payment's count and total.
-	 *
-	 * @return array{count: int, amount: float}
-	 */
-	public function waiting(): array {
-		global $wpdb;
-
-		$cache_key = 'waiting_' . $this->last_changed();
-		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
-
-		if ( is_array( $cached ) ) {
-			/**
-			 * Only this method writes the key, so the shape is known.
-			 *
-			 * @var array{count: int, amount: float} $cached
-			 */
-			return $cached;
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom plugin table, cached right below.
-		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT COUNT(*) AS total, SUM(amount) AS amount FROM %i WHERE status = %s', self::table_name(), self::STATUS_PENDING ), ARRAY_A );
-
-		$waiting = array(
-			'count'  => (int) ( $row['total'] ?? 0 ),
-			'amount' => round( (float) ( $row['amount'] ?? 0 ), 2 ),
-		);
-
-		wp_cache_set( $cache_key, $waiting, self::CACHE_GROUP, self::LIST_CACHE_TTL );
-
-		return $waiting;
-	}
-
-	/**
-	 * Paid count and amount per payment method, between two timestamps.
-	 *
-	 * @param int $from Unix timestamp, inclusive.
-	 * @param int $to   Unix timestamp, exclusive.
-	 * @return array<int, array{method: string, count: int, amount: float}>
-	 */
-	public function method_totals( int $from, int $to ): array {
-		global $wpdb;
-
-		$cache_key = 'methods_' . $this->last_changed() . '_' . $from . '_' . $to;
-		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
-
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom plugin table, cached right below.
-		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT pay_method, COUNT(*) AS total, SUM(amount) AS amount FROM %i WHERE status = %s AND created_at >= %d AND created_at < %d GROUP BY pay_method', self::table_name(), self::STATUS_PAID, $from, $to ), ARRAY_A );
-
-		$totals = array_map(
-			static fn( array $row ): array => array(
-				'method' => (string) $row['pay_method'],
-				'count'  => (int) $row['total'],
-				'amount' => (float) $row['amount'],
-			),
-			is_array( $rows ) ? $rows : array()
-		);
-
-		wp_cache_set( $cache_key, $totals, self::CACHE_GROUP, self::LIST_CACHE_TTL );
-
-		return $totals;
-	}
-
-	/**
-	 * The customers who paid the most between two timestamps, by email (or name when there's none).
-	 *
-	 * @param int $from  Unix timestamp, inclusive.
-	 * @param int $to    Unix timestamp, exclusive.
-	 * @param int $limit How many.
-	 * @return array<int, array{name: string, email: string, count: int, amount: float}>
-	 */
-	public function top_customers( int $from, int $to, int $limit ): array {
-		global $wpdb;
-
-		$cache_key = 'top_' . $this->last_changed() . '_' . $from . '_' . $to . '_' . $limit;
-		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
-
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom plugin table, cached below.
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT MAX(customer_name) AS name, MAX(customer_email) AS email, COUNT(*) AS total, SUM(amount) AS amount FROM %i WHERE status = %s AND created_at >= %d AND created_at < %d AND (customer_email <> '' OR customer_name <> '') GROUP BY IF(customer_email <> '', customer_email, customer_name) ORDER BY amount DESC LIMIT %d", self::table_name(), self::STATUS_PAID, $from, $to, $limit ), ARRAY_A );
-
-		$top = array_map(
-			static fn( array $row ): array => array(
-				'name'   => (string) $row['name'],
-				'email'  => (string) $row['email'],
-				'count'  => (int) $row['total'],
-				'amount' => (float) $row['amount'],
-			),
-			is_array( $rows ) ? $rows : array()
-		);
-
-		wp_cache_set( $cache_key, $top, self::CACHE_GROUP, self::LIST_CACHE_TTL );
-
-		return $top;
-	}
-
-	/**
-	 * Count and amount per local day and status, for the charts. Days are counted in the site's timezone.
-	 *
-	 * @param int $from   Unix timestamp, inclusive.
-	 * @param int $to     Unix timestamp, exclusive.
-	 * @param int $offset The site's UTC offset in seconds, so a "day" is the site's day.
-	 * @return array<int, array{day: int, status: string, count: int, amount: float}>
-	 */
-	public function daily_totals( int $from, int $to, int $offset ): array {
-		global $wpdb;
-
-		$cache_key = 'daily_' . $this->last_changed() . '_' . md5( $from . '|' . $to . '|' . $offset );
-		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
-
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom plugin table, cached right below.
-		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT FLOOR((created_at + %d) / 86400) AS day, status, COUNT(*) AS total, SUM(amount) AS amount FROM %i WHERE created_at >= %d AND created_at < %d GROUP BY day, status', $offset, self::table_name(), $from, $to ), ARRAY_A );
-
-		$totals = array_map(
-			static fn( array $row ): array => array(
-				'day'    => (int) $row['day'],
-				'status' => (string) $row['status'],
-				'count'  => (int) $row['total'],
-				'amount' => (float) $row['amount'],
-			),
-			is_array( $rows ) ? $rows : array()
-		);
-
-		wp_cache_set( $cache_key, $totals, self::CACHE_GROUP, self::LIST_CACHE_TTL );
-
-		return $totals;
-	}
-
-	/**
 	 * Count and amount per status for the given filters, ignoring their `status`.
 	 * Cancelled rolls into Failed, since the admin list has no Cancelled tab.
 	 *
@@ -1346,9 +1137,9 @@ class TransactionStore {
 	}
 
 	/**
-	 * A token bumped on every write, so list caches never need per-row invalidation.
+	 * A token bumped on every write, so list caches never need per-row invalidation. The reports key theirs on it too.
 	 */
-	private function last_changed(): string {
+	public function last_changed(): string {
 		$last_changed = wp_cache_get( 'last_changed', self::CACHE_GROUP );
 
 		if ( ! is_string( $last_changed ) ) {

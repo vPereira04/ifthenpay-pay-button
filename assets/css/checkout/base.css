@@ -1,0 +1,9 @@
+/* ==========================================================================
+   ifthenpay Pay Button — the pay page of a button set to "My own code".
+   Everything else is the merchant's own CSS; this only keeps hidden things hidden.
+   ========================================================================== */
+
+.iftp-btn-page-body [hidden],
+.iftp-btn-sheet [hidden] {
+	display: none !important;
+}

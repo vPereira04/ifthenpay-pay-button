@@ -92,7 +92,7 @@ class WebhookRegistrar {
 			$this->settings->set_anti_phishing_key( $gateway_key, $anti_phishing_key );
 		}
 
-		$this->settings->set_callback_hash( self::hash( $gateway_key ) );
+		$this->settings->set_callback_hash( $gateway_key, self::hash( $gateway_key ) );
 
 		return true;
 	}
@@ -117,25 +117,43 @@ class WebhookRegistrar {
 	}
 
 	/**
-	 * Re-registers the callback when the URL no longer matches the one ifthenpay accepted. Just a hash compare on the happy path.
+	 * Every Gateway Key to keep registered: the account's, or just the default one before the list was ever stored.
+	 *
+	 * @return array<int, string>
+	 */
+	private function keys(): array {
+		$keys = $this->settings->get_gateway_keys();
+
+		return array() !== $keys ? $keys : array_filter( array( $this->settings->get_gateway_key() ) );
+	}
+
+	/**
+	 * Registers the callback for every Gateway Key on the account, since each button can use its own.
+	 */
+	public function register_all(): void {
+		foreach ( $this->keys() as $gateway_key ) {
+			$this->register_webhook( $gateway_key );
+		}
+	}
+
+	/**
+	 * Re-registers the callback of each Gateway Key whose URL no longer matches the one ifthenpay accepted. Just a hash compare on the happy path.
 	 */
 	public function resync_if_drifted(): void {
-		$gateway_key = $this->settings->get_gateway_key();
-
-		if ( '' === $gateway_key ) {
+		if ( false !== get_transient( self::RETRY_LOCK ) ) {
 			return;
 		}
 
-		// A missing anti-phishing key also needs a resync, or the validator rejects every callback.
-		$in_sync = self::hash( $gateway_key ) === $this->settings->get_callback_hash()
-			&& '' !== $this->settings->get_anti_phishing_key( $gateway_key );
+		foreach ( $this->keys() as $gateway_key ) {
+			// A missing anti-phishing key also needs a resync, or the validator rejects every callback.
+			$in_sync = self::hash( $gateway_key ) === $this->settings->get_callback_hash( $gateway_key )
+				&& '' !== $this->settings->get_anti_phishing_key( $gateway_key );
 
-		if ( $in_sync || false !== get_transient( self::RETRY_LOCK ) ) {
-			return;
-		}
+			if ( ! $in_sync && ! $this->register_webhook( $gateway_key ) ) {
+				set_transient( self::RETRY_LOCK, 1, 15 * MINUTE_IN_SECONDS );
 
-		if ( ! $this->register_webhook( $gateway_key ) ) {
-			set_transient( self::RETRY_LOCK, 1, 15 * MINUTE_IN_SECONDS );
+				return;
+			}
 		}
 	}
 

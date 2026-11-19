@@ -40,6 +40,11 @@ $iftp_btn_uninstall_site = static function (): void {
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time cleanup of transients with dynamic names; no core API lists them.
 	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( '_transient_iftp_btn_' ) . '%', $wpdb->esc_like( '_transient_timeout_iftp_btn_' ) . '%' ) );
 
+	// The saved AI chats: one option each, and the list of them in every admin's user meta.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time cleanup of options with dynamic names; no core API lists them.
+	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( 'iftp_btn_ai_chat_' ) . '%' ) );
+	delete_metadata( 'user', 0, 'iftp_btn_ai_chats', '', true );
+
 	if ( class_exists( \Ifthenpay\PayButton\Repository\CheckoutSettings::class ) ) {
 		( new \Ifthenpay\PayButton\Repository\CheckoutSettings() )->delete_all();
 	}

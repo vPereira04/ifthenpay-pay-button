@@ -1,0 +1,941 @@
+/* stylelint-disable selector-class-pattern -- BEM with the iftp-btn- prefix. */
+
+/* --------------------------------------------------------------------------
+   Folds: cards and groups that open on their heading, so a long screen shows only what's being worked on
+   -------------------------------------------------------------------------- */
+.iftp-btn-ecard--fold {
+	display: block;
+	padding: 0;
+}
+
+.iftp-btn-ecard--fold > .iftp-btn-ecard__intro,
+.iftp-btn-fold__summary {
+	position: relative;
+	display: block;
+	padding-right: 44px;
+	cursor: pointer;
+	list-style: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.iftp-btn-ecard--fold > .iftp-btn-ecard__intro {
+	padding: 18px 56px 18px 24px;
+	border-radius: var(--iftp-r-xl);
+}
+
+.iftp-btn-ecard--fold > .iftp-btn-ecard__intro::-webkit-details-marker,
+.iftp-btn-fold__summary::-webkit-details-marker {
+	display: none;
+}
+
+/* A chevron that turns when open. */
+.iftp-btn-ecard--fold > .iftp-btn-ecard__intro::after,
+.iftp-btn-fold__summary::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	right: 24px;
+	width: 8px;
+	height: 8px;
+	margin-top: -6px;
+	border-right: 1.75px solid var(--iftp-muted);
+	border-bottom: 1.75px solid var(--iftp-muted);
+	transform: rotate(45deg);
+	transition: transform 0.18s ease, margin 0.18s ease;
+}
+
+.iftp-btn-fold__summary::after {
+	right: 6px;
+}
+
+.iftp-btn-ecard--fold[open] > .iftp-btn-ecard__intro::after,
+.iftp-btn-fold[open] > .iftp-btn-fold__summary::after {
+	margin-top: -2px;
+	transform: rotate(-135deg);
+}
+
+.iftp-btn-ecard--fold > .iftp-btn-ecard__intro:hover .iftp-btn-ecard__title,
+.iftp-btn-fold__summary:hover .iftp-btn-fold__title {
+	color: var(--iftp-brand);
+}
+
+.iftp-btn-ecard--fold > .iftp-btn-ecard__intro:focus-visible,
+.iftp-btn-fold__summary:focus-visible {
+	outline: 2px solid var(--iftp-brand);
+	outline-offset: 2px;
+}
+
+.iftp-btn-ecard--fold > .iftp-btn-ecard__body {
+	padding: 0 24px 24px;
+}
+
+/* Groups inside a card: a hairline between them, no box of their own. */
+.iftp-btn-fold + .iftp-btn-fold {
+	padding-top: 14px;
+	border-top: 1px solid var(--iftp-line);
+}
+
+.iftp-btn-fold__summary {
+	padding-block: 2px;
+}
+
+.iftp-btn-fold__title {
+	display: block;
+	color: var(--iftp-ink);
+	font-size: 13.5px;
+	font-weight: 700;
+}
+
+.iftp-btn-fold__hint {
+	display: block;
+	margin-top: 2px;
+	color: var(--iftp-muted);
+	font-size: 12.5px;
+}
+
+.iftp-btn-fold__body {
+	display: grid;
+	gap: 18px;
+	padding-top: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Design controls
+   -------------------------------------------------------------------------- */
+.iftp-btn-segment--two {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.iftp-btn-design {
+	display: grid;
+	gap: 18px;
+	padding: 18px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-inset);
+}
+
+/* Icon, width and logos: they hide, together, while a button follows the default design. */
+.iftp-btn-design__shared {
+	display: grid;
+	gap: 16px;
+}
+
+/* "Save and make it the default", under a button's own design. */
+.iftp-btn-makedefault {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px 16px;
+	padding: 14px 16px;
+	border: 1px dashed var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+}
+
+.iftp-btn-makedefault__text {
+	flex: 1 1 260px;
+	margin: 0;
+	color: var(--iftp-ink-2);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.iftp-btn-design__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 18px 20px;
+}
+
+.iftp-btn-design__grid > .iftp-btn-field,
+.iftp-btn-design > .iftp-btn-field {
+	align-content: start;
+	margin: 0;
+}
+
+.iftp-btn-design__wide {
+	grid-column: 1 / -1;
+}
+
+fieldset.iftp-btn-field {
+	display: block;
+	min-width: 0;
+	padding: 0;
+	border: 0;
+}
+
+fieldset.iftp-btn-field > legend {
+	margin-bottom: 6px;
+	padding: 0;
+}
+
+.iftp-btn-design .iftp-btn-np__toggle {
+	background: var(--iftp-raised);
+}
+
+/* Preset looks */
+.iftp-btn-looks {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+	gap: 10px;
+}
+
+body.iftp-btn-screen .iftp-btn-looks__item {
+	display: grid;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+	color: var(--iftp-ink);
+	font-family: inherit;
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), box-shadow var(--iftp-mid) var(--iftp-ease), transform var(--iftp-mid) var(--iftp-ease);
+}
+
+body.iftp-btn-screen .iftp-btn-looks__item:hover {
+	border-color: rgb(0 96 156 / 45%);
+	box-shadow: var(--iftp-shadow-2);
+	transform: translateY(-1px);
+}
+
+.iftp-btn-looks__stage {
+	display: grid;
+	place-items: center;
+	min-height: 66px;
+	padding: 14px 8px;
+	background:
+		radial-gradient(circle at 1px 1px, rgb(18 26 44 / 8%) 1px, transparent 0) 0 0 / 12px 12px,
+		var(--iftp-surface);
+	pointer-events: none;
+}
+
+.iftp-btn-looks__stage .iftp-btn-pay .iftp-btn-pay__button--custom {
+	--iftp-pb-size: 13px;
+	--iftp-pb-pad: 0.55em 1.1em;
+}
+
+.iftp-btn-looks__name {
+	padding: 7px 10px;
+	border-top: 1px solid var(--iftp-line);
+	font-size: 12.5px;
+	font-weight: 650;
+}
+
+/* Effect pickers: a radio tile per choice, each with a live sample in the current colours. */
+.iftp-btn-fxpick {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+	gap: 8px;
+}
+
+.iftp-btn-fxpick__item {
+	position: relative;
+	display: grid;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+	color: var(--iftp-ink);
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), box-shadow var(--iftp-mid) var(--iftp-ease);
+}
+
+.iftp-btn-fxpick__item input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.iftp-btn-fxpick__item:hover {
+	border-color: rgb(0 96 156 / 45%);
+}
+
+.iftp-btn-fxpick__item:has(input:checked) {
+	border-color: var(--iftp-brand);
+	box-shadow: 0 0 0 1px var(--iftp-brand);
+}
+
+.iftp-btn-fxpick__item:has(input:focus-visible) {
+	box-shadow: 0 0 0 1px var(--iftp-brand), var(--iftp-ring);
+}
+
+/* Room round the sample for rings and hops; the tile doesn't clip, so a ripple can spill a little. */
+.iftp-btn-fxpick__stage {
+	display: grid;
+	place-items: center;
+	min-height: 78px;
+	padding: 20px 10px;
+	border-radius: calc(var(--iftp-r-md) - 1px) calc(var(--iftp-r-md) - 1px) 0 0;
+	background:
+		radial-gradient(circle at 1px 1px, rgb(18 26 44 / 8%) 1px, transparent 0) 0 0 / 12px 12px,
+		var(--iftp-surface);
+	pointer-events: none;
+}
+
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--custom {
+	--iftp-pb-size: 13px;
+	--iftp-pb-pad: 0.55em 1.1em;
+}
+
+/* The football's ball sits in its padding, so its sample is smaller and drops the icon too. */
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--football,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--football {
+	--iftp-pb-size: 11px;
+}
+
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--football .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--football .iftp-btn-pay__icon {
+	display: none;
+}
+
+/* Basketball and running keep their art in the padding too, so their samples drop the icon. */
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--basketball,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--running,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--basketball,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--running {
+	--iftp-pb-size: 11px;
+}
+
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--basketball .iftp-btn-pay__icon,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--running .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--basketball .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--running .iftp-btn-pay__icon {
+	display: none;
+}
+
+/* The profession styles keep their art in the padding too, so their samples are smaller and drop the icon. */
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--coder,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--coder,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--medic,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--medic,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--music,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--music,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--pilot,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--pilot,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--school,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--school {
+	--iftp-pb-size: 10px;
+}
+
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--coder .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--coder .iftp-btn-pay__icon,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--medic .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--medic .iftp-btn-pay__icon,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--music .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--music .iftp-btn-pay__icon,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--pilot .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--pilot .iftp-btn-pay__icon,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--school .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--school .iftp-btn-pay__icon {
+	display: none;
+}
+
+/* The food styles are wider than the others (their toppings sit in the padding), so their sample is smaller. */
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--glazed,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--frosting,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--pizza,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--glazed,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--frosting,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--pizza {
+	--iftp-pb-size: 9.5px;
+}
+
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--glazed .iftp-btn-pay__icon,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--frosting .iftp-btn-pay__icon,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--pizza .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--glazed .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--frosting .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--pizza .iftp-btn-pay__icon {
+	display: none;
+}
+
+.iftp-btn-fxpick__name {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 10px;
+	border-top: 1px solid var(--iftp-line);
+	font-size: 12.5px;
+	font-weight: 650;
+}
+
+.iftp-btn-fxpick__item:has(input:checked) .iftp-btn-fxpick__name::after {
+	content: "";
+	width: 6px;
+	height: 6px;
+	margin-left: auto;
+	border-radius: 50%;
+	background: var(--iftp-brand);
+}
+
+/* In the list and the presets, attention effects rest until the card is pointed at, so a screen of buttons
+   isn't all moving at once. */
+.iftp-btn-bcard:not(:hover) .iftp-btn-bcard__stage .iftp-btn-pay__button,
+.iftp-btn-bcard:not(:hover) .iftp-btn-bcard__stage .iftp-btn-pay__button::before,
+.iftp-btn-bcard:not(:hover) .iftp-btn-bcard__stage .iftp-btn-pay__button::after,
+.iftp-btn-looks__item:not(:hover) .iftp-btn-looks__stage .iftp-btn-pay__button,
+.iftp-btn-looks__item:not(:hover) .iftp-btn-looks__stage .iftp-btn-pay__button::before,
+.iftp-btn-looks__item:not(:hover) .iftp-btn-looks__stage .iftp-btn-pay__button::after {
+	animation: none;
+}
+
+/* A compact segmented control. */
+.iftp-btn-seg {
+	box-sizing: border-box;
+	display: inline-flex;
+	flex-wrap: wrap;
+	max-width: 100%;
+	gap: 2px;
+	padding: 4px;
+	border-radius: var(--iftp-r-pill, 999px);
+	background: rgb(18 26 44 / 6%);
+}
+
+.iftp-btn-seg__option {
+	position: relative;
+	cursor: pointer;
+}
+
+.iftp-btn-seg__option input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.iftp-btn-seg__option > span {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 34px;
+	padding: 0 16px;
+	border-radius: var(--iftp-r-pill, 999px);
+	color: var(--iftp-muted);
+	font-size: 12.5px;
+	font-weight: 600;
+	transition: background-color var(--iftp-fast) var(--iftp-ease), color var(--iftp-fast) var(--iftp-ease);
+}
+
+.iftp-btn-seg__option:hover > span {
+	color: var(--iftp-ink);
+}
+
+.iftp-btn-seg__option input:checked + span {
+	background: var(--iftp-raised);
+	box-shadow: var(--iftp-shadow-1);
+	color: var(--iftp-ink);
+}
+
+.iftp-btn-seg__option input:focus-visible + span {
+	box-shadow: var(--iftp-ring);
+}
+
+.iftp-btn-seg__icon {
+	display: inline-grid;
+}
+
+.iftp-btn-seg__icon:empty {
+	display: none;
+}
+
+.iftp-btn-seg__icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+/* Swatch + hex field */
+.iftp-btn-color {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+body.iftp-btn-screen .iftp-btn-color__swatch {
+	flex: none;
+	width: 40px;
+	height: 40px;
+	margin: 0;
+	padding: 3px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-sm);
+	background: var(--iftp-raised);
+	cursor: pointer;
+}
+
+.iftp-btn-color__swatch::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+
+.iftp-btn-color__swatch::-webkit-color-swatch {
+	border: 0;
+	border-radius: 7px;
+}
+
+.iftp-btn-color__swatch::-moz-color-swatch {
+	border: 0;
+	border-radius: 7px;
+}
+
+body.iftp-btn-screen .iftp-btn-color__hex {
+	max-width: 120px;
+	font-family: var(--iftp-mono);
+	font-size: 12.5px;
+	text-transform: lowercase;
+}
+
+.iftp-btn-color.is-auto {
+	opacity: 0.55;
+}
+
+/* Corners slider, a square at one end and a pill at the other. */
+.iftp-btn-range {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 40px;
+}
+
+.iftp-btn-range__end {
+	flex: none;
+	width: 18px;
+	height: 12px;
+	border: 2px solid var(--iftp-faint);
+}
+
+.iftp-btn-range__end--pill {
+	border-radius: 999px;
+}
+
+.iftp-btn-range__end--less,
+.iftp-btn-range__end--more {
+	border: 0;
+	border-radius: 50%;
+	background: var(--iftp-faint);
+}
+
+.iftp-btn-range__end--less {
+	width: 6px;
+	height: 6px;
+}
+
+.iftp-btn-range__end--more {
+	width: 14px;
+	height: 14px;
+}
+
+body.iftp-btn-screen .iftp-btn-range__input {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	accent-color: var(--iftp-brand);
+}
+
+.iftp-btn-range__value {
+	margin-left: 6px;
+	color: var(--iftp-brand);
+	font-weight: 650;
+	font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   QR code dialog
+   -------------------------------------------------------------------------- */
+body.iftp-btn-screen .iftp-btn-qr {
+	width: min(380px, calc(100vw - 32px));
+	text-align: center;
+}
+
+.iftp-btn-qr__code {
+	width: min(240px, 100%);
+	margin: 14px auto 10px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-md);
+	overflow: hidden;
+	line-height: 0;
+}
+
+.iftp-btn-qr__code svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.iftp-btn-qr__link {
+	margin: 0 0 10px;
+	color: var(--iftp-muted);
+	font-size: 12px;
+	word-break: break-all;
+}
+
+body.iftp-btn-screen .iftp-btn-qr .iftp-btn-dialog__actions {
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.iftp-btn-placeit__qr {
+	margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Preview and share (the editor's side column)
+   -------------------------------------------------------------------------- */
+.iftp-btn-preview,
+.iftp-btn-placeit {
+	display: grid;
+	gap: 14px;
+	padding: 18px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-xl);
+	background: var(--iftp-surface);
+	box-shadow: var(--iftp-shadow-2);
+}
+
+/* The demo page in the editor's side column: a made-up site with the button on it, and the checkout one click away. */
+.iftp-btn-demoframe__frame {
+	display: block;
+	width: 100%;
+	height: clamp(340px, 52vh, 560px);
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-raised-solid, #fff);
+}
+
+body.iftp-btn-screen .iftp-btn-preview__title {
+	margin: 0;
+	color: var(--iftp-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.iftp-btn-preview__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.iftp-btn-preview__stage {
+	display: grid;
+	place-items: center;
+	min-height: 120px;
+	padding: 28px 22px;
+	border-radius: var(--iftp-r-lg);
+	background:
+		radial-gradient(circle at 1px 1px, rgb(18 26 44 / 8%) 1px, transparent 0) 0 0 / 14px 14px,
+		#fdfdfe;
+	box-shadow: inset 0 0 0 1px var(--iftp-line);
+	transition: background-color var(--iftp-mid) var(--iftp-ease);
+}
+
+.iftp-btn-preview__stage[data-bg="dark"] {
+	background:
+		radial-gradient(circle at 1px 1px, rgb(255 255 255 / 9%) 1px, transparent 0) 0 0 / 14px 14px,
+		var(--iftp-night);
+}
+
+.iftp-btn-preview__stage .iftp-btn-pay {
+	width: 100%;
+	text-align: center;
+}
+
+.iftp-btn-preview__note {
+	margin: -6px 0 0;
+	color: var(--iftp-muted);
+	font-size: 12px;
+}
+
+/* The admin's stand-in for the theme's button, from the theme's global styles when it has them. */
+.iftp-btn-pay__button--theme {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+	padding: calc(0.667em + 2px) calc(1.333em + 2px);
+	border-radius: var(--iftp-theme-radius, 9999px);
+	background: var(--iftp-theme-bg, #32373c);
+	color: var(--iftp-theme-text, #fff);
+	font-size: 15px;
+	font-weight: var(--iftp-theme-weight, 600);
+	line-height: 1.2;
+	text-transform: var(--iftp-theme-case, none);
+}
+
+.iftp-btn-pay .iftp-btn-pay__button--theme.iftp-btn-pay__button--full {
+	display: flex;
+	width: 100%;
+}
+
+.iftp-btn-preview__sheet {
+	overflow: hidden;
+	color: var(--iftp-ink);
+	border: 1px solid var(--iftp-line);
+	border-radius: min(var(--iftp-radius), 22px);
+	background: var(--iftp-surface);
+	box-shadow: 0 18px 40px -24px rgb(0 40 70 / 40%);
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form {
+	max-height: 560px;
+	font-size: 13px;
+	pointer-events: none;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-steps {
+	padding: 14px 16px 0;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__body {
+	padding: 14px 16px 4px;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__step {
+	gap: 12px 10px;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__actions {
+	padding: 10px 16px 0;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__footer {
+	padding: 10px 16px 14px;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__title {
+	font-size: 16px;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__amount {
+	font-size: 24px;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__amount:empty {
+	display: none;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__choice {
+	min-height: 36px;
+	padding: 6px 10px;
+	font-size: 13px;
+}
+
+/* The span tips these over checkout.css's real inputs. */
+.iftp-btn-form span.iftp-btn-form__input--fake {
+	display: block;
+	min-height: 34px;
+	padding-top: 7px;
+	padding-bottom: 7px;
+	color: var(--iftp-muted);
+	font-size: 13px;
+}
+
+.iftp-btn-form span.iftp-btn-form__input--tall {
+	min-height: 58px;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__submit {
+	min-height: 40px;
+	font-size: 14px;
+}
+
+.iftp-btn-preview__sheet .iftp-btn-form__methods:empty,
+.iftp-btn-preview__sheet .iftp-btn-form__footer:has(.iftp-btn-form__methods:empty) {
+	display: none;
+}
+
+/* wp-admin draws its own dot on checked radios; the checkout's tick has its own. */
+body.iftp-btn-screen .iftp-btn-form .iftp-btn-form__tick[type="radio"]:checked::before {
+	content: none;
+}
+
+/* --------------------------------------------------------------------------
+   Merge tag chips
+   -------------------------------------------------------------------------- */
+.iftp-btn-tags {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin-top: 4px;
+}
+
+.iftp-btn-tags__label {
+	margin-right: 2px;
+	color: var(--iftp-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+body.iftp-btn-screen .iftp-btn-tags__chip {
+	position: relative;
+	min-height: 26px;
+	margin: 0;
+	padding: 0 8px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-pill);
+	background: var(--iftp-raised);
+	color: var(--iftp-brand-deep);
+	font-family: var(--iftp-mono);
+	font-size: 11.5px;
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), background-color var(--iftp-fast) var(--iftp-ease);
+}
+
+body.iftp-btn-screen .iftp-btn-tags__chip:hover {
+	border-color: var(--iftp-brand);
+	background: var(--iftp-brand-tint);
+}
+
+
+/* Default design, Theme, Custom and My own code. */
+.iftp-btn-segment--four {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 1200px) {
+	.iftp-btn-segment--four {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+.iftp-btn-codepair {
+	display: grid;
+	gap: 16px;
+}
+
+/* Spectrum: the colour stops' bar, its handles and a row of controls for each colour. */
+.iftp-btn-spectrum {
+	display: grid;
+	gap: 12px;
+}
+
+.iftp-btn-spectrum__bar {
+	position: relative;
+	height: 36px;
+	margin: 6px 11px 14px;
+	touch-action: none;
+}
+
+.iftp-btn-spectrum__fill {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--iftp-r-sm);
+	box-shadow: inset 0 0 0 1px var(--iftp-line-strong);
+}
+
+.iftp-btn-spectrum__handle {
+	position: absolute;
+	bottom: -9px;
+	width: 22px;
+	height: 22px;
+	margin: 0 0 0 -11px;
+	padding: 0;
+	border: 3px solid #fff;
+	border-radius: 50%;
+	background: var(--iftp-stop);
+	box-shadow: 0 0 0 1px var(--iftp-line-strong), 0 2px 6px rgb(16 30 54 / 25%);
+	cursor: grab;
+	touch-action: none;
+}
+
+.iftp-btn-spectrum__handle:active {
+	cursor: grabbing;
+}
+
+.iftp-btn-spectrum__handle.is-active {
+	box-shadow: 0 0 0 2px var(--iftp-brand), 0 2px 6px rgb(16 30 54 / 25%);
+}
+
+.iftp-btn-spectrum__handle:focus-visible {
+	outline: none;
+	box-shadow: var(--iftp-ring);
+}
+
+.iftp-btn-spectrum__rows {
+	display: grid;
+	gap: 8px;
+}
+
+.iftp-btn-spectrum__row {
+	display: grid;
+	grid-template-columns: auto repeat(3, minmax(0, 1fr)) auto;
+	align-items: end;
+	gap: 10px 14px;
+	padding: 10px 12px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+}
+
+.iftp-btn-spectrum__row.is-active {
+	border-color: var(--iftp-brand);
+}
+
+.iftp-btn-spectrum__range {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+
+.iftp-btn-spectrum__range label {
+	color: var(--iftp-muted);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.iftp-btn-spectrum__range output {
+	color: var(--iftp-brand);
+	font-variant-numeric: tabular-nums;
+}
+
+.iftp-btn-spectrum__range .iftp-btn-range__input {
+	width: 100%;
+}
+
+body.iftp-btn-screen .iftp-btn-spectrum__remove {
+	width: 32px;
+	height: 32px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: var(--iftp-r-sm);
+	background: none;
+	color: var(--iftp-muted);
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+body.iftp-btn-screen .iftp-btn-spectrum__remove:hover:not(:disabled) {
+	background: var(--iftp-failed-bg);
+	color: var(--iftp-failed);
+}
+
+body.iftp-btn-screen .iftp-btn-spectrum__remove:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+.iftp-btn-spectrum__add {
+	justify-self: start;
+}
+
+@media (max-width: 782px) {
+
+	.iftp-btn-spectrum__row {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.iftp-btn-spectrum__row > .iftp-btn-color {
+		grid-column: 1;
+	}
+
+	.iftp-btn-spectrum__range {
+		grid-column: 1 / -1;
+	}
+}

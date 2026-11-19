@@ -40,6 +40,25 @@ class Vault {
 	}
 
 	/**
+	 * Whether a stored value was made by seal().
+	 *
+	 * @param string $stored What the option holds.
+	 */
+	public static function is_sealed( string $stored ): bool {
+		return 0 === strpos( $stored, self::VERSION );
+	}
+
+	/**
+	 * The plain value of a stored secret. A value saved before it was sealed is plain already and comes back as it is;
+	 * a sealed one this site's keys can't open (its salts changed) comes back empty, as if never set.
+	 *
+	 * @param string $stored What the option holds.
+	 */
+	public static function reveal( string $stored ): string {
+		return self::is_sealed( $stored ) ? (string) self::open( $stored ) : $stored;
+	}
+
+	/**
 	 * Decrypts a sealed value; null when it was tampered with or the site's keys changed since.
 	 *
 	 * @param string $sealed What seal() gave.

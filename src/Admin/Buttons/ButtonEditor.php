@@ -10,15 +10,19 @@ declare(strict_types=1);
 namespace Ifthenpay\PayButton\Admin\Buttons;
 
 use Ifthenpay\PayButton\Admin\AiPanel;
+use Ifthenpay\PayButton\Admin\CodeFields;
 use Ifthenpay\PayButton\Admin\CheckoutSettingsPage;
 use Ifthenpay\PayButton\Admin\ConfigurationPage;
 use Ifthenpay\PayButton\Admin\DesignControls;
 use Ifthenpay\PayButton\Admin\LookControls;
+use Ifthenpay\PayButton\Admin\MessagesFields;
+use Ifthenpay\PayButton\Admin\MethodsTable;
 use Ifthenpay\PayButton\Ai\ButtonSchema;
 use Ifthenpay\PayButton\Bridge\InvoiceHook;
 use Ifthenpay\PayButton\Bridge\PayLinks;
 use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
+use Ifthenpay\PayButton\Buttons\FieldIcons;
 use Ifthenpay\PayButton\Buttons\FormFields;
 use Ifthenpay\PayButton\Buttons\Spots;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
@@ -63,6 +67,13 @@ class ButtonEditor {
 	private CheckoutSettings $checkout_settings;
 
 	/**
+	 * The methods table of the Gateway tab.
+	 *
+	 * @var MethodsTable
+	 */
+	private MethodsTable $methods_table;
+
+	/**
 	 * Sets up the editor.
 	 *
 	 * @param SettingsRepository    $settings          Gateway settings.
@@ -73,6 +84,7 @@ class ButtonEditor {
 		$this->settings          = $settings;
 		$this->links             = $links;
 		$this->checkout_settings = $checkout_settings ?? new CheckoutSettings();
+		$this->methods_table     = new MethodsTable( $settings );
 	}
 
 	/**
@@ -80,21 +92,24 @@ class ButtonEditor {
 	 *
 	 * @param Button|null $button The button, or null for a new one.
 	 * @param Button|null $draft  The AI chat's latest version, shown unsaved in its place.
+	 * @param string      $chat   The chat that made the draft.
 	 */
-	public function render( ?Button $button, ?Button $draft = null ): void {
+	public function render( ?Button $button, ?Button $draft = null, string $chat = '' ): void {
 		$is_new  = null === $button;
 		$saved   = $button;
 		$button  = $draft ?? $button ?? new Button( 0, '', '', true, Button::defaults() );
 		$config  = $button->config;
 		$title   = null === $saved ? __( 'New pay button', 'ifthenpay-pay-button' ) : $saved->title;
 		$actions = '<a class="iftp-btn-btn iftp-btn-btn--ai" href="' . esc_url( AiStudioPage::url( $saved ) ) . '">' . AiPanel::sparkle() . ( $is_new ? esc_html__( 'Build with AI', 'ifthenpay-pay-button' ) : esc_html__( 'Edit with AI', 'ifthenpay-pay-button' ) ) . '</a>';
-		$actions = $is_new ? $actions : $actions . '<a class="iftp-btn-btn iftp-btn-btn--secondary" href="' . esc_url( $this->links->url( $button ) ) . '" target="_blank" rel="noopener">' . ButtonsPage::icon( 'external' ) . esc_html__( 'Open pay page', 'ifthenpay-pay-button' ) . '<span class="screen-reader-text"> ' . esc_html__( '(opens in a new tab)', 'ifthenpay-pay-button' ) . '</span></a>';
-		$tabs    = array(
-			'basics'  => __( 'Basics', 'ifthenpay-pay-button' ),
-			'form'    => __( 'Form', 'ifthenpay-pay-button' ),
-			'design'  => __( 'Design', 'ifthenpay-pay-button' ),
-			'after'   => __( 'After payment', 'ifthenpay-pay-button' ),
-			'connect' => __( 'Connect', 'ifthenpay-pay-button' ),
+		// Preview opens the demo page with what's in the form right now; editor.js posts it, so nothing has to be saved first.
+		$actions .= '<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-demo-open aria-label="' . esc_attr__( 'Preview (opens in a new tab)', 'ifthenpay-pay-button' ) . '">' . ButtonsPage::icon( 'eye' ) . esc_html__( 'Preview', 'ifthenpay-pay-button' ) . '</button>';
+		$tabs     = array(
+			'basics'        => __( 'Basics', 'ifthenpay-pay-button' ),
+			'form'          => __( 'Form', 'ifthenpay-pay-button' ),
+			'design'        => __( 'Design', 'ifthenpay-pay-button' ),
+			'after'         => __( 'After payment', 'ifthenpay-pay-button' ),
+			'configuration' => __( 'Configuration', 'ifthenpay-pay-button' ),
+			'connect'       => __( 'Connect', 'ifthenpay-pay-button' ),
 		);
 		?>
 		<div class="wrap iftp-btn-buttons iftp-btn-editor-wrap">
@@ -110,14 +125,14 @@ class ButtonEditor {
 
 			<?php
 			if ( null !== $draft ) {
-				$this->render_draft_note( $saved, $draft );
+				$this->render_draft_note( $saved, $draft, $chat );
 			}
 			?>
 
 			<form class="iftp-btn-editor" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-iftp-editor<?php echo null !== $draft ? ' data-iftp-start-dirty' : ''; ?>>
 				<input type="hidden" name="action" value="<?php echo esc_attr( ButtonsPage::SAVE_ACTION ); ?>" />
 				<?php if ( null !== $draft ) : ?>
-					<input type="hidden" name="<?php echo esc_attr( AiStudioPage::DRAFT_VAR ); ?>" value="1" />
+					<input type="hidden" name="<?php echo esc_attr( AiStudioPage::DRAFT_VAR ); ?>" value="<?php echo esc_attr( $chat ); ?>" />
 				<?php endif; ?>
 				<input type="hidden" name="<?php echo esc_attr( ButtonsPage::EDIT_VAR ); ?>" value="<?php echo esc_attr( (string) $button->id ); ?>" />
 				<input type="hidden" name="tab" value="basics" data-iftp-tab-input />
@@ -134,7 +149,6 @@ class ButtonEditor {
 						<?php
 						$this->render_basics( $button );
 						$this->render_amount( $button, $is_new );
-						$this->render_methods( $config );
 						?>
 					</div>
 					<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-form" aria-labelledby="iftp-btn-tab-form" data-iftp-panel="form">
@@ -166,6 +180,25 @@ class ButtonEditor {
 					<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-after" aria-labelledby="iftp-btn-tab-after" data-iftp-panel="after">
 						<?php $this->render_after( $config ); ?>
 					</div>
+					<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-configuration" aria-labelledby="iftp-btn-tab-configuration" data-iftp-panel="configuration">
+						<?php // Two parts, one at a time: the gateway the button charges through, and the popup words after paying. ?>
+						<div class="iftp-btn-editor__designpick" role="group" aria-label="<?php esc_attr_e( 'Configuration', 'ifthenpay-pay-button' ); ?>">
+							<button type="button" class="iftp-btn-editor__designcard" data-iftp-config-view-pick="gateway" aria-pressed="true">
+								<span class="iftp-btn-editor__designcard-title"><?php esc_html_e( 'Gateway', 'ifthenpay-pay-button' ); ?></span>
+								<span class="iftp-btn-editor__designcard-text"><?php esc_html_e( 'The Gateway Key, methods and hosted page.', 'ifthenpay-pay-button' ); ?></span>
+							</button>
+							<button type="button" class="iftp-btn-editor__designcard" data-iftp-config-view-pick="messages" aria-pressed="false">
+								<span class="iftp-btn-editor__designcard-title"><?php esc_html_e( 'Messages', 'ifthenpay-pay-button' ); ?></span>
+								<span class="iftp-btn-editor__designcard-text"><?php esc_html_e( 'What payers read after paying.', 'ifthenpay-pay-button' ); ?></span>
+							</button>
+						</div>
+						<div class="iftp-btn-tabpanel__group" data-iftp-config-view="gateway">
+							<?php $this->render_gateway( $button ); ?>
+						</div>
+						<div class="iftp-btn-tabpanel__group" data-iftp-config-view="messages" hidden>
+							<?php MessagesFields::render( $this->checkout_settings->get_confirmation_for( $button ), false ); ?>
+						</div>
+					</div>
 					<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-connect" aria-labelledby="iftp-btn-tab-connect" data-iftp-panel="connect">
 						<?php
 						$this->render_invoice( $button, $is_new );
@@ -185,9 +218,9 @@ class ButtonEditor {
 								<?php endif; ?>
 							</div>
 						</div>
-						<?php $this->render_preview( $button ); ?>
+						<?php $this->render_preview( null === $saved ? 0 : $saved->id ); ?>
 						<div class="iftp-btn-editor__lookpreview">
-							<?php ( new LookControls( 'config[look]' ) )->render_preview( CheckoutLook::for_button( $button, $this->checkout_settings ), $this->checkout_settings->get_confirmation() ); ?>
+							<?php ( new LookControls( 'config[look]' ) )->render_preview( CheckoutLook::for_button( $button, $this->checkout_settings ), $this->checkout_settings->get_confirmation_for( $button ) ); ?>
 						</div>
 						<?php
 						if ( ! $is_new ) {
@@ -207,8 +240,9 @@ class ButtonEditor {
 	 *
 	 * @param Button|null $saved The saved button, or null for a new one.
 	 * @param Button      $draft The AI's version.
+	 * @param string      $chat  The chat that made it.
 	 */
-	private function render_draft_note( ?Button $saved, Button $draft ): void {
+	private function render_draft_note( ?Button $saved, Button $draft, string $chat ): void {
 		?>
 		<section class="iftp-btn-ai-note" aria-labelledby="iftp-btn-ai-note-title">
 			<span class="iftp-btn-ai-note__mark" aria-hidden="true"><?php echo AiPanel::sparkle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
@@ -228,7 +262,7 @@ class ButtonEditor {
 					<?php endforeach; ?>
 				</ul>
 			</div>
-			<a class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-ai-note__back" href="<?php echo esc_url( AiStudioPage::url( $saved ) ); ?>"><?php esc_html_e( 'Back to the chat', 'ifthenpay-pay-button' ); ?></a>
+			<a class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-ai-note__back" href="<?php echo esc_url( AiStudioPage::url( $saved, $chat ) ); ?>"><?php esc_html_e( 'Back to the chat', 'ifthenpay-pay-button' ); ?></a>
 		</section>
 		<?php
 	}
@@ -280,17 +314,6 @@ class ButtonEditor {
 			<input type="text" class="iftp-btn-field__control" id="iftp-btn-summary" name="config[summary]" maxlength="200" value="<?php echo esc_attr( $button->config['summary'] ); ?>" aria-describedby="iftp-btn-summary-help" data-iftp-preview="summary" />
 			<p class="iftp-btn-field__help" id="iftp-btn-summary-help"><?php esc_html_e( 'Shown under the title in the checkout.', 'ifthenpay-pay-button' ); ?></p>
 		</div>
-		<?php DesignControls::open_fold( 'basics-hosted', __( 'Hosted payment page description', 'ifthenpay-pay-button' ), __( 'What the payer reads on the ifthenpay page, just for this button.', 'ifthenpay-pay-button' ), '' !== $button->config['pay_description'] ); ?>
-		<div class="iftp-btn-field" data-iftp-tag-scope>
-			<label class="iftp-btn-field__label" for="iftp-btn-pay-description"><?php esc_html_e( 'Hosted payment page description', 'ifthenpay-pay-button' ); ?> <span class="iftp-btn-field__optional"><?php esc_html_e( '(optional)', 'ifthenpay-pay-button' ); ?></span></label>
-			<input type="text" class="iftp-btn-field__control" id="iftp-btn-pay-description" name="config[pay_description]" maxlength="200" value="<?php echo esc_attr( $button->config['pay_description'] ); ?>" placeholder="<?php echo esc_attr( $this->settings->get_description() ); ?>" aria-describedby="iftp-btn-pay-description-help" data-iftp-tag-target />
-			<p class="iftp-btn-field__help" id="iftp-btn-pay-description-help">
-				<?php esc_html_e( 'Only for this button. Empty uses the one in Configuration › Gateway.', 'ifthenpay-pay-button' ); ?>
-				<a href="<?php echo esc_url( ConfigurationPage::url() ); ?>"><?php esc_html_e( 'Edit it there', 'ifthenpay-pay-button' ); ?></a>
-			</p>
-			<?php ButtonsPage::print_tags( MergeTags::available( false ) ); ?>
-		</div>
-		<?php DesignControls::close_fold(); ?>
 		<div class="iftp-btn-field">
 			<label class="iftp-btn-field__label" for="iftp-btn-slug"><?php esc_html_e( 'Pay link', 'ifthenpay-pay-button' ); ?></label>
 			<span class="iftp-btn-affix">
@@ -322,11 +345,12 @@ class ButtonEditor {
 		$modes = array(
 			Button::LOOK_SITE => array( __( 'The site\'s look', 'ifthenpay-pay-button' ), __( 'Same as every other button, from Default Design › Checkout.', 'ifthenpay-pay-button' ) ),
 			Button::LOOK_OWN  => array( __( 'Its own look', 'ifthenpay-pay-button' ), __( 'Colours, shape, pay page and popups just for this button.', 'ifthenpay-pay-button' ) ),
+			Button::LOOK_CODE => array( __( 'My own code', 'ifthenpay-pay-button' ), __( 'No styles from us on the checkout and pay page. Your CSS and JavaScript do it.', 'ifthenpay-pay-button' ) ),
 		);
 
 		self::open_card( 'iftp-btn-ec-look', __( 'Checkout design', 'ifthenpay-pay-button' ), __( 'How this button\'s checkout, its pay page and the popups after paying look. Their words are in Configuration › Messages.', 'ifthenpay-pay-button' ) );
 		?>
-		<fieldset class="iftp-btn-segment iftp-btn-segment--two">
+		<fieldset class="iftp-btn-segment">
 			<legend class="screen-reader-text"><?php esc_html_e( 'Whose look it uses', 'ifthenpay-pay-button' ); ?></legend>
 			<?php foreach ( $modes as $mode => $labels ) : ?>
 				<label class="iftp-btn-segment__option">
@@ -343,6 +367,13 @@ class ButtonEditor {
 		<?php
 		self::close_card();
 		?>
+		<div class="iftp-btn-tabpanel__group" data-iftp-when-lookmode="code"<?php echo Button::LOOK_CODE === $button->config['look_mode'] ? '' : ' hidden'; ?>>
+			<?php
+			self::open_card( 'iftp-btn-ec-code-page', __( 'Checkout and pay page code', 'ifthenpay-pay-button' ), __( 'Checked before it is saved; a mistake keeps the last good version live.', 'ifthenpay-pay-button' ) );
+			CodeFields::render_page_code( $button->config['code'] );
+			self::close_card();
+			?>
+		</div>
 		<div class="iftp-btn-tabpanel__group" data-iftp-when-lookmode="own"<?php echo $own ? '' : ' hidden'; ?>>
 			<?php ( new LookControls( 'config[look]' ) )->render_cards( $look, false, $this->checkout_settings->get_look(), $own && $button->id > 0 ? $button->config['look'] : array() ); ?>
 		</div>
@@ -372,6 +403,9 @@ class ButtonEditor {
 			<p class="iftp-btn-field__help" id="iftp-btn-label-help"><?php esc_html_e( 'A fixed amount is added after it when "Show the amount on the button" is on.', 'ifthenpay-pay-button' ); ?></p>
 		</div>
 		<?php ( new DesignControls( 'config[design]', true, $this->checkout_settings->get_button_design(), $saved_own ) )->render( $design ); ?>
+		<div class="iftp-btn-design" data-iftp-when-source="code"<?php echo ButtonDesign::SOURCE_CODE === $design['source'] ? '' : ' hidden'; ?>>
+			<?php CodeFields::render_button_code( $button->config['code'] ); ?>
+		</div>
 		<div class="iftp-btn-makedefault" data-iftp-when-source="theme custom"<?php echo ButtonDesign::SOURCE_SITE === $design['source'] ? ' hidden' : ''; ?>>
 			<p class="iftp-btn-makedefault__text"><?php esc_html_e( 'Like it? Make it the default design: every button set to Default design wears it, and this one switches to it.', 'ifthenpay-pay-button' ); ?></p>
 			<button type="submit" class="iftp-btn-btn iftp-btn-btn--secondary" name="make_default" value="1"><?php esc_html_e( 'Save and make it the default', 'ifthenpay-pay-button' ); ?></button>
@@ -410,7 +444,7 @@ class ButtonEditor {
 		<div class="iftp-btn-editor__pair" data-iftp-when-mode="fixed">
 			<div class="iftp-btn-field">
 				<label class="iftp-btn-field__label" for="iftp-btn-amount"><?php esc_html_e( 'Amount (€)', 'ifthenpay-pay-button' ); ?></label>
-				<input type="number" class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-amount" name="config[amount]" min="<?php echo esc_attr( (string) Button::MIN_AMOUNT ); ?>" step="0.01" inputmode="decimal" value="<?php echo esc_attr( number_format( (float) $config['amount'], 2, '.', '' ) ); ?>" data-iftp-preview="amount" />
+				<input type="number" class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-amount" name="config[amount]" min="0" max="<?php echo esc_attr( (string) Button::MAX_AMOUNT ); ?>" step="0.01" inputmode="decimal" value="<?php echo esc_attr( number_format( (float) $config['amount'], 2, '.', '' ) ); ?>" data-iftp-preview="amount" />
 			</div>
 			<label class="iftp-btn-check">
 				<input type="hidden" name="config[show_amount]" value="0" />
@@ -472,10 +506,32 @@ class ButtonEditor {
 
 		self::open_card( 'iftp-btn-ec-fields', __( 'Payer details', 'ifthenpay-pay-button' ), __( 'Ask only what you need. With an email, the payer gets a receipt.', 'ifthenpay-pay-button' ) );
 		?>
+		<fieldset class="iftp-btn-field">
+			<legend class="iftp-btn-field__label"><?php esc_html_e( 'Icon style', 'ifthenpay-pay-button' ); ?></legend>
+			<span class="iftp-btn-seg">
+				<?php
+				$icon_styles = array(
+					'outline' => __( 'Outline', 'ifthenpay-pay-button' ),
+					'filled'  => __( 'Filled', 'ifthenpay-pay-button' ),
+					'duotone' => __( 'Duotone', 'ifthenpay-pay-button' ),
+				);
+
+				foreach ( $icon_styles as $style => $style_label ) :
+					?>
+					<label class="iftp-btn-seg__option">
+						<input type="radio" name="config[field_icon_style]" value="<?php echo esc_attr( $style ); ?>" <?php checked( $config['field_icon_style'] ?? 'outline', $style ); ?> data-iftp-preview="field_icon_style" />
+						<span><?php echo esc_html( $style_label ); ?></span>
+					</label>
+				<?php endforeach; ?>
+			</span>
+			<span class="iftp-btn-field__help"><?php esc_html_e( 'How the icons before the field titles are drawn, on this checkout.', 'ifthenpay-pay-button' ); ?></span>
+		</fieldset>
+
 		<div class="iftp-btn-fields-list">
 			<?php foreach ( Button::FIELDS as $field ) : ?>
 				<div class="iftp-btn-fields-list__row">
 					<div class="iftp-btn-fields-list__name">
+						<?php $this->render_icon_pick( $field, (string) ( $config['field_icons'][ $field ] ?? '' ), $labels[ $field ] ); ?>
 						<?php if ( 'note' === $field ) : ?>
 							<label class="screen-reader-text" for="iftp-btn-note-label"><?php esc_html_e( 'Label for the free-text field', 'ifthenpay-pay-button' ); ?></label>
 							<input type="text" class="iftp-btn-field__control iftp-btn-fields-list__label" id="iftp-btn-note-label" name="config[note_label]" maxlength="60" value="<?php echo esc_attr( $config['note_label'] ); ?>" placeholder="<?php echo esc_attr( CheckoutTexts::get( 'note' ) ); ?>" data-iftp-preview="note_label" />
@@ -499,6 +555,41 @@ class ButtonEditor {
 		</div>
 		<?php
 		self::close_card();
+	}
+
+	/**
+	 * The little picker for the icon before a built-in field's title: the current icon, and a grid of the others.
+	 *
+	 * @param string $field   The field.
+	 * @param string $current The icon picked, or ''.
+	 * @param string $label   The field's title, for the screen reader.
+	 */
+	private function render_icon_pick( string $field, string $current, string $label ): void {
+		$paths = FieldIcons::paths();
+		$svg   = static fn( string $inner ): string => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $inner . '</svg>';
+		?>
+		<details class="iftp-btn-iconpick" data-iftp-iconpick>
+			<summary class="iftp-btn-iconpick__summary" title="<?php esc_attr_e( 'Icon before the title', 'ifthenpay-pay-button' ); ?>">
+				<span class="iftp-btn-iconpick__current" data-iftp-iconpick-current>
+					<?php echo isset( $paths[ $current ] ) ? $svg( $paths[ $current ] ) : '<span class="iftp-btn-fb__icon-none" aria-hidden="true"></span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed markup. ?>
+				</span>
+				<span class="screen-reader-text">
+					<?php
+					/* translators: %s: a field's title, e.g. Email */
+					echo esc_html( sprintf( __( 'Icon before %s', 'ifthenpay-pay-button' ), $label ) );
+					?>
+				</span>
+			</summary>
+			<div class="iftp-btn-iconpick__grid" role="radiogroup">
+				<?php foreach ( array_merge( array( '' ), array_keys( $paths ) ) as $name ) : ?>
+					<label class="iftp-btn-fb__icon" title="<?php echo esc_attr( '' !== $name ? $name : __( 'No icon', 'ifthenpay-pay-button' ) ); ?>">
+						<input type="radio" name="config[field_icons][<?php echo esc_attr( $field ); ?>]" value="<?php echo esc_attr( $name ); ?>" <?php checked( $current, $name ); ?> data-iftp-preview="field_icon" data-iftp-icon-field="<?php echo esc_attr( $field ); ?>" />
+						<span class="iftp-btn-fb__icon-glyph"><?php echo '' !== $name ? $svg( $paths[ $name ] ) : '<span class="iftp-btn-fb__icon-none" aria-hidden="true"></span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed markup. ?></span>
+					</label>
+				<?php endforeach; ?>
+			</div>
+		</details>
+		<?php
 	}
 
 	/**
@@ -544,7 +635,7 @@ class ButtonEditor {
 	 */
 	private function render_spots( array $config ): void {
 		$spots = $config['spots'];
-		$days  = $this->settings->get_expiry_days();
+		$days  = $config['expiry_days'] > 0 ? $config['expiry_days'] : $this->settings->get_expiry_days();
 		$modes = array(
 			Spots::MODE_NONE    => array( __( 'No limit', 'ifthenpay-pay-button' ), __( 'Anyone can pay, as often as they like.', 'ifthenpay-pay-button' ) ),
 			Spots::MODE_TOTAL   => array( __( 'Limited spots', 'ifthenpay-pay-button' ), __( 'One number for everyone.', 'ifthenpay-pay-button' ) ),
@@ -568,7 +659,7 @@ class ButtonEditor {
 			<div class="iftp-btn-field">
 				<label class="iftp-btn-field__label" for="iftp-btn-spots-field"><?php esc_html_e( 'Split by', 'ifthenpay-pay-button' ); ?></label>
 				<select class="iftp-btn-field__control" id="iftp-btn-spots-field" name="config[spots][field]" data-iftp-spots-field data-saved="<?php echo esc_attr( $spots['field'] ); ?>" aria-describedby="iftp-btn-spots-field-help"></select>
-				<p class="iftp-btn-field__help" id="iftp-btn-spots-field-help"><?php esc_html_e( 'A Dropdown, Single choice or Multiple choice field from the checkout form. The payer always has to pick, so it is required. With Multiple choice, each ticked option takes its own spot and adds its own price.', 'ifthenpay-pay-button' ); ?></p>
+				<p class="iftp-btn-field__help" id="iftp-btn-spots-field-help"><?php esc_html_e( 'A Dropdown, Single choice or Multiple choice field from the checkout form. The payer always has to pick, so it is required. With Multiple choice, each ticked option takes its own spot and adds its own price. Need more than one field? Add the others below.', 'ifthenpay-pay-button' ); ?></p>
 			</div>
 			<p class="iftp-btn-spots__empty" data-iftp-spots-empty hidden><?php esc_html_e( 'Add a Dropdown, Single choice or Multiple choice field to the checkout form above, with one option per date, session or ticket type. It shows up here straight away.', 'ifthenpay-pay-button' ); ?></p>
 			<div class="iftp-btn-spots__grid" data-iftp-spots-grid>
@@ -581,6 +672,13 @@ class ButtonEditor {
 				<div data-iftp-spots-rows></div>
 			</div>
 			<p class="iftp-btn-field__help" data-iftp-spots-sum></p>
+		</div>
+
+		<div class="iftp-btn-field iftp-btn-spots__more" data-iftp-spots-more>
+			<span class="iftp-btn-field__label"><?php esc_html_e( 'Other fields with spots or prices', 'ifthenpay-pay-button' ); ?></span>
+			<p class="iftp-btn-field__help"><?php esc_html_e( 'Give the options of more fields their own spots and price, e.g. accessories or extra nights. A payment takes a spot from every option it picks, and their prices add to the total.', 'ifthenpay-pay-button' ); ?></p>
+			<div class="iftp-btn-spots__extras" data-iftp-spots-extras></div>
+			<button type="button" class="iftp-btn-fb__chip" data-iftp-spots-add><span aria-hidden="true">+</span> <?php esc_html_e( 'Add a field', 'ifthenpay-pay-button' ); ?></button>
 		</div>
 
 		<div class="iftp-btn-field" data-iftp-when-spots="total options">
@@ -624,7 +722,7 @@ class ButtonEditor {
 			<p class="iftp-btn-field__help">
 				<?php
 				/* translators: %d: how many days a payment link stays open */
-				echo esc_html( sprintf( _n( 'A spot is taken as soon as the payer goes to ifthenpay. If they never pay, it opens again when their link expires, after %d day (Configuration › Gateway › Expiry days).', 'A spot is taken as soon as the payer goes to ifthenpay. If they never pay, it opens again when their link expires, after %d days (Configuration › Gateway › Expiry days).', $days, 'ifthenpay-pay-button' ), $days ) );
+				echo esc_html( sprintf( _n( 'A spot is taken as soon as the payer goes to ifthenpay. If they never pay, it opens again when their link expires, after %d day (set under Configuration › Gateway).', 'A spot is taken as soon as the payer goes to ifthenpay. If they never pay, it opens again when their link expires, after %d days (set under Configuration › Gateway).', $days, 'ifthenpay-pay-button' ), $days ) );
 				?>
 			</p>
 		</div>
@@ -633,36 +731,62 @@ class ButtonEditor {
 	}
 
 	/**
-	 * Which of the site's enabled methods this button offers.
+	 * The Gateway part of Configuration: which Gateway Key this button charges through, which of its methods it offers
+	 * and what the hosted payment page says and how long it stays open. An account has one Backoffice but many
+	 * Gateway Keys, so each button picks its own; the Backoffice itself is in the Configuration screen.
 	 *
-	 * @param array<string, mixed> $config The button's config.
+	 * @param Button $button The button.
 	 */
-	private function render_methods( array $config ): void {
-		$methods = array_values( array_filter( $this->settings->get_methods(), static fn( array $method ): bool => ! empty( $method['enabled'] ) && '' !== $method['account'] ) );
+	private function render_gateway( Button $button ): void {
+		$config      = $button->config;
+		$connected   = $this->settings->is_connected();
+		$gateway_key = $this->settings->resolve_gateway_key( $config['gateway_key'] );
 
-		self::open_card( 'iftp-btn-ec-methods', __( 'Payment methods', 'ifthenpay-pay-button' ), __( 'Leave all unticked to offer every method switched on in Configuration › Gateway.', 'ifthenpay-pay-button' ) );
+		self::open_card( 'iftp-btn-ec-gateway', __( 'Gateway Key', 'ifthenpay-pay-button' ), __( 'The Gateway Key this button\'s payments are created under. Each Gateway Key has its own payment methods.', 'ifthenpay-pay-button' ) );
 
-		if ( array() === $methods ) {
-			echo '<p class="iftp-btn-field__help">' . esc_html__( 'No payment method is switched on yet.', 'ifthenpay-pay-button' ) . ' <a href="' . esc_url( ConfigurationPage::url() ) . '">' . esc_html__( 'Open Configuration', 'ifthenpay-pay-button' ) . '</a></p>';
+		if ( ! $connected ) {
+			?>
+			<p class="iftp-btn-field__help">
+				<?php esc_html_e( 'Connect your ifthenpay account first: its Backoffice Key unlocks the Gateway Keys.', 'ifthenpay-pay-button' ); ?>
+				<a href="<?php echo esc_url( ConfigurationPage::url( 'backoffice' ) ); ?>"><?php esc_html_e( 'Open Configuration › Backoffice', 'ifthenpay-pay-button' ); ?></a>
+			</p>
+			<?php
 			self::close_card();
-
-			return;
+		} else {
+			?>
+			<div class="iftp-btn-field">
+				<label class="iftp-btn-field__label" for="iftp-btn-gateway-key"><?php esc_html_e( 'Gateway Key', 'ifthenpay-pay-button' ); ?></label>
+				<select class="iftp-btn-field__control" id="iftp-btn-gateway-key" name="config[gateway_key]" data-iftp-gateway-key>
+					<?php foreach ( $this->settings->get_gateway_keys() as $key ) : ?>
+						<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $key, $gateway_key ); ?>><?php echo esc_html( $key ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</div>
+			<?php
+			self::close_card();
+			self::open_card( 'iftp-btn-ec-methods', __( 'Payment methods', 'ifthenpay-pay-button' ), __( 'Choose which methods this button offers, and star the one the hosted payment page opens on.', 'ifthenpay-pay-button' ) );
+			?>
+			<div class="iftp-btn-methods-wrap" data-iftp-gateway-methods>
+				<?php $this->methods_table->output( $gateway_key, $config['methods'], $config['default_method'], 'config[methods][]', 'config[default_method]' ); ?>
+			</div>
+			<p class="iftp-btn-field__help" data-iftp-gateway-status role="status"></p>
+			<?php
+			self::close_card();
 		}
+
+		self::open_card( 'iftp-btn-ec-hosted', __( 'Hosted payment page', 'ifthenpay-pay-button' ), __( 'What the payer reads on the ifthenpay page, and how long an unpaid link stays open.', 'ifthenpay-pay-button' ) );
 		?>
-		<ul class="iftp-btn-method-picks">
-			<?php foreach ( $methods as $method ) : ?>
-				<?php $entity = strtoupper( (string) $method['entity'] ); ?>
-				<li>
-					<label class="iftp-btn-method-pick">
-						<input type="checkbox" name="config[methods][]" value="<?php echo esc_attr( $entity ); ?>" <?php checked( in_array( $entity, $config['methods'], true ) ); ?> data-iftp-preview="method" />
-						<?php if ( '' !== (string) ( $method['logo'] ?? '' ) ) : ?>
-							<img src="<?php echo esc_url( $method['logo'] ?? '' ); ?>"<?php echo ButtonRenderer::dark_logo_attr( $method ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in dark_logo_attr(). ?> alt="" height="18" data-iftp-method-logo />
-						<?php endif; ?>
-						<span><?php echo esc_html( '' !== $method['alias'] ? $method['alias'] : $entity ); ?></span>
-					</label>
-				</li>
-			<?php endforeach; ?>
-		</ul>
+		<div class="iftp-btn-field" data-iftp-tag-scope>
+			<label class="iftp-btn-field__label" for="iftp-btn-pay-description"><?php esc_html_e( 'Description', 'ifthenpay-pay-button' ); ?> <span class="iftp-btn-field__optional"><?php esc_html_e( '(optional)', 'ifthenpay-pay-button' ); ?></span></label>
+			<input type="text" class="iftp-btn-field__control" id="iftp-btn-pay-description" name="config[pay_description]" maxlength="200" value="<?php echo esc_attr( $config['pay_description'] ); ?>" placeholder="<?php echo esc_attr( SettingsRepository::DEFAULT_DESCRIPTION ); ?>" aria-describedby="iftp-btn-pay-description-help" data-iftp-tag-target />
+			<p class="iftp-btn-field__help" id="iftp-btn-pay-description-help"><?php esc_html_e( 'Shown on the ifthenpay page while paying. Tags fill in each payment\'s details, e.g. "{button} · {payment_id}". Empty shows the button\'s title.', 'ifthenpay-pay-button' ); ?></p>
+			<?php ButtonsPage::print_tags( MergeTags::available( false ) ); ?>
+		</div>
+		<div class="iftp-btn-field">
+			<label class="iftp-btn-field__label" for="iftp-btn-expiry-days"><?php esc_html_e( 'Expiry days', 'ifthenpay-pay-button' ); ?></label>
+			<input type="number" class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-expiry-days" name="config[expiry_days]" min="1" max="365" step="1" inputmode="numeric" value="<?php echo esc_attr( $config['expiry_days'] > 0 ? (string) $config['expiry_days'] : '' ); ?>" placeholder="<?php echo esc_attr( (string) $this->settings->get_expiry_days() ); ?>" aria-describedby="iftp-btn-expiry-days-help" data-iftp-expiry-days />
+			<p class="iftp-btn-field__help" id="iftp-btn-expiry-days-help"><?php esc_html_e( 'After this many days an unpaid payment is marked Expired, and any spot it held opens again. Empty uses 3 days.', 'ifthenpay-pay-button' ); ?></p>
+		</div>
 		<?php
 		self::close_card();
 	}
@@ -683,7 +807,7 @@ class ButtonEditor {
 				<option value="page" <?php selected( $config['paid_redirect'], 'page' ); ?>><?php esc_html_e( 'Go to a page on this site', 'ifthenpay-pay-button' ); ?></option>
 				<option value="url" <?php selected( $config['paid_redirect'], 'url' ); ?>><?php esc_html_e( 'Go to an address', 'ifthenpay-pay-button' ); ?></option>
 			</select>
-			<p class="iftp-btn-field__help"><a href="<?php echo esc_url( ConfigurationPage::url( 'messages' ) ); ?>"><?php esc_html_e( 'Edit the popup messages in Configuration', 'ifthenpay-pay-button' ); ?></a></p>
+			<p class="iftp-btn-field__help"><button type="button" class="iftp-btn-btn iftp-btn-btn--link" data-iftp-goto-config="messages"><?php esc_html_e( 'Edit the popup messages in Configuration', 'ifthenpay-pay-button' ); ?></button></p>
 		</div>
 		<div class="iftp-btn-field" data-iftp-when-paid="page">
 			<label class="iftp-btn-field__label" for="iftp-btn-paid-page"><?php esc_html_e( 'Page', 'ifthenpay-pay-button' ); ?></label>
@@ -928,44 +1052,20 @@ class ButtonEditor {
 	}
 
 	/**
-	 * The live preview: the button on a light or dark stage, and the checkout it opens under it.
+	 * The preview: the demo page in a frame. The button sits on a made-up site, and clicking it opens the checkout, so
+	 * both can be tried right here. editor.js posts the form to the frame, so it always shows what's being edited.
 	 *
-	 * @param Button $button The button.
+	 * @param int $id The saved button's ID, or 0 when it isn't saved yet.
 	 */
-	private function render_preview( Button $button ): void {
+	private function render_preview( int $id ): void {
 		?>
-		<section class="iftp-btn-preview" aria-labelledby="iftp-btn-preview-title">
-			<?php DesignControls::render_stage( ButtonDesign::for_button( $button, $this->checkout_settings ), $button->display_label() ); ?>
-			<?php $own = CheckoutLook::inline_style( $button ); ?>
-			<div class="iftp-btn-preview__sheet iftp-btn-look" aria-hidden="true" data-iftp-look-mirror<?php echo '' !== $own ? ' style="' . esc_attr( $own ) . '"' : ''; ?>>
-				<div class="iftp-btn-form iftp-btn-form--preview">
-					<div class="iftp-btn-steps" data-iftp-preview-steps hidden>
-						<div class="iftp-btn-steps__head">
-							<span class="iftp-btn-steps__title" data-iftp-preview-step-title></span>
-							<span class="iftp-btn-steps__count" data-iftp-preview-step-count></span>
-							<span class="iftp-btn-steps__pct" data-iftp-preview-step-pct></span>
-						</div>
-						<ol class="iftp-btn-steps__track" data-iftp-preview-track></ol>
-					</div>
-					<div class="iftp-btn-form__body">
-						<div class="iftp-btn-form__step" data-iftp-preview-step>
-							<div class="iftp-btn-form__summary">
-								<p class="iftp-btn-form__title" data-iftp-preview-title><?php echo esc_html( '' !== $button->title ? $button->title : __( 'Your title', 'ifthenpay-pay-button' ) ); ?></p>
-								<p class="iftp-btn-form__text" data-iftp-preview-summary<?php echo '' === $button->config['summary'] ? ' hidden' : ''; ?>><?php echo esc_html( $button->config['summary'] ); ?></p>
-								<p class="iftp-btn-form__amount" data-iftp-preview-amount></p>
-							</div>
-						</div>
-					</div>
-					<div class="iftp-btn-form__actions">
-						<div class="iftp-btn-form__buttons">
-							<span class="iftp-btn-form__submit" data-iftp-preview-submit data-pay="<?php echo esc_attr( CheckoutTexts::get( 'pay' ) ); ?>" data-next="<?php echo esc_attr( CheckoutTexts::get( 'next' ) ); ?>"><?php echo esc_html( CheckoutTexts::get( 'pay' ) ); ?></span>
-						</div>
-					</div>
-					<footer class="iftp-btn-form__footer">
-						<ul class="iftp-btn-form__methods" data-iftp-preview-methods></ul>
-					</footer>
-				</div>
+		<section class="iftp-btn-preview iftp-btn-demoframe" aria-labelledby="iftp-btn-preview-title" data-iftp-demo data-url="<?php echo esc_url( DemoPage::url( $id ) ); ?>">
+			<div class="iftp-btn-preview__head">
+				<h2 class="iftp-btn-preview__title" id="iftp-btn-preview-title"><?php esc_html_e( 'Preview', 'ifthenpay-pay-button' ); ?></h2>
+				<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-btn--icon" data-iftp-demo-open aria-label="<?php esc_attr_e( 'Open the preview in a new tab', 'ifthenpay-pay-button' ); ?>" title="<?php esc_attr_e( 'Open in a new tab', 'ifthenpay-pay-button' ); ?>"><?php echo ButtonsPage::icon( 'external' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
 			</div>
+			<p class="iftp-btn-preview__note"><?php esc_html_e( 'Click the button to try the checkout too. A payment made here is a test, marked TEST- in your entries.', 'ifthenpay-pay-button' ); ?></p>
+			<iframe class="iftp-btn-demoframe__frame" name="iftp-btn-demo-frame" title="<?php esc_attr_e( 'Demo page with the pay button', 'ifthenpay-pay-button' ); ?>" data-iftp-demo-frame></iframe>
 		</section>
 		<?php
 	}

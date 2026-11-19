@@ -1,0 +1,557 @@
+/* stylelint-disable selector-class-pattern -- BEM with the iftp-btn- prefix. */
+
+/* --------------------------------------------------------------------------
+   Dashboard widget (lives on the WordPress Dashboard, outside our screens)
+   -------------------------------------------------------------------------- */
+/* stylelint-disable-next-line selector-id-pattern -- the widget id WordPress gives the dashboard box. */
+#iftp_btn_overview .inside {
+	margin: 0;
+	padding: 0;
+}
+
+.iftp-btn-widget {
+	display: grid;
+	color: var(--iftp-ink-2);
+	font-family: var(--iftp-font);
+}
+
+.iftp-btn-widget__hero {
+	display: grid;
+	gap: 2px;
+	padding: 16px 16px 0;
+}
+
+.iftp-btn-widget__label {
+	color: var(--iftp-muted);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.iftp-btn-widget__value {
+	color: var(--iftp-ink);
+	font-size: 30px;
+	font-weight: 800;
+	line-height: 1.15;
+	letter-spacing: -0.03em;
+}
+
+.iftp-btn-widget__delta {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.iftp-btn-widget__chart {
+	margin: 4px 0 0;
+}
+
+.iftp-btn-widget__split,
+.iftp-btn-widget__recent {
+	padding: 14px 16px 0;
+	border-top: 1px solid var(--iftp-line);
+}
+
+.iftp-btn-widget__section-title {
+	margin: 0 0 10px;
+	color: var(--iftp-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+}
+
+/* Payments by status: one bar, 2px surface gaps between parts, a labelled legend below */
+.iftp-btn-split {
+	display: flex;
+	gap: 2px;
+	height: 10px;
+	border-radius: var(--iftp-r-pill);
+	overflow: hidden;
+}
+
+.iftp-btn-split__part {
+	flex-basis: 0;
+	min-width: 6px;
+}
+
+.iftp-btn-split__part--paid,
+.iftp-btn-split__key--paid {
+	background: var(--iftp-mark-paid);
+}
+
+.iftp-btn-split__part--pending,
+.iftp-btn-split__key--pending {
+	background: var(--iftp-mark-pending);
+}
+
+.iftp-btn-split__part--failed,
+.iftp-btn-split__key--failed {
+	background: var(--iftp-mark-failed);
+}
+
+.iftp-btn-split__part--expired,
+.iftp-btn-split__key--expired {
+	background: var(--iftp-mark-expired);
+}
+
+.iftp-btn-split__legend {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 6px;
+	margin: 10px 0 14px;
+	padding: 0;
+	list-style: none;
+}
+
+.iftp-btn-split__item {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	align-items: center;
+	column-gap: 6px;
+	margin: 0;
+}
+
+.iftp-btn-split__key {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+}
+
+.iftp-btn-split__name {
+	color: var(--iftp-muted);
+	font-size: 12px;
+}
+
+.iftp-btn-split__count {
+	grid-column: 2;
+	color: var(--iftp-ink);
+	font-size: 15px;
+	font-weight: 750;
+}
+
+.iftp-btn-recent {
+	margin: 0 -8px 8px;
+	padding: 0;
+	list-style: none;
+}
+
+.iftp-btn-recent__item {
+	margin: 0;
+}
+
+.iftp-btn-recent__link {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px;
+	border-radius: var(--iftp-r-sm);
+	color: inherit;
+	text-decoration: none;
+	transition: background-color var(--iftp-fast) var(--iftp-ease);
+}
+
+.iftp-btn-recent__link:hover,
+.iftp-btn-recent__link:focus-visible {
+	background: var(--iftp-inset);
+	color: inherit;
+}
+
+.iftp-btn-recent__who {
+	display: grid;
+	flex: 1;
+	min-width: 0;
+}
+
+.iftp-btn-recent__name {
+	overflow: hidden;
+	color: var(--iftp-ink);
+	font-weight: 650;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.iftp-btn-recent__time {
+	color: var(--iftp-faint);
+	font-size: 12px;
+}
+
+.iftp-btn-recent__amount {
+	color: var(--iftp-ink);
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.iftp-btn-widget__empty {
+	margin: 0 0 14px;
+	color: var(--iftp-muted);
+}
+
+.iftp-btn-widget__footer {
+	display: flex;
+	justify-content: space-between;
+	margin: 0;
+	padding: 12px 16px;
+	border-top: 1px solid var(--iftp-line);
+	background: var(--iftp-inset);
+	font-weight: 600;
+}
+
+.iftp-btn-widget__footer a {
+	color: var(--iftp-brand);
+	text-decoration: none;
+}
+
+.iftp-btn-widget__footer a:hover {
+	color: var(--iftp-brand-hover);
+	text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   Dropdowns (ui.js puts a button + listbox over every native <select>)
+   -------------------------------------------------------------------------- */
+.iftp-btn-dropdown {
+	position: relative;
+	display: inline-flex;
+	min-width: 0;
+	vertical-align: middle;
+}
+
+/* Full width wherever the control it replaces was. */
+.iftp-btn-dropdown:has(> .iftp-btn-field__control),
+.iftp-btn-dropdown:has(> .iftp-btn-filters__control) {
+	display: flex;
+	width: 100%;
+}
+
+body.iftp-btn-screen .iftp-btn-dropdown__native {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	pointer-events: none;
+	clip-path: inset(50%);
+}
+
+body.iftp-btn-screen .iftp-btn-dropdown__button {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	width: 100%;
+	padding-right: 10px;
+	background-image: none;
+	text-align: left;
+	cursor: pointer;
+}
+
+body.iftp-btn-screen .iftp-btn-dropdown__button:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.iftp-btn-dropdown__value {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.iftp-btn-dropdown__chevron {
+	display: grid;
+	flex: none;
+	place-items: center;
+	color: var(--iftp-muted);
+	transition: transform var(--iftp-mid) var(--iftp-ease);
+}
+
+.iftp-btn-dropdown--open .iftp-btn-dropdown__chevron {
+	transform: rotate(180deg);
+}
+
+body.iftp-btn-screen .iftp-btn-dropdown--open .iftp-btn-dropdown__button:not(.iftp-btn-bulk__select) {
+	border-color: var(--iftp-brand);
+	background-color: #fff;
+	box-shadow: var(--iftp-ring);
+}
+
+.iftp-btn-bulk .iftp-btn-dropdown__chevron {
+	color: #c9d3e4;
+}
+
+.iftp-btn-dropdown__list {
+	z-index: 100002;
+	box-sizing: border-box;
+	max-width: min(420px, calc(100vw - 16px));
+	max-height: min(380px, 60vh);
+	margin: 0;
+	padding: 6px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+	color: var(--iftp-ink-2);
+	font-family: var(--iftp-font);
+	font-size: 13.5px;
+	list-style: none;
+	box-shadow: var(--iftp-shadow-4);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: thin;
+}
+
+.iftp-btn-dropdown__list:focus {
+	outline: none;
+}
+
+/* Top layer: placed by ui.js. Without popover support it hangs off the button instead. */
+.iftp-btn-dropdown__list[popover] {
+	position: fixed;
+	inset: auto;
+}
+
+.iftp-btn-dropdown__list:not([popover]) {
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 0;
+	min-width: 100%;
+}
+
+.iftp-btn-dropdown__option {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 0;
+	padding: 9px 10px 9px 12px;
+	border-radius: var(--iftp-r-sm);
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color var(--iftp-fast) var(--iftp-ease);
+}
+
+.iftp-btn-dropdown__option--active {
+	background: var(--iftp-inset);
+	color: var(--iftp-ink);
+}
+
+.iftp-btn-dropdown__option[aria-selected="true"] {
+	color: var(--iftp-brand-deep);
+	font-weight: 650;
+}
+
+.iftp-btn-dropdown__option[aria-selected="true"].iftp-btn-dropdown__option--active {
+	background: var(--iftp-brand-tint);
+}
+
+.iftp-btn-dropdown__tick {
+	display: grid;
+	place-items: center;
+	color: var(--iftp-brand);
+	opacity: 0;
+}
+
+.iftp-btn-dropdown__option[aria-selected="true"] .iftp-btn-dropdown__tick {
+	opacity: 1;
+}
+
+.iftp-btn-dropdown__option[aria-disabled="true"] {
+	color: var(--iftp-faint);
+	cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   Other controls: dates, numbers, scrollbars, selection
+   -------------------------------------------------------------------------- */
+
+/* The date picker's own icon, swapped for ours. */
+body.iftp-btn-screen input[type="date"].iftp-btn-filters__control {
+	position: relative;
+	padding-right: 10px;
+}
+
+body.iftp-btn-screen input[type="date"]::-webkit-calendar-picker-indicator {
+	width: 18px;
+	height: 18px;
+	padding: 4px;
+	border-radius: var(--iftp-r-xs);
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2.25' y='3.25' width='11.5' height='10.5' rx='2' fill='none' stroke='%2366708a' stroke-width='1.4'/%3E%3Cpath d='M2.25 6.5h11.5M5.5 1.75v3M10.5 1.75v3' fill='none' stroke='%2366708a' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") center / 16px no-repeat;
+	cursor: pointer;
+	transition: background-color var(--iftp-fast) var(--iftp-ease);
+}
+
+body.iftp-btn-screen input[type="date"]::-webkit-calendar-picker-indicator:hover {
+	background-color: var(--iftp-brand-tint);
+}
+
+body.iftp-btn-screen input[type="date"]::-webkit-datetime-edit {
+	color: var(--iftp-ink);
+}
+
+body.iftp-btn-screen input[type="date"]:not(:focus):invalid::-webkit-datetime-edit,
+body.iftp-btn-screen input[type="date"][value=""]:not(:focus)::-webkit-datetime-edit {
+	color: var(--iftp-faint);
+}
+
+/* Number fields: no spinner arrows; typing (and the arrow keys) still work. */
+body.iftp-btn-screen input[type="number"]::-webkit-inner-spin-button,
+body.iftp-btn-screen input[type="number"]::-webkit-outer-spin-button {
+	margin: 0;
+	appearance: none;
+}
+
+body.iftp-btn-screen input[type="number"] {
+	appearance: textfield;
+}
+
+/* Thin, quiet scrollbars wherever our content scrolls. */
+.iftp-btn-table-wrap,
+.iftp-btn-popover,
+.iftp-btn-dialog,
+.iftp-btn-tabs {
+	scrollbar-color: rgb(18 26 44 / 22%) transparent;
+	scrollbar-width: thin;
+}
+
+body.iftp-btn-screen ::selection {
+	background: var(--iftp-brand-tint-strong);
+	color: var(--iftp-ink);
+}
+
+/* --------------------------------------------------------------------------
+   The card under the chart: Revenue by method
+   -------------------------------------------------------------------------- */
+.iftp-btn-tile {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 20px 22px;
+	border: 1px solid var(--iftp-line);
+	border-radius: var(--iftp-r-lg);
+	background: var(--iftp-surface);
+	box-shadow: var(--iftp-shadow-2);
+}
+
+.iftp-btn-tile__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.iftp-btn-tile__title {
+	margin: 0;
+	color: var(--iftp-ink);
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.iftp-btn-tile__empty {
+	margin: 0;
+	color: var(--iftp-muted);
+}
+
+/* Equal-height cards: the body takes the spare room, the footer sits on the bottom edge. */
+.iftp-btn-tile__body {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 14px;
+	min-height: 0;
+}
+
+.iftp-btn-tile__body[hidden] {
+	display: none;
+}
+
+/* Revenue by method: one brand colour, the length is the share */
+.iftp-btn-shares {
+	display: grid;
+	gap: 14px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.iftp-btn-shares-card .iftp-btn-shares {
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 16px 32px;
+}
+
+.iftp-btn-share {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 6px 12px;
+	margin: 0;
+}
+
+.iftp-btn-share__amount {
+	color: var(--iftp-ink);
+	font-weight: 750;
+	font-variant-numeric: tabular-nums;
+}
+
+.iftp-btn-share__bar {
+	grid-column: 1 / -1;
+	height: 8px;
+	border-radius: 4px;
+	background: var(--iftp-inset);
+	overflow: hidden;
+}
+
+.iftp-btn-share__fill {
+	display: block;
+	height: 100%;
+	border-radius: 4px;
+	background: linear-gradient(90deg, var(--iftp-chart-from), var(--iftp-chart-to));
+	transform-origin: left;
+}
+
+.iftp-btn-share__meta {
+	display: flex;
+	grid-column: 1 / -1;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.iftp-btn-share__pct {
+	color: var(--iftp-muted);
+	font-size: 12px;
+}
+
+.iftp-btn-summary-to {
+	margin-top: 16px;
+}
+
+.iftp-btn-inline {
+	display: flex;
+	gap: 8px;
+}
+
+.iftp-btn-inline .iftp-btn-field__control {
+	flex: 1;
+	min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Entries: Performance, Revenue by method, the status cards, then the table
+   -------------------------------------------------------------------------- */
+.iftp-btn-blocks {
+	display: grid;
+	gap: 16px;
+	margin-top: 18px;
+}
+
+.iftp-btn-blocks > * {
+	min-width: 0;
+	margin-top: 0;
+}
+
+.iftp-btn-blocks > .iftp-btn-card {
+	margin-top: 6px;
+}
+

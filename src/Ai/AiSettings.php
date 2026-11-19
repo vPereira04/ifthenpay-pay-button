@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * The merchant's own caps on what the AI may cost, and how it answers. Set in Configuration › AI.
  *
- * @phpstan-type Settings array{hourly: int, daily: int, thinking: string, creativity: string, memory: int, keep_days: int, fallback: bool, prices: bool}
+ * @phpstan-type Settings array{hourly: int, daily: int, thinking: string, creativity: string, memory: int, keep_days: int, fallback: bool, prices: bool, answer: int, wait: int}
  */
 class AiSettings {
 
@@ -24,6 +24,12 @@ class AiSettings {
 	public const CREATIVITY = array( 'focused', 'balanced', 'creative' );
 	public const MEMORY     = array( 6, 12, 24 );
 	public const KEEP_DAYS  = array( 1, 2, 7, 30 );
+
+	// The most the AI may write in one answer, in tokens. Drawn buttons and checkouts are long, so the small one can cut them off.
+	public const ANSWER = array( 8192, 16000, 32000 );
+
+	// How long one model may take before the next is tried, in seconds. 0 follows Thinking.
+	public const WAIT = array( 0, 60, 90, 120, 180, 240 );
 
 	public const MAX_HOURLY = 500;
 	public const MAX_DAILY  = 5000;
@@ -45,6 +51,8 @@ class AiSettings {
 			'keep_days'  => 2,
 			'fallback'   => true,
 			'prices'     => true,
+			'answer'     => 16000,
+			'wait'       => 120,
 		);
 	}
 
@@ -98,6 +106,8 @@ class AiSettings {
 			'keep_days'  => $number( 'keep_days', self::KEEP_DAYS ),
 			'fallback'   => $flag( 'fallback' ),
 			'prices'     => $flag( 'prices' ),
+			'answer'     => $number( 'answer', self::ANSWER ),
+			'wait'       => $number( 'wait', self::WAIT ),
 		);
 	}
 

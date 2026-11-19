@@ -14,22 +14,28 @@ use Ifthenpay\PayButton\Admin\CheckoutSettingsPage;
 use Ifthenpay\PayButton\Admin\ConfigurationPage;
 use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
 use Ifthenpay\PayButton\Admin\LookControls;
+use Ifthenpay\PayButton\Admin\Menu;
+use Ifthenpay\PayButton\Admin\Toast;
 use Ifthenpay\PayButton\Ai\Studio;
+use Ifthenpay\PayButton\Ajax\SettingsController;
 use Ifthenpay\PayButton\Bridge\PayLinks;
 use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
+use Ifthenpay\PayButton\Buttons\FieldIcons;
 use Ifthenpay\PayButton\Buttons\Spots;
 use Ifthenpay\PayButton\Buttons\Templates;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutService;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
+use Ifthenpay\PayButton\Checkout\CustomCode;
 use Ifthenpay\PayButton\Dates;
 use Ifthenpay\PayButton\Frontend\ButtonRenderer;
 use Ifthenpay\PayButton\Frontend\Shortcode;
 use Ifthenpay\PayButton\Plugin;
 use Ifthenpay\PayButton\Reports\CheckoutOpens;
 use Ifthenpay\PayButton\Reports\Insights;
+use Ifthenpay\PayButton\Reports\TransactionReports;
 use Ifthenpay\PayButton\Repository\CheckoutSettings;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
 use Ifthenpay\PayButton\Repository\TransactionStore;
@@ -83,6 +89,13 @@ class ButtonsPage {
 	private TransactionStore $transactions;
 
 	/**
+	 * The aggregate reads for the list's stats.
+	 *
+	 * @var TransactionReports
+	 */
+	private TransactionReports $reports;
+
+	/**
 	 * The screen's hook suffix, once the menu adds it.
 	 *
 	 * @var string
@@ -107,6 +120,7 @@ class ButtonsPage {
 		$this->buttons           = $buttons;
 		$this->settings          = $settings;
 		$this->transactions      = $transactions;
+		$this->reports           = new TransactionReports( $transactions );
 		$this->checkout_settings = new CheckoutSettings();
 	}
 
@@ -160,18 +174,15 @@ class ButtonsPage {
 			return;
 		}
 
-		$js  = 'assets/js/buttons.js';
-		$css = 'assets/css/buttons.css';
-
 		wp_enqueue_style( Plugin::ADMIN_STYLE_HANDLE );
-		wp_enqueue_style( 'iftp-btn-buttons', IFTP_BTN_URL . $css, array( Plugin::ADMIN_STYLE_HANDLE ), Plugin::asset_version( $css ) );
+		wp_enqueue_style( 'iftp-btn-buttons' );
 		wp_enqueue_style( ButtonRenderer::STYLE_HANDLE );
 		wp_add_inline_style( 'iftp-btn-buttons', self::theme_button_css() . LookControls::swatch_css() );
 		// A button's own pay page background image and video come from the Media Library.
 		wp_enqueue_media();
 		// MIT-licensed QR encoder, bundled: the code is drawn in the browser, nothing is sent anywhere.
 		wp_enqueue_script( 'iftp-btn-qrcode', IFTP_BTN_URL . 'assets/js/vendor/qrcode.js', array(), '1.4.4', true );
-		wp_enqueue_script( 'iftp-btn-buttons', IFTP_BTN_URL . $js, array( Plugin::UI_SCRIPT_HANDLE, Plugin::METHOD_LOGOS_HANDLE, Plugin::VIDEO_LOOP_HANDLE, 'iftp-btn-qrcode' ), Plugin::asset_version( $js ), true );
+		Plugin::enqueue_split_script( 'iftp-btn-buttons', 'assets/js/buttons', Plugin::BUTTONS_SCRIPT_PARTS, array( Plugin::UI_SCRIPT_HANDLE, Plugin::METHOD_LOGOS_HANDLE, Plugin::VIDEO_LOOP_HANDLE, Plugin::OPEN_FX_HANDLE, 'iftp-btn-qrcode' ) );
 
 		$studio = $this->requested_studio();
 
@@ -181,7 +192,7 @@ class ButtonsPage {
 			( new AiStudioPage() )->enqueue( $studio );
 		} else {
 			// The list's and the editor's AI cards wear the studio's look.
-			wp_enqueue_style( AiPanel::STYLE_HANDLE, IFTP_BTN_URL . 'assets/css/ai.css', array( Plugin::ADMIN_STYLE_HANDLE ), Plugin::asset_version( 'assets/css/ai.css' ) );
+			wp_enqueue_style( AiPanel::STYLE_HANDLE, Plugin::asset_url( 'assets/css/ai.css' ), array( Plugin::ADMIN_STYLE_HANDLE ), Plugin::asset_version( 'assets/css/ai.css' ) );
 		}
 
 		wp_localize_script(
@@ -194,11 +205,20 @@ class ButtonsPage {
 				'pill'         => ButtonDesign::PILL,
 				'gradientTurn' => ButtonDesign::GRADIENT_TURN,
 				'lookPresets'  => CheckoutLook::presets(),
+				'lookFonts'    => CheckoutLook::FONT_STACKS,
 				'lookWidths'   => CheckoutLook::WIDTHS,
+				'lookSkins'    => CheckoutLook::card_skins(),
 				'siteLook'     => self::site_look_for_js(),
 				'siteDesign'   => $this->checkout_settings->get_button_design(),
 				'sample'       => CheckoutSettingsPage::sample_values(),
 				'i18n'         => array(
+					'codeOk'      => __( 'Looks good.', 'ifthenpay-pay-button' ),
+					'codeLength'  => __( 'Too long: 20,000 characters at most.', 'ifthenpay-pay-button' ),
+					'codeOpen'    => __( 'A bracket or a quote is never closed.', 'ifthenpay-pay-button' ),
+					'codeBanned'  => __( 'Not allowed here: a closing script tag or an HTML comment opener, which would break the page.', 'ifthenpay-pay-button' ),
+					'codeNest'    => __( '@import, @layer and similar at-rules cannot sit inside one button\'s scope. Use @media or @supports.', 'ifthenpay-pay-button' ),
+					/* translators: %s: the browser's description of the mistake */
+					'codeSyntax'  => __( 'JavaScript mistake: %s', 'ifthenpay-pay-button' ),
 					'copied'      => __( 'Copied.', 'ifthenpay-pay-button' ),
 					'copyFailed'  => __( 'Could not copy. Select the text and copy it yourself.', 'ifthenpay-pay-button' ),
 					/* translators: %s: the button's title */
@@ -212,23 +232,39 @@ class ButtonsPage {
 					'withAmount'  => __( '%1$s · %2$s', 'ifthenpay-pay-button' ),
 					'from'        => CheckoutTexts::get( 'from' ),
 					'spots'       => array(
-						'spots'      => __( 'Spots', 'ifthenpay-pay-button' ),
-						'price'      => __( 'Price', 'ifthenpay-pay-button' ),
-						'unlimited'  => __( 'No limit', 'ifthenpay-pay-button' ),
-						'samePrice'  => __( 'Button amount', 'ifthenpay-pay-button' ),
+						'spots'       => __( 'Spots', 'ifthenpay-pay-button' ),
+						'price'       => __( 'Price', 'ifthenpay-pay-button' ),
+						'unlimited'   => __( 'No limit', 'ifthenpay-pay-button' ),
+						'samePrice'   => __( 'Button amount', 'ifthenpay-pay-button' ),
 						/* translators: %d: how many spots the options have together */
-						'sum'        => __( 'The options add up to %d spots.', 'ifthenpay-pay-button' ),
-						'shareTotal' => __( 'Options with no number of their own share the total spots.', 'ifthenpay-pay-button' ),
-						'noLimit'    => __( 'Options with no number of their own have no limit.', 'ifthenpay-pay-button' ),
-						'noField'    => __( 'No choice field in the checkout form yet', 'ifthenpay-pay-button' ),
-						'needField'  => __( 'Add a Dropdown, Single choice or Multiple choice field to the checkout form, then pick it here.', 'ifthenpay-pay-button' ),
-						'needTotal'  => __( 'Enter how many spots there are.', 'ifthenpay-pay-button' ),
+						'sum'         => __( 'The options add up to %d spots.', 'ifthenpay-pay-button' ),
+						'shareTotal'  => __( 'Options with no number of their own share the total spots.', 'ifthenpay-pay-button' ),
+						'noLimit'     => __( 'Options with no number of their own have no limit.', 'ifthenpay-pay-button' ),
+						'noField'     => __( 'No choice field in the checkout form yet', 'ifthenpay-pay-button' ),
+						'needField'   => __( 'Add a Dropdown, Single choice or Multiple choice field to the checkout form, then pick it here.', 'ifthenpay-pay-button' ),
+						'needTotal'   => __( 'Enter how many spots there are.', 'ifthenpay-pay-button' ),
+						'option'      => __( 'Option', 'ifthenpay-pay-button' ),
+						'priceEur'    => __( 'Price (€)', 'ifthenpay-pay-button' ),
+						'noPrice'     => __( 'Free', 'ifthenpay-pay-button' ),
+						'pickField'   => __( 'Choose a field', 'ifthenpay-pay-button' ),
+						'removeField' => __( 'Remove this field', 'ifthenpay-pay-button' ),
 					),
+					'batchNone'   => __( 'Pick at least one button and an action.', 'ifthenpay-pay-button' ),
+					'batchCount'  => array(
+						'one'   => __( '1 selected', 'ifthenpay-pay-button' ),
+						/* translators: %s: how many buttons are picked */
+						'other' => __( '%s selected', 'ifthenpay-pay-button' ),
+						'none'  => __( 'None selected', 'ifthenpay-pay-button' ),
+					),
+					/* translators: %s: how many buttons */
+					'batchDelete' => __( 'Move %s buttons to the trash?', 'ifthenpay-pay-button' ),
 					'turnedOn'    => __( 'Button turned on. It takes payments again.', 'ifthenpay-pay-button' ),
 					'turnedOff'   => __( 'Button turned off. It shows disabled and its pay page is gone.', 'ifthenpay-pay-button' ),
 					'active'      => __( 'Active', 'ifthenpay-pay-button' ),
 					'inactive'    => __( 'Inactive', 'ifthenpay-pay-button' ),
 					'pill'        => __( 'Pill', 'ifthenpay-pay-button' ),
+					/* translators: %d: where a colour sits on the spectrum bar, in percent */
+					'stopAt'      => __( 'Colour at %d%', 'ifthenpay-pay-button' ),
 					/* translators: %d: corner radius in pixels */
 					'px'          => __( '%d px', 'ifthenpay-pay-button' ),
 					'unsaved'     => __( 'You have unsaved changes. Leave anyway?', 'ifthenpay-pay-button' ),
@@ -237,50 +273,127 @@ class ButtonsPage {
 					'pickVideo'   => __( 'Pay page video', 'ifthenpay-pay-button' ),
 					'useVideo'    => __( 'Use this video', 'ifthenpay-pay-button' ),
 					'fb'          => array(
-						'required'      => __( 'Required', 'ifthenpay-pay-button' ),
-						'optional'      => __( 'Optional', 'ifthenpay-pay-button' ),
-						'optionalWord'  => CheckoutTexts::get( 'optional' ),
-						'half'          => __( 'Half width', 'ifthenpay-pay-button' ),
-						'label'         => __( 'Label', 'ifthenpay-pay-button' ),
-						'heading'       => __( 'Heading', 'ifthenpay-pay-button' ),
-						'type'          => __( 'Type', 'ifthenpay-pay-button' ),
-						'tag'           => __( 'Merge tag', 'ifthenpay-pay-button' ),
-						'placeholder'   => __( 'Placeholder', 'ifthenpay-pay-button' ),
-						'firstOption'   => __( 'Text before a choice', 'ifthenpay-pay-button' ),
-						'options'       => __( 'Options', 'ifthenpay-pay-button' ),
-						'optionsHint'   => __( 'One per line', 'ifthenpay-pay-button' ),
-						'option'        => __( 'Option', 'ifthenpay-pay-button' ),
-						'help'          => __( 'Help text', 'ifthenpay-pay-button' ),
-						'text'          => __( 'Text', 'ifthenpay-pay-button' ),
-						'mustAnswer'    => __( 'The payer must answer', 'ifthenpay-pay-button' ),
-						'full'          => __( 'Full width', 'ifthenpay-pay-button' ),
-						'halfWidth'     => __( 'Half', 'ifthenpay-pay-button' ),
+						'required'        => __( 'Required', 'ifthenpay-pay-button' ),
+						'optional'        => __( 'Optional', 'ifthenpay-pay-button' ),
+						'optionalWord'    => CheckoutTexts::get( 'optional' ),
+						'half'            => __( 'Half width', 'ifthenpay-pay-button' ),
+						'label'           => __( 'Label', 'ifthenpay-pay-button' ),
+						'heading'         => __( 'Heading', 'ifthenpay-pay-button' ),
+						'type'            => __( 'Type', 'ifthenpay-pay-button' ),
+						'tag'             => __( 'Merge tag', 'ifthenpay-pay-button' ),
+						/* translators: 1 and 2: example tags in braces, written as {first_name} and {first_name|there} */
+						'liveHint'        => sprintf( __( 'Show what the payer typed in another field: write its tag in braces, like %1$s. For when it is still empty, add a fallback: %2$s. Works in this text, in field labels and in help texts.', 'ifthenpay-pay-button' ), '{first_name}', '{first_name|there}' ),
+						'placeholder'     => __( 'Placeholder', 'ifthenpay-pay-button' ),
+						'icon'            => __( 'Icon before the title', 'ifthenpay-pay-button' ),
+						'noIcon'          => __( 'No icon', 'ifthenpay-pay-button' ),
+						'icons'           => FieldIcons::paths(),
+						'firstOption'     => __( 'Text before a choice', 'ifthenpay-pay-button' ),
+						'options'         => __( 'Options', 'ifthenpay-pay-button' ),
+						'optionsHint'     => __( 'One per line', 'ifthenpay-pay-button' ),
+						'option'          => __( 'Option', 'ifthenpay-pay-button' ),
+						'pictures'        => __( 'Option pictures', 'ifthenpay-pay-button' ),
+						'pictureShape'    => __( 'Picture shape', 'ifthenpay-pay-button' ),
+						'shapes'          => array(
+							'auto'      => __( 'Auto', 'ifthenpay-pay-button' ),
+							'landscape' => __( 'Landscape', 'ifthenpay-pay-button' ),
+							'square'    => __( 'Square', 'ifthenpay-pay-button' ),
+							'portrait'  => __( 'Portrait', 'ifthenpay-pay-button' ),
+						),
+						'layoutLabel'     => __( 'Layout', 'ifthenpay-pay-button' ),
+						'layouts'         => array(
+							'grid'   => __( 'Grid', 'ifthenpay-pay-button' ),
+							'scroll' => __( 'Scrolling row', 'ifthenpay-pay-button' ),
+						),
+						'colsLabel'       => __( 'Per line', 'ifthenpay-pay-button' ),
+						'colsAuto'        => __( 'Auto', 'ifthenpay-pay-button' ),
+						'colsHint'        => __( 'Auto fits as many as the size allows. On small screens the count comes down by itself.', 'ifthenpay-pay-button' ),
+						'sizeLabel'       => __( 'Card size', 'ifthenpay-pay-button' ),
+						'sizes'           => array(
+							'small'  => __( 'Small', 'ifthenpay-pay-button' ),
+							'medium' => __( 'Medium', 'ifthenpay-pay-button' ),
+							'large'  => __( 'Large', 'ifthenpay-pay-button' ),
+						),
+						'sizeHint'        => __( 'Used when Per line is Auto.', 'ifthenpay-pay-button' ),
+						'shapeHint'       => __( 'Auto shows the pictures whole when they all share one shape, like book covers, and crops to landscape when they differ.', 'ifthenpay-pay-button' ),
+						'showPictures'    => __( 'Show the options as picture cards', 'ifthenpay-pay-button' ),
+						'picturesHint'    => __( 'Every option becomes a card. One without a picture gets a coloured tile with its first letter.', 'ifthenpay-pay-button' ),
+						'addPicture'      => __( 'Add a picture', 'ifthenpay-pay-button' ),
+						'changePicture'   => __( 'Change the picture', 'ifthenpay-pay-button' ),
+						'removePicture'   => __( 'Remove', 'ifthenpay-pay-button' ),
+						'pictureTitle'    => __( 'Option picture', 'ifthenpay-pay-button' ),
+						'usePicture'      => __( 'Use this picture', 'ifthenpay-pay-button' ),
+						'help'            => __( 'Help text', 'ifthenpay-pay-button' ),
+						'text'            => __( 'Text', 'ifthenpay-pay-button' ),
+						'mustAnswer'      => __( 'The payer must answer', 'ifthenpay-pay-button' ),
+						'full'            => __( 'Full width', 'ifthenpay-pay-button' ),
+						'halfWidth'       => __( 'Half', 'ifthenpay-pay-button' ),
 						/* translators: %d: the page number */
-						'page'          => __( 'Page %d', 'ifthenpay-pay-button' ),
-						'pageTitle'     => __( 'Page title', 'ifthenpay-pay-button' ),
-						'firstStep'     => CheckoutTexts::get( 'first_step' ),
-						'amount'        => __( 'Amount', 'ifthenpay-pay-button' ),
-						'amountHint'    => __( 'Shown when the payer types the amount', 'ifthenpay-pay-button' ),
-						'details'       => __( 'Your details', 'ifthenpay-pay-button' ),
-						'detailsHint'   => __( 'Name, email and the rest, set in Payer details', 'ifthenpay-pay-button' ),
-						'up'            => __( 'Move up', 'ifthenpay-pay-button' ),
-						'down'          => __( 'Move down', 'ifthenpay-pay-button' ),
-						'remove'        => __( 'Remove', 'ifthenpay-pay-button' ),
-						'choose'        => CheckoutTexts::get( 'choose' ),
-						'stepOf'        => CheckoutTexts::get( 'step_of' ),
-						'spotsRequired' => __( 'Spots are split by this field, so the payer has to answer it.', 'ifthenpay-pay-button' ),
-						'showWhen'      => __( 'Show this', 'ifthenpay-pay-button' ),
-						'always'        => __( 'Always', 'ifthenpay-pay-button' ),
+						'page'            => __( 'Page %d', 'ifthenpay-pay-button' ),
+						'pageTitle'       => __( 'Page title', 'ifthenpay-pay-button' ),
+						'firstStep'       => CheckoutTexts::get( 'first_step' ),
+						'amount'          => __( 'Amount', 'ifthenpay-pay-button' ),
+						'amountHint'      => __( 'Shown when the payer types the amount', 'ifthenpay-pay-button' ),
+						'details'         => __( 'Your details', 'ifthenpay-pay-button' ),
+						'detailsHint'     => __( 'Name, email and the rest, set in Payer details', 'ifthenpay-pay-button' ),
+						'up'              => __( 'Move up', 'ifthenpay-pay-button' ),
+						'down'            => __( 'Move down', 'ifthenpay-pay-button' ),
+						'remove'          => __( 'Remove', 'ifthenpay-pay-button' ),
+						'choose'          => CheckoutTexts::get( 'choose' ),
+						'stepOf'          => CheckoutTexts::get( 'step_of' ),
+						'spotsRequired'   => __( 'Spots are split by this field, so the payer has to answer it.', 'ifthenpay-pay-button' ),
+						'showWhen'        => __( 'Show this', 'ifthenpay-pay-button' ),
+						'always'          => __( 'Always', 'ifthenpay-pay-button' ),
 						/* translators: %s: the label of an earlier choice field, e.g. "Day" */
-						'whenField'     => __( 'Only when “%s”…', 'ifthenpay-pay-button' ),
-						'whenIs'        => __( 'is one of', 'ifthenpay-pay-button' ),
-						'whenNot'       => __( 'is none of', 'ifthenpay-pay-button' ),
-						'ticked'        => __( 'Ticked', 'ifthenpay-pay-button' ),
-						'whenPick'      => __( 'Tick at least one answer, or this stays shown for everyone.', 'ifthenpay-pay-button' ),
-						'whenNone'      => __( 'Add a Dropdown, Single choice, Multiple choice or Agreement above this one to show it only for some answers.', 'ifthenpay-pay-button' ),
-						'whenSpots'     => __( 'Spots are split by this field, so it always shows.', 'ifthenpay-pay-button' ),
-						'conditional'   => __( 'Conditional', 'ifthenpay-pay-button' ),
+						'whenField'       => __( 'Only when “%s”…', 'ifthenpay-pay-button' ),
+						'whenIs'          => __( 'is one of', 'ifthenpay-pay-button' ),
+						'whenNot'         => __( 'is none of', 'ifthenpay-pay-button' ),
+						'opGt'            => __( 'is more than', 'ifthenpay-pay-button' ),
+						'opLt'            => __( 'is less than', 'ifthenpay-pay-button' ),
+						'opFilled'        => __( 'is filled in', 'ifthenpay-pay-button' ),
+						'opEmpty'         => __( 'is left empty', 'ifthenpay-pay-button' ),
+						'whenNumber'      => __( 'Number', 'ifthenpay-pay-button' ),
+						'opContains'    => __( 'contains', 'ifthenpay-pay-button' ),
+						'opEquals'      => __( 'is exactly', 'ifthenpay-pay-button' ),
+						'opNotEquals'   => __( 'is not', 'ifthenpay-pay-button' ),
+						'whenText'      => __( 'Text', 'ifthenpay-pay-button' ),
+						'whenTypeText'  => __( 'Type the text to look for, or this stays shown for everyone.', 'ifthenpay-pay-button' ),
+						'whenType'        => __( 'Type the number to compare with, or this stays shown for everyone.', 'ifthenpay-pay-button' ),
+						'showPage'        => __( 'Show this page', 'ifthenpay-pay-button' ),
+						'pageRules'       => __( 'Show this page only for some answers', 'ifthenpay-pay-button' ),
+						'whenPageAnchors' => __( 'This page holds the amount or the payer details, so it always shows.', 'ifthenpay-pay-button' ),
+						'whenPageSpots'   => __( 'Spots are split by a field on this page, so the page always shows.', 'ifthenpay-pay-button' ),
+						'rules'           => __( 'Limits', 'ifthenpay-pay-button' ),
+						'noLimit'         => __( 'No limit', 'ifthenpay-pay-button' ),
+						'ruleMin'         => __( 'Smallest number', 'ifthenpay-pay-button' ),
+						'ruleMax'         => __( 'Largest number', 'ifthenpay-pay-button' ),
+						'ruleWhole'       => __( 'Whole numbers only', 'ifthenpay-pay-button' ),
+						'ruleMinLen'      => __( 'Fewest characters', 'ifthenpay-pay-button' ),
+						'ruleMaxLen'      => __( 'Most characters', 'ifthenpay-pay-button' ),
+						'ruleNumberHint'  => __( 'The payer can\'t continue with a number outside these. Leave a box empty for no limit, e.g. a largest of 10 for the number of guests.', 'ifthenpay-pay-button' ),
+						'ruleTextHint'    => __( 'Leave a box empty, or 0, for no limit.', 'ifthenpay-pay-button' ),
+						'ticked'          => __( 'Ticked', 'ifthenpay-pay-button' ),
+						'whenPick'        => __( 'Tick at least one answer, or this stays shown for everyone.', 'ifthenpay-pay-button' ),
+						'whenNone'        => __( 'Add a field above this one to show it only for some answers.', 'ifthenpay-pay-button' ),
+						'whenSpots'       => __( 'Spots are split by this field, so it always shows.', 'ifthenpay-pay-button' ),
+						'conditional'     => __( 'Conditional', 'ifthenpay-pay-button' ),
 					),
+				),
+			)
+		);
+
+		// The editor's Gateway tab: swapping the methods when the Gateway Key changes, and asking for a method's activation.
+		wp_localize_script(
+			'iftp-btn-buttons',
+			'iftpBtnGateway',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( SettingsController::NONCE_ACTION ),
+				'i18n'    => array(
+					'loading'     => __( 'Loading the payment methods…', 'ifthenpay-pay-button' ),
+					'error'       => __( 'Something went wrong. Please try again.', 'ifthenpay-pay-button' ),
+					'requesting'  => __( 'Requesting…', 'ifthenpay-pay-button' ),
+					'requested'   => __( 'Requested', 'ifthenpay-pay-button' ),
+					'requestSent' => __( 'Activation request sent. ifthenpay will get back to you by email.', 'ifthenpay-pay-button' ),
 				),
 			)
 		);
@@ -373,9 +486,12 @@ class ButtonsPage {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only picks which version to show; saving checks its own nonce.
-		$draft = isset( $_GET[ AiStudioPage::DRAFT_VAR ] ) && $this->settings->is_connected() ? ( new Studio() )->draft( $button ) : null;
+		$asked  = isset( $_GET[ AiStudioPage::DRAFT_VAR ] ) && $this->settings->is_connected() ? sanitize_key( wp_unslash( $_GET[ AiStudioPage::DRAFT_VAR ] ) ) : null;
+		$studio = new Studio();
+		$chat   = null !== $asked ? $studio->resolve( $button, $asked ) : '';
+		$draft  = null !== $asked ? $studio->draft( $button, $chat ) : null;
 
-		( new ButtonEditor( $this->settings, new PayLinks(), $this->checkout_settings ) )->render( $button, $draft );
+		( new ButtonEditor( $this->settings, new PayLinks(), $this->checkout_settings ) )->render( $button, $draft, $chat );
 	}
 
 	/**
@@ -396,7 +512,66 @@ class ButtonsPage {
 			return null;
 		}
 
+		if ( Studio::SITE_TARGET === $target ) {
+			return Studio::site_button();
+		}
+
 		return $this->buttons->find( absint( $target ) ) ?? false;
+	}
+
+	/**
+	 * The sidebar-icon button that folds and unfolds WordPress's own left menu. It stays hidden until ui.js finds the menu's
+	 * collapse button to drive, so it never shows where it can't work.
+	 */
+	public static function menu_toggle(): string {
+		$hide = __( 'Hide the WordPress menu', 'ifthenpay-pay-button' );
+		$show = __( 'Show the WordPress menu', 'ifthenpay-pay-button' );
+
+		return '<button type="button" class="iftp-btn-menutoggle" data-iftp-menu-toggle data-hide="' . esc_attr( $hide ) . '" data-show="' . esc_attr( $show ) . '" aria-controls="adminmenuwrap" aria-expanded="true" aria-label="' . esc_attr( $hide ) . '" title="' . esc_attr( $hide ) . '" hidden>'
+			. '<svg class="iftp-btn-menutoggle__open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16" /><rect x="3" y="4" width="6" height="16" rx="2" fill="currentColor" stroke="none"/></svg>'
+			. '<svg class="iftp-btn-menutoggle__closed" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg>'
+			. '</button>';
+	}
+
+	/**
+	 * The burger button and the four screens it lists, so the plugin stays reachable with WordPress's own menu folded away. The button stays hidden until ui.js sees the menu folded.
+	 * The list is a popover, which sits in the top layer and so isn't clipped by the masthead.
+	 */
+	public static function nav_menu(): string {
+		$label = __( 'Pay Button menu', 'ifthenpay-pay-button' );
+		$items = array(
+			Menu::SLUG                         => __( 'Buttons', 'ifthenpay-pay-button' ),
+			EntriesPage::PAGE_SLUG             => __( 'Payments', 'ifthenpay-pay-button' ),
+			ConfigurationPage::PAGE_SLUG       => __( 'Configuration', 'ifthenpay-pay-button' ),
+			CheckoutSettingsPage::PAGE_SLUG    => __( 'Default Design', 'ifthenpay-pay-button' ),
+		);
+
+		// Payments only exists once a Backoffice Key is connected.
+		if ( ! ( new SettingsRepository() )->is_connected() ) {
+			unset( $items[ EntriesPage::PAGE_SLUG ] );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only marks which link is current.
+		$current = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+		$html = '<button type="button" class="iftp-btn-navtoggle" data-iftp-nav-toggle popovertarget="iftp-btn-nav" aria-haspopup="true" aria-expanded="false" aria-label="' . esc_attr( $label ) . '" title="' . esc_attr( $label ) . '" hidden>'
+			. '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
+			. '</button>'
+			. '<nav id="iftp-btn-nav" class="iftp-btn-navmenu" popover aria-label="' . esc_attr( $label ) . '">';
+
+		foreach ( $items as $slug => $text ) {
+			$url   = add_query_arg( array( 'page' => $slug ), admin_url( 'admin.php' ) );
+			$html .= '<a class="iftp-btn-navmenu__link" href="' . esc_url( $url ) . '"' . ( $slug === $current ? ' aria-current="page"' : '' ) . '>' . esc_html( $text ) . '</a>';
+		}
+
+		return $html . '</nav>';
+	}
+
+	/**
+	 * The masthead's menu controls: the burger list and the button that folds WordPress's menu.
+	 */
+	public static function menu_controls(): string {
+		return self::nav_menu() . self::menu_toggle();
 	}
 
 	/**
@@ -410,7 +585,10 @@ class ButtonsPage {
 		?>
 		<header class="iftp-btn-masthead">
 			<div class="iftp-btn-masthead__brand">
-				<img class="iftp-btn-masthead__logo" src="<?php echo esc_url( IFTP_BTN_URL . 'assets/img/logo-color.svg' ); ?>" alt="ifthenpay" width="94" height="24" />
+				<?php echo self::menu_controls(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed markup, escaped in nav_menu() and menu_toggle(). ?>
+				<a class="iftp-btn-masthead__home" href="<?php echo esc_url( self::list_url() ); ?>" title="<?php esc_attr_e( 'Pay buttons', 'ifthenpay-pay-button' ); ?>">
+					<img class="iftp-btn-masthead__logo" src="<?php echo esc_url( IFTP_BTN_URL . 'assets/img/logo-color.svg' ); ?>" alt="<?php esc_attr_e( 'ifthenpay, back to Pay buttons', 'ifthenpay-pay-button' ); ?>" width="94" height="24" />
+				</a>
 				<span class="iftp-btn-masthead__divider" aria-hidden="true"></span>
 				<div>
 					<h1 class="iftp-btn-masthead__title"><?php echo esc_html( $title ); ?></h1>
@@ -423,6 +601,28 @@ class ButtonsPage {
 		</header>
 		<hr class="wp-header-end" />
 		<?php
+	}
+
+	/**
+	 * What a save says about custom code that was refused.
+	 *
+	 * @return list<string>
+	 */
+	private static function rejected_code(): array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only, and only fixed field and reason names get through.
+		$sent     = isset( $_GET['iftp_code'] ) && is_string( $_GET['iftp_code'] ) ? sanitize_text_field( wp_unslash( $_GET['iftp_code'] ) ) : '';
+		$messages = array();
+		$reasons  = array( CustomCode::ERROR_LENGTH, CustomCode::ERROR_UNBALANCED, CustomCode::ERROR_FORBIDDEN, CustomCode::ERROR_UNNESTABLE );
+
+		foreach ( explode( ',', $sent ) as $pair ) {
+			list( $field, $error ) = array_pad( explode( ':', $pair, 2 ), 2, '' );
+
+			if ( in_array( $field, CustomCode::FIELDS, true ) && in_array( $error, $reasons, true ) ) {
+				$messages[] = CustomCode::message( $field, $error );
+			}
+		}
+
+		return $messages;
 	}
 
 	/**
@@ -442,6 +642,29 @@ class ButtonsPage {
 			'error'      => array( 'error', __( 'That did not work. Please try again.', 'ifthenpay-pay-button' ) ),
 		);
 
+		if ( 'batch' === $notice ) {
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended -- display-only flags the redirect after a checked action set.
+			$op = isset( $_GET['iftp_op'] ) ? sanitize_key( wp_unslash( $_GET['iftp_op'] ) ) : '';
+			$n  = isset( $_GET['iftp_n'] ) ? absint( wp_unslash( $_GET['iftp_n'] ) ) : 0;
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended
+			$batch = array(
+				/* translators: %s: how many buttons */
+				'activate'   => _n( '%s button turned on.', '%s buttons turned on.', $n, 'ifthenpay-pay-button' ),
+				/* translators: %s: how many buttons */
+				'deactivate' => _n( '%s button turned off.', '%s buttons turned off.', $n, 'ifthenpay-pay-button' ),
+				/* translators: %s: how many buttons */
+				'duplicate'  => _n( '%s button copied. The copy is off until you turn it on.', '%s buttons copied. The copies are off until you turn them on.', $n, 'ifthenpay-pay-button' ),
+				/* translators: %s: how many buttons */
+				'delete'     => _n( '%s button moved to the trash. Its payments are still in Payments.', '%s buttons moved to the trash. Their payments are still in Payments.', $n, 'ifthenpay-pay-button' ),
+			);
+
+			if ( $n > 0 && isset( $batch[ $op ] ) ) {
+				Toast::add( esc_html( sprintf( $batch[ $op ], number_format_i18n( $n ) ) ) );
+			}
+
+			return;
+		}
+
 		if ( isset( $messages[ $notice ] ) ) {
 			$text = esc_html( $messages[ $notice ][1] );
 
@@ -453,13 +676,11 @@ class ButtonsPage {
 				$text .= ' <a href="' . esc_url( self::action_url( self::RESTORE_ACTION, $restore ) ) . '"><strong>' . esc_html__( 'Undo', 'ifthenpay-pay-button' ) . '</strong></a>';
 			}
 
-			wp_admin_notice(
-				$text,
-				array(
-					'type'        => $messages[ $notice ][0],
-					'dismissible' => true,
-				)
-			);
+			Toast::add( $text, $messages[ $notice ][0] );
+
+			foreach ( self::rejected_code() as $problem ) {
+				Toast::add( esc_html( $problem ), 'error' );
+			}
 		}
 	}
 
@@ -469,10 +690,10 @@ class ButtonsPage {
 	private function render_list(): void {
 		$buttons   = $this->buttons->all();
 		$ids       = array_map( static fn( Button $button ): int => $button->id, $buttons );
-		$stats     = $this->transactions->button_stats( $ids );
+		$stats     = $this->reports->button_stats( $ids );
 		$taken     = $this->transactions->spots_taken( array_map( static fn( Button $button ): int => $button->id, array_filter( $buttons, array( Spots::class, 'limited' ) ) ) );
 		$opens     = CheckoutOpens::counts( $ids );
-		$paid      = $this->transactions->paid_since( array_map( static fn( array $count ): int => $count['since'], $opens ) );
+		$paid      = $this->reports->paid_since( array_map( static fn( array $count ): int => $count['since'], $opens ) );
 		$connected = $this->settings->is_connected();
 		$links     = new PayLinks();
 		$order     = array_flip( $ids );
@@ -481,7 +702,7 @@ class ButtonsPage {
 		$new  = $connected ? '<a class="iftp-btn-btn iftp-btn-btn--ai" data-iftp-tour="ai" href="' . esc_url( AiStudioPage::url( null ) ) . '">' . AiPanel::sparkle() . esc_html__( 'Build with AI', 'ifthenpay-pay-button' ) . '</a><a class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-tour="new" href="' . esc_url( self::edit_url( 0 ) ) . '">' . self::icon( 'plus' ) . esc_html__( 'New button', 'ifthenpay-pay-button' ) . '</a>' : '';
 		$help = $connected ? '<button type="button" class="iftp-btn-help" data-iftp-help-open data-iftp-tour="help" aria-haspopup="dialog" aria-label="' . esc_attr__( 'Help: start from a template', 'ifthenpay-pay-button' ) . '" title="' . esc_attr__( 'Help: start from a template', 'ifthenpay-pay-button' ) . '">?</button>' : '';
 		?>
-		<div class="wrap iftp-btn-buttons" data-iftp-buttons>
+		<div class="wrap iftp-btn-buttons iftp-btn-glass" data-iftp-buttons>
 			<?php self::print_header( __( 'Pay buttons', 'ifthenpay-pay-button' ), $new, $help ); ?>
 			<?php self::print_notice(); ?>
 
@@ -517,6 +738,7 @@ class ButtonsPage {
 			<?php else : ?>
 				<?php $this->render_summary( $stats, $opens, $paid ); ?>
 				<?php $this->render_toolbar( $buttons, $taken ); ?>
+				<?php self::print_batch_bar(); ?>
 				<ul class="iftp-btn-bcards" data-iftp-bcards>
 					<li class="iftp-btn-bcards__head" aria-hidden="true">
 						<span class="iftp-btn-bcards__col iftp-btn-bcards__col--button"><?php esc_html_e( 'Button', 'ifthenpay-pay-button' ); ?></span>
@@ -660,7 +882,7 @@ class ButtonsPage {
 		$count     = (int) array_sum( array_column( $stats, 'paid_count' ) );
 		$opened    = (int) array_sum( array_column( $opens, 'opens' ) );
 		$converted = min( $opened, (int) array_sum( $paid ) );
-		$recent    = ( new Insights( $this->transactions ) )->period( '30d' );
+		$recent    = ( new Insights( $this->reports ) )->period( '30d' );
 		$average   = $count > 0 ? $total / $count : 0.0;
 
 		$tiles = array(
@@ -843,12 +1065,47 @@ class ButtonsPage {
 					</button>
 				<?php endforeach; ?>
 			</div>
+			<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-bbatch-toggle" data-iftp-bbatch-toggle aria-pressed="false"><?php echo self::icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><?php esc_html_e( 'Select', 'ifthenpay-pay-button' ); ?></button>
 			<div class="iftp-btn-bfilter iftp-btn-bview" role="group" aria-label="<?php esc_attr_e( 'Layout', 'ifthenpay-pay-button' ); ?>">
 				<?php foreach ( $views as $key => $label ) : ?>
 					<button type="button" class="iftp-btn-bfilter__option" data-iftp-bview="<?php echo esc_attr( $key ); ?>" aria-pressed="<?php echo 'grid' === $key ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr( $label ); ?>" data-iftp-tip="<?php echo esc_attr( $label ); ?>"><?php echo self::icon( $key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
 				<?php endforeach; ?>
 			</div>
 		</div>
+		<?php
+	}
+
+	/**
+	 * The bar that appears in select mode: how many are picked, an action, and Apply.
+	 */
+	private static function print_batch_bar(): void {
+		?>
+		<div class="iftp-btn-bbatch" data-iftp-bbatch role="region" aria-label="<?php esc_attr_e( 'Batch actions', 'ifthenpay-pay-button' ); ?>" hidden>
+			<span class="iftp-btn-bbatch__count" data-iftp-bbatch-count aria-live="polite"></span>
+			<button type="button" class="iftp-btn-bbatch__link" data-iftp-bbatch-all><?php esc_html_e( 'Select all shown', 'ifthenpay-pay-button' ); ?></button>
+			<button type="button" class="iftp-btn-bbatch__link" data-iftp-bbatch-clear><?php esc_html_e( 'Clear', 'ifthenpay-pay-button' ); ?></button>
+			<span class="iftp-btn-bbatch__spacer"></span>
+			<label class="iftp-btn-btoolbar__select">
+				<span class="screen-reader-text"><?php esc_html_e( 'Batch action', 'ifthenpay-pay-button' ); ?></span>
+				<select class="iftp-btn-bselect" data-iftp-bbatch-op>
+					<option value=""><?php esc_html_e( 'Batch action', 'ifthenpay-pay-button' ); ?></option>
+					<option value="activate"><?php esc_html_e( 'Turn on', 'ifthenpay-pay-button' ); ?></option>
+					<option value="deactivate"><?php esc_html_e( 'Turn off', 'ifthenpay-pay-button' ); ?></option>
+					<option value="duplicate"><?php esc_html_e( 'Duplicate', 'ifthenpay-pay-button' ); ?></option>
+					<option value="delete"><?php esc_html_e( 'Move to trash', 'ifthenpay-pay-button' ); ?></option>
+				</select>
+			</label>
+			<button type="button" class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-bbatch-apply disabled><?php esc_html_e( 'Apply', 'ifthenpay-pay-button' ); ?></button>
+			<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-bbatch-done><?php esc_html_e( 'Done', 'ifthenpay-pay-button' ); ?></button>
+		</div>
+		<dialog class="iftp-btn-dialog" role="alertdialog" aria-labelledby="iftp-btn-batch-title" data-iftp-bbatch-dialog>
+			<h2 id="iftp-btn-batch-title" class="iftp-btn-dialog__title" data-iftp-bbatch-title></h2>
+			<p class="iftp-btn-dialog__text"><?php esc_html_e( 'Their payments stay in Payments, but every block, shortcode and link that uses them stops working. They go to the trash.', 'ifthenpay-pay-button' ); ?></p>
+			<div class="iftp-btn-dialog__actions">
+				<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-bbatch-cancel><?php esc_html_e( 'Keep them', 'ifthenpay-pay-button' ); ?></button>
+				<button type="button" class="iftp-btn-btn iftp-btn-btn--danger" data-iftp-bbatch-confirm><?php esc_html_e( 'Move to trash', 'ifthenpay-pay-button' ); ?></button>
+			</div>
+		</dialog>
 		<?php
 	}
 
@@ -889,6 +1146,7 @@ class ButtonsPage {
 			ButtonDesign::SOURCE_SITE   => __( 'Default design', 'ifthenpay-pay-button' ),
 			ButtonDesign::SOURCE_THEME  => __( 'Theme look', 'ifthenpay-pay-button' ),
 			ButtonDesign::SOURCE_CUSTOM => __( 'Custom look', 'ifthenpay-pay-button' ),
+			ButtonDesign::SOURCE_CODE   => __( 'Drawn in code', 'ifthenpay-pay-button' ),
 		);
 		$payments   = add_query_arg(
 			array(
@@ -898,11 +1156,19 @@ class ButtonsPage {
 			admin_url( 'admin.php' )
 		);
 		?>
-		<li class="iftp-btn-bcard<?php echo $button->active ? '' : ' iftp-btn-bcard--off'; ?>" data-iftp-bcard data-title="<?php echo esc_attr( strtolower( remove_accents( $button->title ) ) ); ?>" data-active="<?php echo $button->active ? '1' : '0'; ?>" data-mode="<?php echo esc_attr( $button->mode() ); ?>" data-sold="<?php echo $sold_out ? '1' : '0'; ?>" data-collected="<?php echo esc_attr( (string) ( null !== $stats ? $stats['paid_amount'] : 0 ) ); ?>" data-paid="<?php echo esc_attr( (string) $paid_count ); ?>" data-order="<?php echo esc_attr( (string) $order ); ?>" data-edited="<?php echo esc_attr( (string) get_post_modified_time( 'U', true, $button->id ) ); ?>">
+		<li class="iftp-btn-bcard<?php echo $button->active ? '' : ' iftp-btn-bcard--off'; ?>" data-iftp-bcard data-id="<?php echo esc_attr( (string) $button->id ); ?>" data-title="<?php echo esc_attr( strtolower( remove_accents( $button->title ) ) ); ?>" data-active="<?php echo $button->active ? '1' : '0'; ?>" data-mode="<?php echo esc_attr( $button->mode() ); ?>" data-sold="<?php echo $sold_out ? '1' : '0'; ?>" data-collected="<?php echo esc_attr( (string) ( null !== $stats ? $stats['paid_amount'] : 0 ) ); ?>" data-paid="<?php echo esc_attr( (string) $paid_count ); ?>" data-order="<?php echo esc_attr( (string) $order ); ?>" data-edited="<?php echo esc_attr( (string) get_post_modified_time( 'U', true, $button->id ) ); ?>">
 			<a class="iftp-btn-bcard__stage" href="<?php echo esc_url( $edit ); ?>" tabindex="-1" aria-hidden="true">
 				<?php
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes.
-				echo '<span class="iftp-btn-pay">' . ButtonDesign::preview_markup( ButtonDesign::for_button( $button, $this->checkout_settings ), $button->display_label() ) . '</span>';
+				// A drawn button brings its own CSS, so its card shows the real design. The CSS was cleaned when it was saved (no tags can get in).
+				$drawn = ButtonRenderer::preview_css( $button );
+				echo '' !== $drawn ? '<style>' . $drawn . '</style>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CustomCode strips tags and checks the CSS on save.
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes; the attribute is an integer.
+				echo '<span class="iftp-btn-pay"' . ( '' !== $drawn ? ' data-iftp-code="' . (int) $button->id . '"' : '' ) . '>' . ButtonDesign::preview_markup( ButtonDesign::for_button( $button, $this->checkout_settings ), $button->display_label() ) . '</span>';
+				?>
+				<?php
+				// Its script too, once its preview is in the page, so the card plays what the button plays.
+				$drawn_js = ButtonRenderer::preview_js( $button );
+				echo '' !== $drawn_js ? '<script>' . $drawn_js . '</script>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- saved only by users who may post unfiltered HTML, and checked on save (no closing script tag).
 				?>
 				<span class="iftp-btn-bcard__status"><?php echo esc_html( $button->active ? __( 'Active', 'ifthenpay-pay-button' ) : __( 'Inactive', 'ifthenpay-pay-button' ) ); ?></span>
 				<span class="iftp-btn-bcard__look"><?php echo esc_html( $looks[ $button->config['design']['source'] ] ?? $looks[ ButtonDesign::SOURCE_THEME ] ); ?></span>
@@ -1001,7 +1267,7 @@ class ButtonsPage {
 					<button type="button" class="iftp-btn-tool iftp-btn-tool--live" data-iftp-copy-text="<?php echo esc_attr( $shortcode ); ?>" data-iftp-copy-done="<?php esc_attr_e( 'Shortcode copied.', 'ifthenpay-pay-button' ); ?>" data-iftp-tip="<?php esc_attr_e( 'Copy shortcode', 'ifthenpay-pay-button' ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: the shortcode */ __( 'Copy shortcode %s', 'ifthenpay-pay-button' ), $shortcode ) ); ?>"><?php echo self::icon( 'code' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
 					<button type="button" class="iftp-btn-tool iftp-btn-tool--live" data-iftp-copy-text="<?php echo esc_attr( $pay_link ); ?>" data-iftp-copy-done="<?php esc_attr_e( 'Pay link copied.', 'ifthenpay-pay-button' ); ?>" data-iftp-tip="<?php esc_attr_e( 'Copy pay link', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Copy pay link', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
 					<button type="button" class="iftp-btn-tool iftp-btn-tool--live" data-iftp-qr="<?php echo esc_attr( $pay_link ); ?>" data-iftp-qr-name="<?php echo esc_attr( $button->title ); ?>" data-iftp-tip="<?php esc_attr_e( 'QR code', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'QR code for the pay link', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'qr' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
-					<a class="iftp-btn-tool iftp-btn-tool--live" href="<?php echo esc_url( $pay_link ); ?>" target="_blank" rel="noopener" data-iftp-tip="<?php esc_attr_e( 'Open pay page', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Open pay page (opens in a new tab)', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'external' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></a>
+					<a class="iftp-btn-tool iftp-btn-tool--live" href="<?php echo esc_url( DemoPage::url( $button->id ) ); ?>" target="_blank" rel="noopener" data-iftp-tip="<?php esc_attr_e( 'Preview', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Preview (opens in a new tab)', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'eye' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></a>
 					<a class="iftp-btn-tool" href="<?php echo esc_url( self::action_url( self::DUPLICATE_ACTION, $button->id ) ); ?>" data-iftp-tip="<?php esc_attr_e( 'Duplicate', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Duplicate', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'copy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></a>
 					<a class="iftp-btn-tool iftp-btn-tool--danger" href="<?php echo esc_url( self::action_url( self::DELETE_ACTION, $button->id ) ); ?>" data-iftp-confirm-delete="<?php echo esc_attr( $button->title ); ?>" data-iftp-tip="<?php esc_attr_e( 'Delete', 'ifthenpay-pay-button' ); ?>" aria-label="<?php esc_attr_e( 'Delete', 'ifthenpay-pay-button' ); ?>"><?php echo self::icon( 'trash' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></a>
 				</span>
@@ -1068,6 +1334,7 @@ class ButtonsPage {
 			'plus'     => '<path d="M12 5v14M5 12h14"/>',
 			'code'     => '<path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/>',
 			'link'     => '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
+			'eye'      => '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
 			'external' => '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',
 			'qr'       => '<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2.5v2.5H14zM18 14h2M14 19v1M17.5 18v2M20 18v2"/>',
 			'copy'     => '<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',

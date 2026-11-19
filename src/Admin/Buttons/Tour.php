@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Admin\Buttons;
 
+use Ifthenpay\PayButton\Admin\LookControls;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
 use Ifthenpay\PayButton\Frontend\StepBar;
@@ -69,7 +70,7 @@ class Tour {
 		$asked = isset( $_GET[ self::VAR ] );
 		$seen  = '1' === get_user_meta( get_current_user_id(), self::SEEN_META, true );
 
-		wp_enqueue_script( self::SCRIPT, IFTP_BTN_URL . $js, array( 'iftp-btn-buttons' ), Plugin::asset_version( $js ), true );
+		wp_enqueue_script( self::SCRIPT, Plugin::asset_url( $js ), array( Plugin::BUTTONS_SCRIPT_LAST ), Plugin::asset_version( $js ), true );
 		wp_localize_script(
 			self::SCRIPT,
 			'iftpBtnTour',
@@ -87,8 +88,13 @@ class Tour {
 					'back'  => __( 'Back', 'ifthenpay-pay-button' ),
 					'skip'  => __( 'Skip', 'ifthenpay-pay-button' ),
 					'label' => __( 'Guided tour', 'ifthenpay-pay-button' ),
-					/* translators: 1: chapter name, 2: current step, 3: number of steps */
-					'count' => __( '%1$s · %2$s of %3$s', 'ifthenpay-pay-button' ),
+					/* translators: 1: current step, 2: number of steps */
+					'count' => __( '%1$s of %2$s', 'ifthenpay-pay-button' ),
+					'hint'  => array(
+						'click' => __( 'Your turn: click the highlighted part, or skip ahead', 'ifthenpay-pay-button' ),
+						'fill'  => __( 'Your turn: type in the glowing field, or skip ahead', 'ifthenpay-pay-button' ),
+						'send'  => __( 'Your turn: type your idea and press send, or skip ahead', 'ifthenpay-pay-button' ),
+					),
 					'demo'  => array(
 						'title'       => __( 'Consultation', 'ifthenpay-pay-button' ),
 						'summary'     => __( 'One hour with our team', 'ifthenpay-pay-button' ),
@@ -160,13 +166,6 @@ class Tour {
 									<span class="iftp-btn-form__label"><?php echo esc_html( CheckoutTexts::get( 'email' ) ); ?></span>
 									<input class="iftp-btn-form__input" type="text" value="" placeholder="you@example.com" readonly tabindex="-1" />
 								</div>
-								<div class="iftp-btn-form__field">
-									<span class="iftp-btn-form__label"><?php esc_html_e( 'Tickets', 'ifthenpay-pay-button' ); ?></span>
-									<div class="iftp-btn-form__choices">
-										<label class="iftp-btn-form__choice"><input type="radio" class="iftp-btn-form__tick" checked tabindex="-1" /><span><?php esc_html_e( 'Standard', 'ifthenpay-pay-button' ); ?></span></label>
-										<label class="iftp-btn-form__choice"><input type="radio" class="iftp-btn-form__tick" tabindex="-1" /><span><?php esc_html_e( 'With lunch', 'ifthenpay-pay-button' ); ?></span></label>
-									</div>
-								</div>
 							</div>
 						</div>
 						<div class="iftp-btn-form__actions">
@@ -175,7 +174,10 @@ class Tour {
 							</div>
 						</div>
 						<footer class="iftp-btn-form__footer">
-							<span class="iftp-btn-form__secure"><?php echo esc_html( CheckoutTexts::get( 'secure' ) ); ?></span>
+							<ul class="iftp-btn-form__methods">
+								<?php ( new LookControls( 'config[look]' ) )->print_preview_logos(); ?>
+							</ul>
+							<span class="iftp-btn-form__secure"><span><?php echo esc_html( CheckoutTexts::get( 'secure' ) ); ?></span> <img src="<?php echo esc_url( IFTP_BTN_URL . 'assets/img/logo-color.svg' ); ?>" alt="ifthenpay" width="62" height="16" /></span>
 						</footer>
 					</div>
 				</div>
@@ -187,9 +189,11 @@ class Tour {
 	}
 
 	/**
-	 * The chapters: what they are called, where "Next" on their last step goes, and their steps. A step with no
-	 * target is a centred card; one whose target isn't on screen is left out; "tab" opens an editor tab first;
-	 * "act" names a scripted demo.
+	 * The chapters: where "Next" on their last step goes, and their steps. A step with no target is a centred card;
+	 * one whose target isn't on screen is left out; "tab" opens an editor tab first; "act" names a scripted demo.
+	 * "wait" makes the step interactive: 'click' goes on when "on" is clicked, 'fill' when the "on" field has a
+	 * value, 'send' when the studio message is sent. The lit target is fully usable; "on" glows. Without "wait" the
+	 * card's own Next button goes on.
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
@@ -200,185 +204,90 @@ class Tour {
 
 		return array(
 			'list'   => array(
-				'label' => __( 'A quick look', 'ifthenpay-pay-button' ),
 				'cta'   => __( 'Show me', 'ifthenpay-pay-button' ),
 				'next'  => $edit,
 				'steps' => array(
 					array(
 						'target' => '',
-						'title'  => __( 'Welcome to Pay buttons', 'ifthenpay-pay-button' ),
-						'text'   => __( 'A pay button takes a payment anywhere: on a page, in an email or from a QR code. This tour walks you through making one. You only have to watch.', 'ifthenpay-pay-button' ),
-					),
-					array(
-						'target' => '[data-iftp-tour="starters"]',
-						'title'  => __( 'Start from a template', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Pick a Donation, Event ticket or Fixed price and change anything. It starts turned off, so nothing goes live until you say so.', 'ifthenpay-pay-button' ),
-					),
-					array(
-						'target' => '.iftp-btn-bsummary',
-						'title'  => __( 'How you are doing', 'ifthenpay-pay-button' ),
-						'text'   => __( 'What came in, how many who opened a checkout paid, and how many walked away.', 'ifthenpay-pay-button' ),
-					),
-					array(
-						'target' => '[data-iftp-bcards] > .iftp-btn-bcard:not(.iftp-btn-bcard--new)',
-						'title'  => __( 'Your buttons', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Each button shows its payments and has an on/off switch. Open one to get its block, shortcode, pay link and QR code.', 'ifthenpay-pay-button' ),
+						'title'  => __( 'Make your first button', 'ifthenpay-pay-button' ),
+						'text'   => __( 'A pay button takes a payment on a page, in an email or from a QR code. Let\'s make one, it takes a minute.', 'ifthenpay-pay-button' ),
 					),
 					array(
 						'target' => '[data-iftp-tour="new"]',
-						'title'  => __( 'Let\'s make one', 'ifthenpay-pay-button' ),
-						'text'   => __( 'New button opens the editor. Click Show me and I\'ll fill in a demo button for you.', 'ifthenpay-pay-button' ),
+						'wait'   => 'click',
+						'on'     => '[data-iftp-tour="new"]',
+						'title'  => __( 'Start here', 'ifthenpay-pay-button' ),
+						'text'   => __( 'New button opens the editor.', 'ifthenpay-pay-button' ),
 					),
 				),
 			),
 			'editor' => array(
-				'label' => __( 'The editor', 'ifthenpay-pay-button' ),
 				'cta'   => __( 'Now the AI', 'ifthenpay-pay-button' ),
 				'next'  => $ai,
 				'steps' => array(
 					array(
-						'target' => '',
-						'title'  => __( 'This is the editor', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Everything about a button lives here, in five tabs. I\'ll fill a demo one in as we go. It is only for show: nothing is saved.', 'ifthenpay-pay-button' ),
-					),
-					array(
 						'target' => '[aria-labelledby="iftp-btn-ec-basics"]',
+						'tab'    => 'basics',
+						'wait'   => 'fill',
+						'on'     => '[name="title"]',
 						'title'  => __( 'Name it', 'ifthenpay-pay-button' ),
-						'text'   => __( 'A title and a short description. The button\'s pay link is made from the title.', 'ifthenpay-pay-button' ),
-						'act'    => 'basics',
+						'text'   => __( 'Give the button a title, like Consultation. Nothing you do in this tour is saved.', 'ifthenpay-pay-button' ),
 					),
 					array(
 						'target' => '[aria-labelledby="iftp-btn-ec-amount"]',
+						'tab'    => 'basics',
 						'title'  => __( 'Set the price', 'ifthenpay-pay-button' ),
-						'text'   => __( 'A fixed amount, or let the payer choose. Here it is 49 €.', 'ifthenpay-pay-button' ),
-						'act'    => 'amount',
+						'text'   => __( 'Type a fixed amount, or let the payer choose it. Try it, then press Next.', 'ifthenpay-pay-button' ),
 					),
 					array(
-						'target' => '.iftp-btn-preview',
-						'title'  => __( 'See it as payers will', 'ifthenpay-pay-button' ),
-						'text'   => __( 'The preview follows every change you make, so you never have to guess how it looks.', 'ifthenpay-pay-button' ),
-					),
-					array(
-						'target' => '[aria-labelledby="iftp-btn-ec-fields"]',
-						'tab'    => 'form',
-						'title'  => __( 'Ask only what you need', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Choose which details the payer fills in. This tab also has your own questions, and a number of spots to sell.', 'ifthenpay-pay-button' ),
-						'act'    => 'fields',
+						'target' => '[data-iftp-tab="design"]',
+						'wait'   => 'click',
+						'on'     => '[data-iftp-tab="design"]',
+						'title'  => __( 'Make it yours', 'ifthenpay-pay-button' ),
+						'text'   => __( 'Open the Design tab.', 'ifthenpay-pay-button' ),
 					),
 					array(
 						'target' => '[aria-labelledby="iftp-btn-ec-design"]',
 						'tab'    => 'design',
 						'view'   => 'button',
-						'title'  => __( 'Style the button', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Pick a ready-made look or build your own: colour, shape, size, even a pulse to catch the eye. I\'ll try one and give it a label.', 'ifthenpay-pay-button' ),
-						'act'    => 'designButton',
-					),
-					array(
-						'target' => '.iftp-btn-preview',
-						'tab'    => 'design',
-						'view'   => 'button',
-						'title'  => __( 'The button, live', 'ifthenpay-pay-button' ),
-						'text'   => __( 'This is the button on your page, wearing the look I just picked.', 'ifthenpay-pay-button' ),
-					),
-					array(
-						'target' => '[aria-labelledby="iftp-btn-ec-look"]',
-						'tab'    => 'design',
-						'view'   => 'checkout',
-						'title'  => __( 'Design the checkout too', 'ifthenpay-pay-button' ),
-						'text'   => __( 'What the button opens has its own design. Use the site\'s look, or give this button a look of its own.', 'ifthenpay-pay-button' ),
-						'act'    => 'designCheckout',
-					),
-					array(
-						'target' => '[data-iftp-look-section="page"]',
-						'tab'    => 'design',
-						'view'   => 'checkout',
-						'title'  => __( 'Set the scene', 'ifthenpay-pay-button' ),
-						'text'   => __( 'The page behind the checkout: a glow, a gradient, an image or even a video, with moving effects on top.', 'ifthenpay-pay-button' ),
-						'act'    => 'designBackground',
-					),
-					array(
-						'target' => '.iftp-btn-editor__lookpreview',
-						'tab'    => 'design',
-						'view'   => 'checkout',
-						'title'  => __( 'Your checkout, as payers see it', 'ifthenpay-pay-button' ),
-						'text'   => __( 'The card, the colours and the background together. Every change shows here the moment you make it.', 'ifthenpay-pay-button' ),
-					),
-					array(
-						'target' => '[aria-labelledby="iftp-btn-ec-after"]',
-						'tab'    => 'after',
-						'title'  => __( 'After they pay', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Choose what happens next: a thank-you popup, one of your pages, or any address.', 'ifthenpay-pay-button' ),
-					),
-					array(
-						'target' => '[aria-labelledby="iftp-btn-ec-invoice"]',
-						'tab'    => 'connect',
-						'title'  => __( 'Connect it', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Send every paid order to your invoicing app, or let a form from another plugin send its payer here.', 'ifthenpay-pay-button' ),
+						'title'  => __( 'Pick a look', 'ifthenpay-pay-button' ),
+						'text'   => __( 'Choose Custom to see the ready-made styles and pick one, or build your own. The checkout has its own design too, just below. Press Next when you are done.', 'ifthenpay-pay-button' ),
 					),
 					array(
 						'target' => '.iftp-btn-editor__save',
 						'tab'    => 'basics',
 						'title'  => __( 'Create it', 'ifthenpay-pay-button' ),
-						'text'   => __( 'This is where you would press Create button. Nothing was saved in this tour, so there is nothing to clean up.', 'ifthenpay-pay-button' ),
+						'text'   => __( 'This is where you press Create button. Nothing was saved here, so there is nothing to clean up.', 'ifthenpay-pay-button' ),
 					),
 				),
 			),
 			'ai'     => array(
-				'label' => __( 'Build with AI', 'ifthenpay-pay-button' ),
 				'cta'   => __( 'Finish', 'ifthenpay-pay-button' ),
 				'next'  => $out,
 				'steps' => array(
 					array(
-						'target' => '.iftp-btn-studio__connect',
-						'title'  => __( 'Connect your AI', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Paste your own Claude, OpenAI or Gemini key once. After that you can describe buttons in plain words.', 'ifthenpay-pay-button' ),
-					),
-					array(
-						'target' => '.iftp-btn-studio__chat',
-						'title'  => __( 'Just say what you want', 'ifthenpay-pay-button' ),
-						'text'   => __( 'No forms to fill. Describe the button the way you would to a colleague.', 'ifthenpay-pay-button' ),
-						'act'    => 'reset',
-					),
-					array(
 						'target' => '[data-iftp-studio-form]',
-						'title'  => __( 'Like this', 'ifthenpay-pay-button' ),
-						'text'   => __( 'I\'ll type an example for you. It is not sent anywhere.', 'ifthenpay-pay-button' ),
 						'act'    => 'prompt',
+						'on'     => '[data-iftp-studio-input]',
+						'wait'   => 'send',
+						'title'  => __( 'Or just ask the AI', 'ifthenpay-pay-button' ),
+						'text'   => __( 'Describe the button in plain words, then press send. In this tour nothing is really sent.', 'ifthenpay-pay-button' ),
 					),
 					array(
 						'target' => '.iftp-btn-studio__stage',
-						'title'  => __( 'It builds, you watch', 'ifthenpay-pay-button' ),
-						'text'   => __( 'The AI sets up the form and the look, and the pay page appears here, live, as payers will see it.', 'ifthenpay-pay-button' ),
 						'act'    => 'build',
-					),
-					array(
-						'target' => '.iftp-btn-studio__stage',
-						'title'  => __( 'Here is your checkout', 'ifthenpay-pay-button' ),
-						'text'   => __( 'The AI presents what it made: the form, the price and the pay button, as payers will see them.', 'ifthenpay-pay-button' ),
-						'act'    => 'checkout',
-					),
-					array(
-						'target' => '.iftp-btn-studio__log',
-						'title'  => __( 'It tells you what it did', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Every change is listed, and anything to do with money is marked so you always check it.', 'ifthenpay-pay-button' ),
-						'act'    => 'checkout',
+						'title'  => __( 'It builds, you watch', 'ifthenpay-pay-button' ),
+						'text'   => __( 'The form, the look and the pay page appear here, with a list of what changed. Anything about money is marked.', 'ifthenpay-pay-button' ),
 					),
 					array(
 						'target' => '[data-iftp-studio-review]',
-						'title'  => __( 'Review and save', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Happy with it? Review it in the editor and save. Not quite? Undo, or keep chatting to tweak it.', 'ifthenpay-pay-button' ),
 						'act'    => 'review',
-					),
-					array(
-						'target' => '',
 						'title'  => __( 'You stay in charge', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Nothing is saved until you press save in the editor, and the new button starts switched off so you can check it first.', 'ifthenpay-pay-button' ),
-						'act'    => 'reset',
+						'text'   => __( 'Review it in the editor and save. The new button starts switched off, so nothing goes live by surprise.', 'ifthenpay-pay-button' ),
 					),
 				),
 			),
 			'outro'  => array(
-				'label' => __( 'All set', 'ifthenpay-pay-button' ),
 				'cta'   => __( 'Done', 'ifthenpay-pay-button' ),
 				'next'  => '',
 				'steps' => array(
@@ -386,11 +295,6 @@ class Tour {
 						'target' => '[data-iftp-tour="help"]',
 						'title'  => __( 'Need this again?', 'ifthenpay-pay-button' ),
 						'text'   => __( 'Click the question mark any time to replay the tour or start from a template.', 'ifthenpay-pay-button' ),
-					),
-					array(
-						'target' => '',
-						'title'  => __( 'You are all set', 'ifthenpay-pay-button' ),
-						'text'   => __( 'Make a button from scratch, with a template, or with the AI. Nothing goes live until you turn it on.', 'ifthenpay-pay-button' ),
 					),
 				),
 			),

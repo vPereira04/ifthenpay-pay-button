@@ -93,6 +93,48 @@ class Gemini extends Provider {
 	}
 
 	/**
+	 * When the picked model fails, the ones most likely to answer. The newest models are the busiest, so older stable ones come
+	 * first, then the lite ones (fast, and with room of their own), then newer ones, and Pro last: a free key has no Pro quota.
+	 *
+	 * @param array<string, string> $models What models() gave.
+	 * @param string                $picked The model that failed.
+	 * @return array<int, string> Model ids.
+	 */
+	public function fallbacks( array $models, string $picked ): array {
+		$version = 1 === preg_match( '/^gemini-(\d+(?:\.\d+)?)/', $picked, $match ) ? (float) $match[1] : 0.0;
+		$scored  = array();
+
+		foreach ( array_keys( $models ) as $id ) {
+			if ( $id === $picked ) {
+				continue;
+			}
+
+			$number   = 1 === preg_match( '/^gemini-(\d+(?:\.\d+)?)/', $id, $found ) ? (float) $found[1] : 0.0;
+			$unstable = 1 === preg_match( '/preview|exp|beta|alpha/', $id ) ? 1 : 0;
+
+			if ( false !== strpos( $id, '-pro' ) ) {
+				$bucket = 3;
+			} elseif ( false !== strpos( $id, 'lite' ) ) {
+				$bucket = 1;
+			} elseif ( $number <= $version ) {
+				$bucket = 0;
+			} else {
+				$bucket = 2;
+			}
+
+			// Within a bucket: stable before preview, then the closest to the picked version, the newer last.
+			$scored[ $id ] = array( $bucket, $unstable, abs( $number - $version ), $number );
+		}
+
+		uasort(
+			$scored,
+			static fn( array $a, array $b ): int => $a <=> $b
+		);
+
+		return array_keys( $scored );
+	}
+
+	/**
 	 * Answers the chat with an object in the schema's shape.
 	 *
 	 * @param string                            $key      The API key.
@@ -104,17 +146,46 @@ class Gemini extends Provider {
 	 */
 	public function complete( string $key, string $model, string $system, array $messages, array $schema ) {
 		$thinking = $this->thinking_config( $model );
-		$result   = $this->generate( $key, $model, $system, $messages, self::to_openapi( $schema ), $thinking );
-
-		// A model that won't take the thinking setting just thinks its own way.
-		if ( is_wp_error( $result ) && array() !== $thinking && 'iftp_btn_ai_refused' === $result->get_error_code() && false !== stripos( $result->get_error_message(), 'think' ) ) {
-			$thinking = array();
-			$result   = $this->generate( $key, $model, $system, $messages, self::to_openapi( $schema ), $thinking );
-		}
+		$openapi  = self::to_openapi( $schema );
+		$result   = $this->attempt( $key, $model, $system, $messages, $openapi, $thinking );
 
 		// Some models turn down a schema this size; the shape then goes in the instructions instead.
 		if ( is_wp_error( $result ) && 'iftp_btn_ai_schema' === $result->get_error_code() ) {
-			$result = $this->generate( $key, $model, $system . "\n\nAnswer with one JSON object that follows this JSON schema exactly:\n" . wp_json_encode( $schema ), $messages, null, $thinking );
+			$result = $this->attempt( $key, $model, $system . "\n\nAnswer with one JSON object that follows this JSON schema exactly:\n" . wp_json_encode( $schema ), $messages, null, $thinking );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * One generate call; a model that won't take the thinking setting is asked again without it, and stays without it.
+	 *
+	 * @param string                            $key      The API key.
+	 * @param string                            $model    The model id.
+	 * @param string                            $system   The instructions.
+	 * @param array<int, array<string, string>> $messages The chat.
+	 * @param array<string, mixed>|null         $schema   The response schema, or null for plain JSON.
+	 * @param array<string, int|string>         $thinking The thinkingConfig, emptied if the model turns it down.
+	 * @return array<string, mixed>|WP_Error
+	 */
+	private function attempt( string $key, string $model, string $system, array $messages, ?array $schema, array &$thinking ) {
+		$result = $this->generate( $key, $model, $system, $messages, $schema, $thinking );
+
+		if ( is_wp_error( $result ) && array() !== $thinking && in_array( $result->get_error_code(), array( 'iftp_btn_ai_refused', 'iftp_btn_ai_schema' ), true ) && false !== stripos( $result->get_error_message(), 'think' ) ) {
+			$thinking = array();
+			$result   = $this->generate( $key, $model, $system, $messages, $schema, $thinking );
+		}
+
+		// Some models take no system instruction; it then goes in as the first message.
+		if ( is_wp_error( $result ) && 'iftp_btn_ai_refused' === $result->get_error_code() && false !== stripos( $result->get_error_message(), 'instruction' ) && '' !== $system && array() !== $messages ) {
+			array_unshift(
+				$messages,
+				array(
+					'role' => 'user',
+					'text' => $system,
+				)
+			);
+			$result = $this->generate( $key, $model, '', $messages, $schema, $thinking );
 		}
 
 		return $result;
@@ -161,7 +232,7 @@ class Gemini extends Provider {
 	private function generate( string $key, string $model, string $system, array $messages, ?array $schema, array $thinking ) {
 		$config = array(
 			'temperature'      => $this->temperature,
-			'maxOutputTokens'  => static::MAX_TOKENS,
+			'maxOutputTokens'  => $this->answer,
 			'responseMimeType' => 'application/json',
 		);
 
@@ -173,21 +244,26 @@ class Gemini extends Provider {
 			$config['thinkingConfig'] = $thinking;
 		}
 
+		$body = array(
+			'contents'         => array_map(
+				static fn( array $message ): array => array(
+					'role'  => 'assistant' === $message['role'] ? 'model' : 'user',
+					'parts' => array( array( 'text' => $message['text'] ) ),
+				),
+				self::turns( $messages )
+			),
+			'generationConfig' => $config,
+		);
+
+		if ( '' !== $system ) {
+			$body['systemInstruction'] = array( 'parts' => array( array( 'text' => $system ) ) );
+		}
+
 		$response = $this->request(
 			'POST',
 			self::BASE . 'models/' . preg_replace( '/[^a-z0-9.\-]/', '', strtolower( $model ) ) . ':generateContent',
 			array( 'x-goog-api-key' => $key ),
-			array(
-				'systemInstruction' => array( 'parts' => array( array( 'text' => $system ) ) ),
-				'contents'          => array_map(
-					static fn( array $message ): array => array(
-						'role'  => 'assistant' === $message['role'] ? 'model' : 'user',
-						'parts' => array( array( 'text' => $message['text'] ) ),
-					),
-					self::turns( $messages )
-				),
-				'generationConfig'  => $config,
-			)
+			$body
 		);
 
 		if ( is_wp_error( $response ) ) {

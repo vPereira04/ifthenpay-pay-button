@@ -1,5 +1,5 @@
 /* global iftpBtnSettings */
-// Configuration › Gateway: the Connect / Disconnect dialogs, the Gateway Key switch, the methods table and the save.
+// Configuration › Backoffice: the Connect / Disconnect dialogs, and the weekly summary's test send.
 ( function () {
 	'use strict';
 
@@ -44,7 +44,6 @@
 		bindDialogs( wrap );
 		bindConnect( wrap );
 		bindDisconnect( wrap );
-		bindSettingsForm( wrap );
 		bindSummaryTest( wrap );
 	} );
 
@@ -116,7 +115,7 @@
 						return;
 					}
 
-					// The button turns into Disconnect and the configuration appears, both rendered server-side.
+					// The button turns into Disconnect, rendered server-side.
 					window.location.reload();
 				} )
 				.catch( function () {
@@ -197,175 +196,5 @@
 					testBtn.textContent = label;
 				} );
 		} );
-	}
-
-	function bindSettingsForm( wrap ) {
-		var form = wrap.querySelector( '[data-iftp-settings-form]' );
-
-		if ( ! form ) {
-			return;
-		}
-
-		var methods = form.querySelector( '[data-iftp-methods]' );
-		var gatewayKey = form.querySelector( '[data-iftp-gateway-key]' );
-		var saveBtn = form.querySelector( '[data-iftp-save]' );
-		var saveLabel = saveBtn.textContent;
-		var status = form.querySelector( '[data-iftp-save-status]' );
-		var statusTimer = null;
-
-		// One live region by Save for every message on this screen. Errors stay; a success clears after a while.
-		function showStatus( message, isError ) {
-			clearTimeout( statusTimer );
-			status.textContent = message;
-			status.classList.toggle( 'iftp-btn-save-status--error', !! isError );
-
-			if ( ! isError ) {
-				statusTimer = setTimeout( function () {
-					status.textContent = '';
-				}, 4000 );
-			}
-		}
-
-		function swapTable( html ) {
-			methods.innerHTML = html;
-		}
-
-		gatewayKey.addEventListener( 'change', function () {
-			methods.setAttribute( 'aria-busy', 'true' );
-			gatewayKey.disabled = true;
-			showStatus( i18n.loading, false );
-
-			post( 'iftp_btn_select_gateway_key', { gateway_key: gatewayKey.value } )
-				.then( function ( response ) {
-					if ( ! response || ! response.success ) {
-						showStatus( errorMessage( response ), true );
-						return;
-					}
-
-					swapTable( response.data.tableHtml );
-					showStatus( '', false );
-				} )
-				.catch( function () {
-					showStatus( i18n.error, true );
-				} )
-				.then( function () {
-					methods.removeAttribute( 'aria-busy' );
-					gatewayKey.disabled = false;
-				} );
-		} );
-
-		// The star only exists while its row is enabled; disabling the default method clears the default.
-		methods.addEventListener( 'change', function ( event ) {
-			var target = event.target;
-
-			if ( target.matches( '[data-iftp-method-enabled]' ) ) {
-				syncRow( target.closest( '[data-iftp-method-row]' ), target.checked );
-				syncStars( methods );
-			} else if ( target.matches( '[data-iftp-method-default]' ) ) {
-				syncStars( methods );
-			}
-		} );
-
-		methods.addEventListener( 'click', function ( event ) {
-			var button = event.target.closest( '[data-iftp-request-activation]' );
-
-			if ( button ) {
-				requestActivation( button, showStatus );
-			}
-		} );
-
-		form.addEventListener( 'submit', function ( event ) {
-			var data = {};
-
-			event.preventDefault();
-
-			if ( ! form.reportValidity() ) {
-				return;
-			}
-
-			new FormData( form ).forEach( function ( value, name ) {
-				if ( 'enabled_methods[]' === name ) {
-					data.enabled_methods = ( data.enabled_methods || [] ).concat( value );
-				} else {
-					data[ name ] = value;
-				}
-			} );
-
-			saveBtn.disabled = true;
-			saveBtn.textContent = i18n.saving;
-
-			post( 'iftp_btn_save_settings', data )
-				.then( function ( response ) {
-					if ( ! response || ! response.success ) {
-						showStatus( errorMessage( response ), true );
-						return;
-					}
-
-					swapTable( response.data.tableHtml );
-					showStatus( i18n.saved, false );
-				} )
-				.catch( function () {
-					showStatus( i18n.error, true );
-				} )
-				.then( function () {
-					saveBtn.disabled = false;
-					saveBtn.textContent = saveLabel;
-				} );
-		} );
-	}
-
-	function syncRow( row, enabled ) {
-		var radio = row.querySelector( '[data-iftp-method-default]' );
-		var star = row.querySelector( '[data-iftp-star]' );
-		var badge = row.querySelector( '[data-iftp-method-status]' );
-
-		radio.disabled = ! enabled;
-		star.hidden = ! enabled;
-		star.classList.toggle( 'iftp-btn-star--hidden', ! enabled );
-
-		if ( ! enabled ) {
-			radio.checked = false;
-		}
-
-		// Only a preview; it's stored with the rest of the screen on Save.
-		if ( badge ) {
-			badge.classList.toggle( 'iftp-btn-method-status--enabled', enabled );
-			badge.classList.toggle( 'iftp-btn-method-status--activated', ! enabled );
-			badge.textContent = badge.getAttribute( enabled ? 'data-label-enabled' : 'data-label-activated' );
-		}
-	}
-
-	// Filled star for the checked radio, outline for the rest, so the default reads even without styles.
-	function syncStars( scope ) {
-		scope.querySelectorAll( '[data-iftp-method-default]' ).forEach( function ( radio ) {
-			var star = radio.closest( 'td' ).querySelector( '[data-iftp-star]' );
-			var glyph = star.querySelector( '[data-iftp-star-glyph]' );
-
-			star.classList.toggle( 'iftp-btn-star--checked', radio.checked );
-			glyph.textContent = radio.checked ? '★' : '☆';
-		} );
-	}
-
-	// Each method's 24h cooldown is enforced server-side; the disabled "Requested" button only mirrors it.
-	function requestActivation( button, showStatus ) {
-		var original = button.textContent;
-
-		button.disabled = true;
-		button.textContent = i18n.requesting;
-
-		post( 'iftp_btn_request_activation', { entity: button.getAttribute( 'data-iftp-request-activation' ) } )
-			.then( function ( response ) {
-				if ( ! response || ! response.success ) {
-					return Promise.reject( errorMessage( response ) );
-				}
-
-				button.textContent = i18n.requested;
-				showStatus( i18n.requestSent, false );
-			} )
-			.catch( function ( error ) {
-				button.disabled = false;
-				button.textContent = original;
-				showStatus( 'string' === typeof error ? error : i18n.error, true );
-			} );
 	}
 } )();
