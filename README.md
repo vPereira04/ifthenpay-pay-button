@@ -193,24 +193,20 @@ Further down, **Popups and footer** styles the popups after paying and the payme
 
 (screenshot 13)
 
-#### Step 14 — Choose what happens after payment, and send paid payments to your invoicing app
+#### Step 14 — Choose what happens after payment
 
-1. Open the **After payment** tab.
-2. **When paid**: use the Configuration › Messages setting, or a popup, a page or a URL just for this button.
-3. **Send to your invoicing app** (optional): each paid payment goes straight to InvoiceXpress, Moloni, Vendus, TOConline or any app with an API.
-4. The app's **address**, method, format, headers (e.g. your API key) and a **body** built from tags.
+1. **After payment**: show the Configuration › Messages setting, or a popup, a page or a URL just for this button.
 
 (screenshot 14)
 
-The invoicing request only goes out for paid payments. If the app is down, it's tried again after 5 minutes, 30 minutes and 3 hours. **Send a test** sends the form as it is, before you save.
+#### Step 15 — Optional: send paid payments to your invoicing app, or connect a form or booking plugin
 
-#### Optional — Connect a form or booking plugin ifthenpay has no integration with
-
-1. Open the **Connect** tab.
-2. Tick the values the other plugin sends and swap each `{tag}` for that plugin's own merge tag. Copy the **Redirect link** into its "redirect after submit" setting.
-3. **Webhook** (optional): we POST a signed JSON event when a payment is paid, fails or is cancelled (Zapier, Make, n8n…). **Send a test** checks it.
+1. Open the **Connect** tab. **Send to your invoicing app**: each paid payment goes to the address you give, in InvoiceXpress, Moloni, Vendus, TOConline or any app with an API.
+2. **Connect another plugin**: its form sends the payer here, and you choose the merge tags and the redirect link.
 
 (screenshot 15)
+
+The invoicing request only goes out for paid payments; if the app is down, it's tried again after 5 minutes, 30 minutes and 3 hours. The app's **address**, method, format, headers (e.g. your API key) and **body** are built from tags. In the other plugin, tick the values it sends and swap each `{tag}` for its own merge tag, then copy the **Redirect link** into its "redirect after submit" setting. **Webhook** (optional): we POST a signed JSON event when a payment is paid, fails or is cancelled (Zapier, Make, n8n…); **Send a test** checks it.
 
 With **Go straight to ifthenpay** on, a link that already fills in everything required skips the checkout. **Verify the webhook signature** shows how to check the `X-Iftp-Signature` header, and **For developers: signed links** shows `iftp_btn_payment_url()`, which builds a link whose amount and reference can't be edited.
 
@@ -441,9 +437,9 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
     ![Page progress and pay page](.wordpress-org/screenshot-12.png)
 13. **(Admin Only) Step 13: design the button and save it**
     ![Button design](.wordpress-org/screenshot-13.png)
-14. **(Admin Only) Step 14: what happens after payment, and sending paid payments to your invoicing app**
+14. **(Admin Only) Step 14: what happens after payment**
     ![After payment and invoicing](.wordpress-org/screenshot-14.png)
-15. **(Admin Only) Optional: connect a form or booking plugin ifthenpay has no integration with**
+15. **(Admin Only) Step 15: optional — send paid payments to your invoicing app, or connect a form or booking plugin**
     ![Connect another plugin](.wordpress-org/screenshot-15.png)
 16. **(Admin Only) Optional: build or edit a button with AI**
     ![Build with AI](.wordpress-org/screenshot-16.png)
