@@ -328,6 +328,39 @@ body.iftp-btn-screen .iftp-btn-bsearch__input:focus {
 	flex: none;
 }
 
+.iftp-btn-bsize {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 6px;
+}
+
+body.iftp-btn-screen .iftp-btn-bsize__custom {
+	box-sizing: border-box;
+	width: 72px;
+	min-height: 40px;
+	margin: 0;
+	padding: 0 8px;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-sm);
+	background-color: var(--iftp-raised);
+	box-shadow: var(--iftp-shadow-1);
+	color: var(--iftp-ink);
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+body.iftp-btn-screen .iftp-btn-bsize__custom[hidden] {
+	display: none;
+}
+
+body.iftp-btn-screen .iftp-btn-bsize__custom:focus {
+	border-color: var(--iftp-brand);
+	box-shadow: var(--iftp-ring);
+	outline: none;
+}
+
 body.iftp-btn-screen .iftp-btn-bselect {
 	min-width: 132px;
 	min-height: 40px;
@@ -436,6 +469,16 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 /* --------------------------------------------------------------------------
    Button cards: the look on a stage, then what it charges and how it's doing
    -------------------------------------------------------------------------- */
+/* Hidden (still taking its space) until list.js has applied the saved filters; if the script never runs, it shows after a moment. */
+.iftp-btn-bcards:not(.is-ready) {
+	visibility: hidden;
+	animation: iftp-btn-bcards-show 0s 1.2s forwards;
+}
+
+@keyframes iftp-btn-bcards-show {
+	to { visibility: visible; }
+}
+
 .iftp-btn-bcards {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -512,7 +555,6 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 	text-overflow: ellipsis;
 }
 
-.iftp-btn-bcard__status,
 .iftp-btn-bcard__badge {
 	position: absolute;
 	top: 14px;
@@ -530,12 +572,34 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 	text-transform: uppercase;
 }
 
+/* Status sits beside the switch, out of the preview, so a wide button never covers it. */
+.iftp-btn-bcard__status {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: 6px;
+	margin-left: auto;
+	padding: 3px 10px 3px 8px;
+	border-radius: var(--iftp-r-pill);
+	background: var(--iftp-paid-bg);
+	color: var(--iftp-paid);
+	font-size: 11px;
+	font-weight: 750;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
 .iftp-btn-bcard__status::before {
 	content: "";
 	width: 7px;
 	height: 7px;
 	border-radius: 50%;
 	background: var(--iftp-paid-dot, var(--iftp-paid));
+}
+
+.iftp-btn-bcard--off .iftp-btn-bcard__status {
+	background: rgb(18 26 44 / 8%);
+	color: var(--iftp-muted);
 }
 
 .iftp-btn-bcard--off .iftp-btn-bcard__status::before {
@@ -548,14 +612,17 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 }
 
 .iftp-btn-bcard__look {
-	position: absolute;
-	bottom: 10px;
-	left: 16px;
-	color: var(--iftp-muted);
-	font-size: 10.5px;
-	font-weight: 700;
-	letter-spacing: 0.05em;
-	text-transform: uppercase;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--iftp-faint);
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.iftp-btn-bcard__look::before {
+	content: "·";
+	margin-right: 8px;
 }
 
 .iftp-btn-bcard__badge--almost {
@@ -581,15 +648,6 @@ body.iftp-btn-screen .iftp-btn-bview .iftp-btn-bfilter__option {
 	background:
 		repeating-linear-gradient(135deg, rgb(18 26 44 / 7%) 0 6px, transparent 6px 12px),
 		var(--iftp-inset);
-}
-
-.iftp-btn-bcard--off .iftp-btn-bcard__status {
-	background: var(--iftp-ink);
-	color: #fff;
-}
-
-.iftp-btn-bcard--off .iftp-btn-bcard__status::before {
-	background: rgb(255 255 255 / 55%);
 }
 
 /* An inactive card can't be placed or paid, so only Edit and Delete stay. The switch turns it back on. */
@@ -622,6 +680,41 @@ body.iftp-btn-screen .iftp-btn-bcard--off .iftp-btn-tool:not(.iftp-btn-tool--dan
 
 .iftp-btn-bcard__heading {
 	min-width: 0;
+}
+
+/* Card view: the info line runs under the title, status and switch, full width and on one row. */
+.iftp-btn-bcards:not(.iftp-btn-bcards--list) .iftp-btn-bcard__top {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	align-items: center;
+}
+
+.iftp-btn-bcards:not(.iftp-btn-bcards--list) .iftp-btn-bcard__heading {
+	display: contents;
+}
+
+.iftp-btn-bcards:not(.iftp-btn-bcards--list) .iftp-btn-bcard__title {
+	grid-column: 1;
+	grid-row: 1;
+	min-width: 0;
+}
+
+.iftp-btn-bcards:not(.iftp-btn-bcards--list) .iftp-btn-bcard__status {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.iftp-btn-bcards:not(.iftp-btn-bcards--list) .iftp-btn-bcard__toggle {
+	grid-column: 3;
+	grid-row: 1;
+}
+
+.iftp-btn-bcards:not(.iftp-btn-bcards--list) .iftp-btn-bcard__amount {
+	grid-column: 1 / -1;
+	grid-row: 2;
+	flex-wrap: nowrap;
+	min-width: 0;
+	white-space: nowrap;
 }
 
 body.iftp-btn-screen .iftp-btn-bcard__title {

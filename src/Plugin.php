@@ -56,7 +56,7 @@ class Plugin {
 	public const CHARTS_SCRIPT_HANDLE = 'iftp-btn-charts';
 
 	// The Buttons and Checkout screens' script: its parts in load order, and the handle of the last one.
-	public const BUTTONS_SCRIPT_PARTS = array( 'core', 'design', 'spectrum', 'form-builder', 'preview', 'look', 'dialogs', 'code', 'list', 'editor', 'boot' );
+	public const BUTTONS_SCRIPT_PARTS = array( 'core', 'design', 'spectrum', 'advanced', 'form-builder', 'preview', 'look', 'dialogs', 'code', 'list', 'editor', 'boot' );
 	public const BUTTONS_SCRIPT_LAST  = 'iftp-btn-buttons-boot';
 
 	/**

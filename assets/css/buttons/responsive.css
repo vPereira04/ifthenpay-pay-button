@@ -70,6 +70,7 @@
 
 	.iftp-btn-design__grid,
 	.iftp-btn-segment--two,
+	.iftp-btn-segment--three,
 	.iftp-btn-fb__grid {
 		grid-template-columns: minmax(0, 1fr);
 	}

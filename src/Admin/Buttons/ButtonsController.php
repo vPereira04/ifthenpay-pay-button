@@ -12,8 +12,9 @@ namespace Ifthenpay\PayButton\Admin\Buttons;
 use Ifthenpay\PayButton\Ai\Studio;
 use Ifthenpay\PayButton\Bridge\InvoiceHook;
 use Ifthenpay\PayButton\Bridge\OutgoingWebhook;
-use Ifthenpay\PayButton\Buttons\ButtonDesign;
+use Ifthenpay\PayButton\Buttons\Advanced;
 use Ifthenpay\PayButton\Buttons\Button;
+use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
 use Ifthenpay\PayButton\Buttons\Templates;
 use Ifthenpay\PayButton\Checkout\CustomCode;
@@ -57,6 +58,7 @@ class ButtonsController {
 		add_action( 'admin_post_' . ButtonsPage::TEMPLATE_ACTION, array( $this, 'start_template' ) );
 		add_action( 'admin_post_' . ButtonsPage::SKIP_ACTION, array( $this, 'skip_welcome' ) );
 		add_action( 'wp_ajax_iftp_btn_tour_seen', array( $this, 'tour_seen' ) );
+		add_action( 'wp_ajax_iftp_btn_advanced', array( $this, 'advanced' ) );
 		add_action( 'wp_ajax_iftp_btn_toggle_button', array( $this, 'toggle' ) );
 		add_action( 'wp_ajax_iftp_btn_batch_buttons', array( $this, 'batch' ) );
 		add_action( 'wp_ajax_iftp_btn_test_webhook', array( $this, 'test_webhook' ) );
@@ -248,6 +250,17 @@ class ButtonsController {
 		$this->guard();
 
 		$this->back( ButtonsPage::list_url( array( 'iftp_notice' => $this->buttons->restore( $id ) ? 'restored' : 'error' ) ) );
+	}
+
+	/**
+	 * AJAX: the Advanced designs' CSS and JavaScript, which the picker draws its tiles and preview from. Asked for once a page needs
+	 * them, since together they are far more than a page should carry.
+	 */
+	public function advanced(): void {
+		check_ajax_referer( ButtonsPage::AJAX_NONCE );
+		$this->guard();
+
+		wp_send_json_success( Advanced::library() );
 	}
 
 	/**

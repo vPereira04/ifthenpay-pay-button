@@ -991,3 +991,24 @@
 		animation: none;
 	}
 }
+
+/* None: no background of its own. A checkout opened over the site (a scene) leaves the website showing, blurred and darkened; the standalone pay page has no website behind it, so it is plain dark. */
+.iftp-btn-pagebg--none {
+	background: rgb(6 10 20 / 58%);
+	backdrop-filter: blur(7px) saturate(1.1);
+}
+
+.iftp-btn-sheet--scene.iftp-btn-pagebg--none {
+	backdrop-filter: blur(7px) saturate(1.1);
+}
+
+.iftp-btn-page-body.iftp-btn-pagebg--none {
+	background: #0b1220;
+	backdrop-filter: none;
+}
+
+/* No effects or media layers over it. */
+.iftp-btn-pagebg--none.iftp-btn-pagebg--none::before,
+.iftp-btn-pagebg--none.iftp-btn-pagebg--none::after {
+	content: none;
+}

@@ -1,0 +1,128 @@
+.iftp-btn-pay__button {
+	position: relative;
+	display: inline-flex;
+	box-sizing: border-box;
+	margin: 26px 14px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #fff;
+	cursor: pointer;
+	-webkit-appearance: none;
+	appearance: none;
+	-webkit-tap-highlight-color: transparent;
+}
+.iftp-btn-pay__button:focus-visible { outline: 3px solid var(--a1); outline-offset: 10px; border-radius: 40px; }
+.iftp-btn-pay__button:disabled { cursor: not-allowed; opacity: 0.55; filter: grayscale(1); }
+.sk-deck { position: relative; display: block; transform-style: preserve-3d; transform: perspective(800px) translateY(0) rotateX(0deg); }
+/* The top of the board: grip tape, bolts and the label. */
+.sk-up {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 68px;
+	padding: 0 76px 0 56px;
+	border-radius: 38px;
+	background:
+		radial-gradient(circle, rgba(255, 255, 255, 0.08) 0.8px, transparent 1.2px) 0 0 / 3px 3px,
+		radial-gradient(circle, rgba(0, 0, 0, 0.55) 0.8px, transparent 1.3px) 1.5px 1.5px / 3px 3px,
+		linear-gradient(180deg, #2b2b31, #111114);
+	transform: translateZ(1px);
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+	box-shadow: 0 2px 0 hsl(from var(--a1) calc(h - 14.2) calc(s - 26.7) calc(l + 10.4)), 0 3.500px 0 hsl(from var(--a1) calc(h - 17.9) calc(s - 47.5) calc(l - 32.7)), 0 5px 0 hsl(from var(--a1) calc(h - 14.2) calc(s - 26.7) calc(l + 10.4)), 0 6.500px 0 hsl(from var(--a1) calc(h - 17.9) calc(s - 47.5) calc(l - 32.7)), 0 8px 0 hsl(from var(--a1) calc(h - 14.2) calc(s - 26.7) calc(l + 10.4)), 0 9px 0 hsl(from var(--a1) calc(h - 17) calc(s - 43.2) calc(l - 41.4));
+	transition: filter 0.2s ease;
+}
+.sk-up::before { content: ""; position: absolute; inset: 6px 14px; border: 2px solid rgba(255, 255, 255, 0.13); border-radius: 32px; pointer-events: none; }
+.sk-bolt { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #b8bcc6 55%, #5f636e); box-shadow: 0 0 0 1.500px rgba(0, 0, 0, 0.6); }
+.sk-b1 { left: 20px; top: 15px; } .sk-b2 { left: 20px; bottom: 15px; } .sk-b3 { left: 36px; top: 15px; } .sk-b4 { left: 36px; bottom: 15px; }
+.sk-b5 { right: 20px; top: 15px; } .sk-b6 { right: 20px; bottom: 15px; } .sk-b7 { right: 36px; top: 15px; } .sk-b8 { right: 36px; bottom: 15px; }
+.iftp-btn-pay__label { position: relative; z-index: 2; font: italic 900 23px/1 Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", sans-serif; letter-spacing: 0.09em; text-transform: uppercase; color: #fff; text-shadow: 2px 2px 0 var(--a2), 3.500px 3.500px 0 #111; }
+/* A sticker on the grip. */
+.sk-st { position: absolute; right: 52px; top: 50%; width: 24px; height: 24px; margin-top: -12px; z-index: 3; border-radius: 50%; background: radial-gradient(circle at 35% 30%, hsl(from var(--a1) calc(h + 4.5) s calc(l + 21.2)), var(--a1) 60%, hsl(from var(--a1) calc(h - 4.9) s calc(l - 12))); box-shadow: 0 0 0 2px #111, 0 2px 3px rgba(0, 0, 0, 0.6); transform: rotate(14deg); }
+.sk-st::before { content: ""; position: absolute; left: 5.500px; top: 7px; width: 3.500px; height: 5px; border-radius: 2px; background: #111; box-shadow: 8px 0 0 #111; }
+.sk-st::after { content: ""; position: absolute; left: 6px; top: 13.500px; width: 12px; height: 6px; border-radius: 0 0 8px 8px; border: 2px solid #111; border-top: 0; box-sizing: border-box; }
+/* The underside: the print, the trucks and the wheels. It shows while the board is flipped. */
+.sk-dn {
+	position: absolute;
+	inset: 0;
+	border-radius: 38px;
+	background:
+		radial-gradient(circle, rgba(0, 0, 0, 0.16) 1.200px, transparent 1.700px) 0 0 / 7px 7px,
+		linear-gradient(100deg, var(--a2), hsl(from var(--a1) calc(h - 21.2) s l) 30%, var(--a1) 52%, var(--a3) 76%, var(--a4));
+	transform: rotateX(180deg) translateZ(1px);
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+	box-shadow: 0 0 0 2.500px #111;
+}
+.sk-ck { position: absolute; left: 34px; right: 34px; height: 11px; background: repeating-conic-gradient(#111 0 25%, #fff 0 50%) 0 0 / 11px 11px; border: 2px solid #111; box-sizing: border-box; }
+.sk-c1 { top: 7px; } .sk-c2 { bottom: 7px; }
+.sk-gr { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 12px; font: italic 900 34px/1 Impact, Haettenschweiler, "Arial Black", sans-serif; letter-spacing: 0.04em; color: #fff; -webkit-text-stroke: 2px #111; paint-order: stroke fill; text-shadow: 3px 3px 0 #111; }
+.sk-bz { width: 20px; height: 34px; background: var(--a1); clip-path: polygon(60% 0, 8% 56%, 42% 56%, 30% 100%, 92% 40%, 56% 40%); filter: drop-shadow(0 0 0 #111); }
+.sk-tr { position: absolute; top: -3px; bottom: -3px; width: 20px; }
+.sk-t1 { left: 15%; } .sk-t2 { right: 15%; }
+.sk-ax { position: absolute; left: 50%; top: 0; bottom: 0; width: 5px; margin-left: -2.500px; background: linear-gradient(90deg, #8d929c, hsl(from var(--a4) calc(h + 1.9) calc(s - 79.1) calc(l + 32.4)), #8d929c); box-shadow: 0 0 0 1.500px #111; }
+.sk-bp { position: absolute; left: 3px; right: 3px; top: 50%; height: 22px; margin-top: -11px; border-radius: 4px; background: linear-gradient(90deg, #8d929c, #eef0f4 45%, #8d929c); box-shadow: 0 0 0 2px #111; }
+.sk-bp::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #3b3f49; }
+.sk-wl { position: absolute; left: -2px; width: 24px; height: 12px; border-radius: 4px; background: linear-gradient(180deg, hsl(from var(--a1) calc(h + 4.5) s calc(l + 21.2)), var(--a1) 55%, hsl(from var(--a1) calc(h - 5.6) s calc(l - 13.3))); box-shadow: 0 0 0 2px #111; }
+.sk-w1 { top: -11px; } .sk-w2 { bottom: -11px; }
+/* The board's shadow and the dust it kicks up. */
+.sk-sh { position: absolute; left: 6%; right: 6%; bottom: -18px; height: 14px; z-index: -1; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 70%); pointer-events: none; }
+.sk-du { position: absolute; bottom: -14px; width: 14px; height: 14px; border-radius: 50%; background: rgba(120, 124, 135, 0.55); filter: blur(2px); opacity: 0; pointer-events: none; }
+.sk-d1 { left: 14%; } .sk-d2 { right: 14%; }
+.iftp-btn-pay__button:hover:not(:disabled) .sk-deck, .iftp-btn-pay__button:focus-visible .sk-deck { animation: sk-flip 2.6s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .sk-sh, .iftp-btn-pay__button:focus-visible .sk-sh { animation: sk-shadow 2.6s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .sk-du, .iftp-btn-pay__button:focus-visible .sk-du { animation: sk-dust 2.6s ease-out infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .sk-d2, .iftp-btn-pay__button:focus-visible .sk-d2 { animation-delay: 0.04s; }
+.iftp-btn-pay__button:active:not(:disabled) .sk-up { filter: brightness(0.85); }
+@keyframes sk-dust { 0%, 62% { opacity: 0; transform: translate(0, 0) scale(0.4); } 66% { opacity: 0.9; } 82%, 100% { opacity: 0; transform: translate(var(--sk-dx, -14px), -6px) scale(1.8); } }
+.sk-d2 { --sk-dx: 14px; }
+@keyframes sk-flip {
+	0% { transform: perspective(800px) translateY(0.0px) rotateX(0deg); }
+	7% { transform: perspective(800px) translateY(2.0px) rotateX(0deg); }
+	13% { transform: perspective(800px) translateY(0.0px) rotateX(0deg); }
+	16% { transform: perspective(800px) translateY(-4.3px) rotateX(20deg); }
+	19% { transform: perspective(800px) translateY(-8.0px) rotateX(41deg); }
+	22% { transform: perspective(800px) translateY(-11.3px) rotateX(61deg); }
+	25% { transform: perspective(800px) translateY(-14.0px) rotateX(82deg); }
+	28% { transform: perspective(800px) translateY(-16.2px) rotateX(102deg); }
+	31% { transform: perspective(800px) translateY(-17.9px) rotateX(122deg); }
+	34% { transform: perspective(800px) translateY(-19.1px) rotateX(143deg); }
+	37% { transform: perspective(800px) translateY(-19.8px) rotateX(163deg); }
+	40% { transform: perspective(800px) translateY(-20.0px) rotateX(183deg); }
+	43% { transform: perspective(800px) translateY(-19.7px) rotateX(204deg); }
+	46% { transform: perspective(800px) translateY(-18.8px) rotateX(224deg); }
+	49% { transform: perspective(800px) translateY(-17.4px) rotateX(245deg); }
+	52% { transform: perspective(800px) translateY(-15.6px) rotateX(265deg); }
+	55% { transform: perspective(800px) translateY(-13.2px) rotateX(285deg); }
+	58% { transform: perspective(800px) translateY(-10.3px) rotateX(306deg); }
+	61% { transform: perspective(800px) translateY(-6.8px) rotateX(326deg); }
+	64% { transform: perspective(800px) translateY(-2.9px) rotateX(346deg); }
+	70% { transform: perspective(800px) translateY(3.0px) rotateX(360deg); }
+	76% { transform: perspective(800px) translateY(0.0px) rotateX(360deg); }
+	100% { transform: perspective(800px) translateY(0.0px) rotateX(360deg); }
+}
+@keyframes sk-shadow {
+	13% { transform: scaleX(1.00); opacity: 1.00; }
+	16% { transform: scaleX(0.92); opacity: 0.88; }
+	19% { transform: scaleX(0.85); opacity: 0.78; }
+	22% { transform: scaleX(0.79); opacity: 0.69; }
+	25% { transform: scaleX(0.73); opacity: 0.61; }
+	28% { transform: scaleX(0.69); opacity: 0.55; }
+	31% { transform: scaleX(0.66); opacity: 0.51; }
+	34% { transform: scaleX(0.64); opacity: 0.47; }
+	37% { transform: scaleX(0.62); opacity: 0.45; }
+	40% { transform: scaleX(0.62); opacity: 0.45; }
+	43% { transform: scaleX(0.63); opacity: 0.46; }
+	46% { transform: scaleX(0.64); opacity: 0.48; }
+	49% { transform: scaleX(0.67); opacity: 0.52; }
+	52% { transform: scaleX(0.70); opacity: 0.57; }
+	55% { transform: scaleX(0.75); opacity: 0.64; }
+	58% { transform: scaleX(0.81); opacity: 0.72; }
+	61% { transform: scaleX(0.87); opacity: 0.81; }
+	64% { transform: scaleX(0.94); opacity: 0.92; }
+	0%, 8%, 70%, 100% { transform: scaleX(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .iftp-btn-pay__button *, .iftp-btn-pay__button .sk-deck { animation: none !important; } }

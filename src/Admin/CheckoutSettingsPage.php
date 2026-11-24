@@ -13,6 +13,7 @@ use Ifthenpay\PayButton\Admin\Buttons\AiStudioPage;
 use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
 use Ifthenpay\PayButton\Ai\Studio;
 use Ifthenpay\PayButton\Buttons\Button;
+use Ifthenpay\PayButton\Buttons\Advanced;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
@@ -121,6 +122,7 @@ class CheckoutSettingsPage {
 				'presets'      => ButtonDesign::presets(),
 				'pill'         => ButtonDesign::PILL,
 				'gradientTurn' => ButtonDesign::GRADIENT_TURN,
+				'advanced'     => Advanced::script_data( wp_create_nonce( ButtonsPage::AJAX_NONCE ) ),
 				'sample'       => self::sample_values(),
 				'i18n'         => array(
 					'copied'     => __( 'Copied.', 'ifthenpay-pay-button' ),
@@ -136,7 +138,7 @@ class CheckoutSettingsPage {
 					'pickVideo'  => __( 'Pay page video', 'ifthenpay-pay-button' ),
 					'useVideo'   => __( 'Use this video', 'ifthenpay-pay-button' ),
 					'codeOk'     => __( 'Looks good.', 'ifthenpay-pay-button' ),
-					'codeLength' => __( 'Too long: 20,000 characters at most.', 'ifthenpay-pay-button' ),
+					'codeLength' => __( 'Too long: 30,000 characters at most.', 'ifthenpay-pay-button' ),
 					'codeOpen'   => __( 'A bracket or a quote is never closed.', 'ifthenpay-pay-button' ),
 					'codeBanned' => __( 'Not allowed here: a closing script tag or an HTML comment opener, which would break the page.', 'ifthenpay-pay-button' ),
 					/* translators: %s: the browser's description of the mistake */

@@ -232,15 +232,14 @@ All network requests are performed server-side over HTTPS, except the logo image
 27. (Design Example) Aurora gradient with waves, ring progress and priced options
 28. (Design Example) A YouTube video behind the checkout
 29. (Design Example) Dark mode, following the payer's device
-30. (Design Example) Crystals on an aurora, a wide card with the logo above it
-31. (Design Example) Bubblegum pink and sprinkles: a donut shop
-32. (Design Example) Tomatoes, basil and olives with a step badge: a pizzeria
-33. (Design Example) A football pitch behind the checkout, with suggested amounts
-34. (Design Example) A heartbeat line behind a booking form with a date and a time: a clinic
-35. (Design Example) A dark card with a dedication field and picture options: a music release
-36. (Design Example) Picture cards in a sideways row: pick a book cover
-37. (Design Example) Bubbles and quick amounts: a light-hearted donation page
-38. (Design Example) Gold on black with a soft progress: a cause to support
+30. (Design Example) Bubblegum pink and sprinkles: a donut shop
+31. (Design Example) Tomatoes, basil and olives with a step badge: a pizzeria
+32. (Design Example) A football pitch behind the checkout, with suggested amounts
+33. (Design Example) A heartbeat line behind a booking form with a date and a time: a clinic
+34. (Design Example) A dark card with a dedication field and picture options: a music release
+35. (Design Example) Picture cards in a sideways row: pick a book cover
+36. (Design Example) Bubbles and quick amounts: a light-hearted donation page
+37. (Design Example) Gold on black with a soft progress: a cause to support
 
 == Changelog ==
 

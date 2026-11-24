@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class CustomCode {
 
-	public const MAX_LENGTH = 20000;
+	public const MAX_LENGTH = 30000;
 
 	public const FIELDS = array( 'button_css', 'button_js', 'page_css', 'page_js' );
 
@@ -94,7 +94,7 @@ class CustomCode {
 			'checkout_css' => __( 'The site\'s custom CSS', 'ifthenpay-pay-button' ),
 		);
 		$why   = array(
-			self::ERROR_LENGTH     => __( 'is too long (20,000 characters at most).', 'ifthenpay-pay-button' ),
+			self::ERROR_LENGTH     => __( 'is too long (30,000 characters at most).', 'ifthenpay-pay-button' ),
 			self::ERROR_UNBALANCED => __( 'has a bracket or a quote that is never closed.', 'ifthenpay-pay-button' ),
 			self::ERROR_UNNESTABLE => __( 'uses @import, @layer or another at-rule that cannot sit inside one button\'s scope. Use @media or @supports, or the site\'s Custom CSS in Default Design.', 'ifthenpay-pay-button' ),
 			self::ERROR_FORBIDDEN  => __( 'has a closing script tag or an HTML comment opener, which would break the page.', 'ifthenpay-pay-button' ),
@@ -156,9 +156,9 @@ class CustomCode {
 	/**
 	 * The attribute a button's elements carry, which its CSS and JavaScript are scoped to.
 	 *
-	 * @param int $button_id The button.
+	 * @param int|string $button_id The button, or a name for a design shown in the admin where there is no button.
 	 */
-	public static function scope_selector( int $button_id ): string {
+	public static function scope_selector( $button_id ): string {
 		return '[data-iftp-code="' . $button_id . '"]';
 	}
 
@@ -167,11 +167,11 @@ class CustomCode {
 	 * they can't go. Each animation is renamed with the button's id, so two buttons that both call theirs "spin" don't take over
 	 * each other's.
 	 *
-	 * @param int    $button_id The button.
-	 * @param string $css       Its CSS.
+	 * @param int|string $button_id The button (or the name of a design shown in the admin).
+	 * @param string     $css       Its CSS.
 	 * @return array{0: string, 1: string} The rules, ready for the top level, and the CSS without them.
 	 */
-	public static function lift_keyframes( int $button_id, string $css ): array {
+	public static function lift_keyframes( $button_id, string $css ): array {
 		$lifted = '';
 		$names  = array();
 		$offset = 0;
@@ -210,13 +210,29 @@ class CustomCode {
 	}
 
 	/**
+	 * A drawn design's CSS scoped to one name, for the admin: its animations lifted out and the rules made strong enough to beat
+	 * the card or tile they sit in.
+	 *
+	 * @param string $name   What the elements carry in data-iftp-code.
+	 * @param string $css    The CSS.
+	 * @param int    $repeat How many times the attribute is repeated, for strength.
+	 * @param string $extra  A rule added ahead of the design's own, e.g. `{pointer-events:auto}`; '' for none.
+	 */
+	public static function scope_css( string $name, string $css, int $repeat = 4, string $extra = '' ): string {
+		$scope                = str_repeat( self::scope_selector( $name ), $repeat );
+		list( $frames, $css ) = self::lift_keyframes( $name, $css );
+
+		return ( '' !== $frames ? $frames . "\n" : '' ) . ( '' !== $extra ? $scope . $extra . "\n" : '' ) . $scope . '{' . $css . "\n}";
+	}
+
+	/**
 	 * A script that only works on one button's elements: `scope` is the list of them.
 	 *
-	 * @param int    $button_id The button.
-	 * @param string $label     Which box it came from, for the console.
-	 * @param string $js        Cleaned JavaScript.
+	 * @param int|string $button_id The button.
+	 * @param string     $label     Which box it came from, for the console.
+	 * @param string     $js        Cleaned JavaScript.
 	 */
-	public static function scope_js( int $button_id, string $label, string $js ): string {
+	public static function scope_js( $button_id, string $label, string $js ): string {
 		if ( '' === $js ) {
 			return '';
 		}

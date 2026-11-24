@@ -1,0 +1,179 @@
+
+.iftp-btn-pay__button {
+	--jd-bt: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 44%22%3E%3Cdefs%3E%3ClinearGradient id=%22k%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%234a4a52%22/%3E%3Cstop offset=%22.45%22 stop-color=%22%2317171b%22/%3E%3Cstop offset=%221%22 stop-color=%22%23050506%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x=%221.5%22 y=%2212%22 width=%2253%22 height=%229%22 rx=%222%22 fill=%22url(%23k)%22 stroke=%22%23000%22 stroke-width=%221.2%22/%3E%3Cpath d=%22M4 15.5H52M4 17.5H52%22 stroke=%22%23fff%22 stroke-opacity=%22.28%22 stroke-width=%22.6%22 stroke-dasharray=%222 1.5%22/%3E%3Crect x=%2221%22 y=%229.5%22 width=%2214%22 height=%2214%22 rx=%223.5%22 fill=%22url(%23k)%22 stroke=%22%23000%22 stroke-width=%221.3%22/%3E%3Cpath d=%22M24 13Q28 16.5 32 13M24 20Q28 16.5 32 20%22 fill=%22none%22 stroke=%22%23fff%22 stroke-opacity=%22.4%22 stroke-width=%22.9%22/%3E%3C/svg%3E");
+	--jd-tl: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 44%22%3E%3Cdefs%3E%3ClinearGradient id=%22k%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%234a4a52%22/%3E%3Cstop offset=%22.45%22 stop-color=%22%2317171b%22/%3E%3Cstop offset=%221%22 stop-color=%22%23050506%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d=%22M24.500 20L10.500 38.500L19 42L29 23Z%22 fill=%22url(%23k)%22 stroke=%22%23000%22 stroke-width=%221.300%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M25.500 24L15 36%22 stroke=%22%23fff%22 stroke-opacity=%22.3%22 stroke-width=%22.7%22 stroke-dasharray=%222 1.500%22/%3E%3C/svg%3E");
+	--jd-tr: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 44%22%3E%3Cdefs%3E%3ClinearGradient id=%22k%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%234a4a52%22/%3E%3Cstop offset=%22.45%22 stop-color=%22%2317171b%22/%3E%3Cstop offset=%221%22 stop-color=%22%23050506%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d=%22M31.500 20L45.500 36.500L37 42L27 23Z%22 fill=%22url(%23k)%22 stroke=%22%23000%22 stroke-width=%221.300%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M30.500 24L41 35%22 stroke=%22%23fff%22 stroke-opacity=%22.3%22 stroke-width=%22.7%22 stroke-dasharray=%222 1.500%22/%3E%3C/svg%3E");
+	position: relative;
+	isolation: isolate;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 60px;
+	padding: 0 84px 0 88px;
+	margin: 0;
+	border: 0;
+	border-radius: 10px;
+	background: radial-gradient(120% 140% at 10% 0%, #ffffff, rgba(255, 255, 255, 0) 60%), repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.035) 0 1px, transparent 1px 5px), linear-gradient(165deg, #fbfbf9, #dcdfe3);
+	color: #14141a;
+	font: 900 14px/1 "Arial Black", Impact, "Helvetica Neue", Arial, sans-serif;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+	white-space: nowrap;
+	cursor: pointer;
+	overflow: visible;
+	-webkit-appearance: none;
+	appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	box-shadow: inset 0 0 0 2px #14141a, inset 0 0 0 4px #ffffff, inset 0 0 0 5px hsl(from var(--a1) h s l), inset 0 -5px 0 0 rgba(0, 0, 0, 0.06), 0 4px 0 hsl(from var(--a1) h calc(s - 14) calc(l - 22.5)), 0 16px 26px -10px rgba(20, 20, 26, 0.55);
+	transition: transform 0.22s cubic-bezier(0.3, 1.6, 0.5, 1), box-shadow 0.22s ease;
+}
+
+.iftp-btn-pay__label {
+	position: relative;
+	z-index: 4;
+}
+
+.jd-bt, .jd-tl, .jd-tr {
+	position: absolute;
+	left: 14px;
+	top: 8px;
+	z-index: 3;
+	width: 62px;
+	height: 48px;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+	pointer-events: none;
+}
+.jd-tl::after, .jd-tr::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	/* I paint the red belt tips with the picked colour through a mask */
+	background: hsl(from var(--a1) h s l);
+	-webkit-mask: var(--jd-tip) 0 0 / 100% 100% no-repeat;
+	mask: var(--jd-tip) 0 0 / 100% 100% no-repeat;
+}
+.jd-tl { --jd-tip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 44'%3E%3Cpath d='M13 36.500L17.500 39.200' stroke='%23000' stroke-width='2.200' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.jd-tr { --jd-tip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 44'%3E%3Cpath d='M43 34.600L38.500 38.600' stroke='%23000' stroke-width='2.200' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.jd-bt { background-image: var(--jd-bt); transform-origin: 50% 38%; }
+.jd-tl { background-image: var(--jd-tl); transform-origin: 50% 42%; z-index: 2; }
+.jd-tr { background-image: var(--jd-tr); transform-origin: 50% 42%; z-index: 2; }
+
+.jd-st {
+	position: absolute;
+	right: 18px;
+	top: 50%;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	margin-top: -22px;
+	border-radius: 50%;
+	background: radial-gradient(circle at 35% 30%, hsl(from var(--a1) h calc(s + 22) calc(l + 12)), hsl(from var(--a1) h s l) 55%, hsl(from var(--a1) h calc(s - 3) calc(l - 16.5)));
+	box-shadow: 0 0 0 2px #fff, 0 0 0 3.500px hsl(from var(--a1) h s l), 0 3px 6px rgba(0, 0, 0, 0.35);
+	transform: scale(0.72) rotate(-12deg);
+	pointer-events: none;
+}
+.jd-st i {
+	font: 900 9px/1 "Arial Black", Impact, Arial, sans-serif;
+	letter-spacing: 0.04em;
+	color: #fff;
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+	font-style: normal;
+	opacity: 0;
+}
+.jd-sh {
+	position: absolute;
+	right: 18px;
+	top: 50%;
+	z-index: 1;
+	width: 44px;
+	height: 44px;
+	margin-top: -22px;
+	border-radius: 50%;
+	border: 3px solid hsl(from var(--a1) h s l);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.iftp-btn-pay__button:hover:not(:disabled) .jd-bt,
+.iftp-btn-pay__button:focus-visible .jd-bt { animation: jdknot 3.6s ease-in-out infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .jd-tl,
+.iftp-btn-pay__button:focus-visible .jd-tl { animation: jdtl 3.6s ease-in-out infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .jd-tr,
+.iftp-btn-pay__button:focus-visible .jd-tr { animation: jdtr 3.6s ease-in-out infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .jd-st,
+.iftp-btn-pay__button:focus-visible .jd-st { animation: jdstamp 3.6s cubic-bezier(0.3, 1.4, 0.5, 1) infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .jd-st i,
+.iftp-btn-pay__button:focus-visible .jd-st i { animation: jdtxt 3.6s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .jd-sh,
+.iftp-btn-pay__button:focus-visible .jd-sh { animation: jdshock 3.6s ease-out infinite; }
+.iftp-btn-pay__button:hover:not(:disabled),
+.iftp-btn-pay__button:focus-visible {
+	transform: translateY(-2px);
+	box-shadow: inset 0 0 0 2px #14141a, inset 0 0 0 4px #ffffff, inset 0 0 0 5px hsl(from var(--a1) h s l), inset 0 -5px 0 0 rgba(0, 0, 0, 0.06), 0 6px 0 hsl(from var(--a1) h calc(s - 14) calc(l - 22.5)), 0 22px 30px -10px rgba(20, 20, 26, 0.65);
+}
+.iftp-btn-pay__button:active:not(:disabled) {
+	transform: translateY(3px) scale(0.985);
+	box-shadow: inset 0 0 0 2px #14141a, inset 0 0 0 4px #fff, 0 1px 0 hsl(from var(--a1) h calc(s - 14) calc(l - 22.5)), 0 6px 10px -6px rgba(20, 20, 26, 0.6);
+	transition-duration: 0.08s;
+}
+.iftp-btn-pay__button:focus-visible {
+	outline: 3px solid hsl(from var(--a1) h s l);
+	outline-offset: 4px;
+}
+.iftp-btn-pay__button:disabled {
+	cursor: not-allowed;
+	filter: grayscale(0.8);
+	opacity: 0.55;
+}
+
+
+@keyframes jdknot {
+	0%, 8% { transform: scale(1, 1); }
+	18% { transform: scale(0.8, 1.2); }
+	26% { transform: scale(1.1, 0.92); }
+	36%, 100% { transform: scale(1, 1); }
+}
+@keyframes jdtl {
+	0%, 8%, 100% { transform: rotate(0deg); }
+	18% { transform: rotate(22deg); }
+	28% { transform: rotate(-12deg); }
+	40% { transform: rotate(6deg); }
+	55% { transform: rotate(0deg); }
+}
+@keyframes jdtr {
+	0%, 8%, 100% { transform: rotate(0deg); }
+	18% { transform: rotate(-22deg); }
+	28% { transform: rotate(12deg); }
+	40% { transform: rotate(-6deg); }
+	55% { transform: rotate(0deg); }
+}
+
+@keyframes jdstamp {
+	0%, 28% { transform: scale(0.72) rotate(-12deg); }
+	36% { transform: scale(1.3) rotate(-12deg); }
+	42% { transform: scale(0.94) rotate(-12deg); }
+	46%, 80% { transform: scale(1) rotate(-12deg); }
+	92%, 100% { transform: scale(0.72) rotate(-12deg); }
+}
+@keyframes jdtxt {
+	0%, 34% { opacity: 0; }
+	40%, 82% { opacity: 1; }
+	90%, 100% { opacity: 0; }
+}
+@keyframes jdshock {
+	0%, 41% { opacity: 0; transform: scale(1); }
+	42% { opacity: 0.9; transform: scale(1); }
+	58%, 100% { opacity: 0; transform: scale(1.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.jd-bt, .jd-tl, .jd-tr, .jd-st, .jd-st i, .jd-sh {
+		animation: none !important;
+	}
+}

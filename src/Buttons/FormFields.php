@@ -67,8 +67,8 @@ class FormFields {
 	/**
 	 * How the picture cards are laid out (a grid, or one row that scrolls sideways) and how big they are.
 	 */
-	public const PICTURE_LAYOUTS = array( 'grid', 'scroll' );
-	public const PICTURE_SIZES   = array( 'small', 'medium', 'large' );
+	public const PICTURE_LAYOUTS  = array( 'grid', 'scroll' );
+	public const PICTURE_SIZES    = array( 'small', 'medium', 'large' );
 	public const PICTURE_MAX_COLS = 6;
 
 	// What the browser joins a checkboxes answer with; option labels can hold commas, never a newline.
@@ -180,9 +180,10 @@ class FormFields {
 	/**
 	 * Whether an answer meets a condition.
 	 *
-	 * @param FormCondition      $when   The condition.
-	 * @param array<int, string> $picked What the field holds: its picked options, TICKED, one number or text, or nothing.
-	 * @param bool               $typed  Whether it is typed text or a number, so capitals don't matter.
+	 * @param array<string, mixed> $when   The condition.
+	 * @phpstan-param FormCondition $when
+	 * @param array<int, string>   $picked What the field holds: its picked options, TICKED, one number or text, or nothing.
+	 * @param bool                 $typed  Whether it is typed text or a number, so capitals don't matter.
 	 */
 	public static function meets( array $when, array $picked, bool $typed = false ): bool {
 		$op = $when['op'];
@@ -433,26 +434,26 @@ class FormFields {
 		$help = is_scalar( $raw['help'] ?? null ) ? mb_substr( trim( sanitize_textarea_field( (string) $raw['help'] ) ), 0, 500 ) : '';
 
 		return array(
-			'id'          => sanitize_key( is_scalar( $raw['id'] ?? null ) ? (string) $raw['id'] : '' ),
-			'type'        => $type,
-			'label'       => $label,
-			'required'    => in_array( $type, self::INPUT_TYPES, true ) && ! empty( $raw['required'] ),
-			'placeholder' => in_array( $type, array( 'text', 'textarea', 'email', 'tel', 'number', 'select' ), true ) ? $text( 'placeholder', 120 ) : '',
-			'help'        => $help,
-			'options'     => in_array( $type, self::CHOICE_TYPES, true ) ? array_slice( $options, 0, self::MAX_OPTIONS ) : array(),
-			'prices'      => in_array( $type, self::CHOICE_TYPES, true ) ? array_intersect_key( $prices, array_flip( array_slice( $options, 0, self::MAX_OPTIONS ) ) ) : array(),
-			'limits'      => in_array( $type, self::CHOICE_TYPES, true ) ? array_intersect_key( $limits, array_flip( array_slice( $options, 0, self::MAX_OPTIONS ) ) ) : array(),
-			'images'      => in_array( $type, self::IMAGE_TYPES, true ) ? array_intersect_key( $images, array_flip( array_slice( $options, 0, self::MAX_OPTIONS ) ) ) : array(),
-			'pictures'    => in_array( $type, self::IMAGE_TYPES, true ) && ! empty( $raw['pictures'] ),
-			'picture_shape' => is_string( $raw['picture_shape'] ?? null ) && in_array( $raw['picture_shape'], self::PICTURE_SHAPES, true ) ? $raw['picture_shape'] : 'auto',
+			'id'             => sanitize_key( is_scalar( $raw['id'] ?? null ) ? (string) $raw['id'] : '' ),
+			'type'           => $type,
+			'label'          => $label,
+			'required'       => in_array( $type, self::INPUT_TYPES, true ) && ! empty( $raw['required'] ),
+			'placeholder'    => in_array( $type, array( 'text', 'textarea', 'email', 'tel', 'number', 'select' ), true ) ? $text( 'placeholder', 120 ) : '',
+			'help'           => $help,
+			'options'        => in_array( $type, self::CHOICE_TYPES, true ) ? array_slice( $options, 0, self::MAX_OPTIONS ) : array(),
+			'prices'         => in_array( $type, self::CHOICE_TYPES, true ) ? array_intersect_key( $prices, array_flip( array_slice( $options, 0, self::MAX_OPTIONS ) ) ) : array(),
+			'limits'         => in_array( $type, self::CHOICE_TYPES, true ) ? array_intersect_key( $limits, array_flip( array_slice( $options, 0, self::MAX_OPTIONS ) ) ) : array(),
+			'images'         => in_array( $type, self::IMAGE_TYPES, true ) ? array_intersect_key( $images, array_flip( array_slice( $options, 0, self::MAX_OPTIONS ) ) ) : array(),
+			'pictures'       => in_array( $type, self::IMAGE_TYPES, true ) && ! empty( $raw['pictures'] ),
+			'picture_shape'  => is_string( $raw['picture_shape'] ?? null ) && in_array( $raw['picture_shape'], self::PICTURE_SHAPES, true ) ? $raw['picture_shape'] : 'auto',
 			'picture_layout' => is_string( $raw['picture_layout'] ?? null ) && in_array( $raw['picture_layout'], self::PICTURE_LAYOUTS, true ) ? $raw['picture_layout'] : 'grid',
 			// 0 is automatic: as many as fit at the picked size.
-			'picture_cols' => is_numeric( $raw['picture_cols'] ?? null ) ? max( 0, min( self::PICTURE_MAX_COLS, (int) $raw['picture_cols'] ) ) : 0,
-			'picture_size' => is_string( $raw['picture_size'] ?? null ) && in_array( $raw['picture_size'], self::PICTURE_SIZES, true ) ? $raw['picture_size'] : 'medium',
-			'icon'        => in_array( $type, self::INPUT_TYPES, true ) && 'checkbox' !== $type && is_string( $raw['icon'] ?? null ) && in_array( $raw['icon'], FieldIcons::names(), true ) ? $raw['icon'] : '',
-			'width'       => in_array( $type, self::INPUT_TYPES, true ) && 'half' === ( $raw['width'] ?? '' ) ? 'half' : 'full',
-			'when'        => self::sanitize_condition( $raw['when'] ?? null ),
-			'rules'       => self::sanitize_rules( $raw['rules'] ?? null, $type ),
+			'picture_cols'   => is_numeric( $raw['picture_cols'] ?? null ) ? max( 0, min( self::PICTURE_MAX_COLS, (int) $raw['picture_cols'] ) ) : 0,
+			'picture_size'   => is_string( $raw['picture_size'] ?? null ) && in_array( $raw['picture_size'], self::PICTURE_SIZES, true ) ? $raw['picture_size'] : 'medium',
+			'icon'           => in_array( $type, self::INPUT_TYPES, true ) && 'checkbox' !== $type && is_string( $raw['icon'] ?? null ) && in_array( $raw['icon'], FieldIcons::names(), true ) ? $raw['icon'] : '',
+			'width'          => in_array( $type, self::INPUT_TYPES, true ) && 'half' === ( $raw['width'] ?? '' ) ? 'half' : 'full',
+			'when'           => self::sanitize_condition( $raw['when'] ?? null ),
+			'rules'          => self::sanitize_rules( $raw['rules'] ?? null, $type ),
 		);
 	}
 
@@ -717,25 +718,25 @@ class FormFields {
 	 */
 	private static function anchor( string $type ): array {
 		return array(
-			'id'          => $type,
-			'type'        => $type,
-			'label'       => '',
-			'required'    => false,
-			'placeholder' => '',
-			'help'        => '',
-			'options'     => array(),
-			'prices'      => array(),
-			'limits'      => array(),
-			'images'      => array(),
-			'pictures'    => false,
-			'picture_shape' => 'auto',
+			'id'             => $type,
+			'type'           => $type,
+			'label'          => '',
+			'required'       => false,
+			'placeholder'    => '',
+			'help'           => '',
+			'options'        => array(),
+			'prices'         => array(),
+			'limits'         => array(),
+			'images'         => array(),
+			'pictures'       => false,
+			'picture_shape'  => 'auto',
 			'picture_layout' => 'grid',
-			'picture_cols' => 0,
-			'picture_size' => 'medium',
-			'icon'        => '',
-			'width'       => 'full',
-			'when'        => self::no_condition(),
-			'rules'       => self::no_rules(),
+			'picture_cols'   => 0,
+			'picture_size'   => 'medium',
+			'icon'           => '',
+			'width'          => 'full',
+			'when'           => self::no_condition(),
+			'rules'          => self::no_rules(),
 		);
 	}
 
@@ -788,7 +789,7 @@ class FormFields {
 	 * The shape of a field's picture cards: the width over the height, and whether the cards show the pictures whole.
 	 * Auto takes the pictures' own shape when they all agree (within a few percent), and the usual 4:3 when they don't.
 	 *
-	 * @param array<string, mixed>                                                                    $item   A sanitized item.
+	 * @param array<string, mixed>                                                                   $item   A sanitized item.
 	 * @param array<string, array{url: string, large: string, alt: string, width: int, height: int}> $images option_images() of it.
 	 * @phpstan-param FormItem $item
 	 * @return array{ratio: float, whole: bool}

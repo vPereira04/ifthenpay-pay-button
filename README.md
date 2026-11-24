@@ -15,7 +15,6 @@ Take ifthenpay payments anywhere: pay buttons for any page, shareable pay links,
 - [Frequently Asked Questions](#frequently-asked-questions)
 - [External Services](#external-services)
 - [Screenshots](#screenshots)
-- [Examples](#examples)
 - [Support](#support)
 - [Security](#security)
 - [Changelog](#changelog)
@@ -469,59 +468,22 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
     ![Video background](.wordpress-org/screenshot-28.png)
 29. **(Design Example) Dark mode, following the payer's device**
     ![Dark mode](.wordpress-org/screenshot-29.png)
-30. **(Design Example) Crystals on an aurora, a wide card with the logo above it**
-    ![Crystals and a wide card](.wordpress-org/screenshot-30.png)
-31. **(Design Example) Bubblegum pink and sprinkles: a donut shop**
-    ![Donut shop](.wordpress-org/screenshot-31.png)
-32. **(Design Example) Tomatoes, basil and olives with a step badge: a pizzeria**
-    ![Pizzeria](.wordpress-org/screenshot-32.png)
-33. **(Design Example) A football pitch behind the checkout, with suggested amounts**
-    ![Football club](.wordpress-org/screenshot-33.png)
-34. **(Design Example) A heartbeat line behind a booking form with a date and a time: a clinic**
-    ![Clinic](.wordpress-org/screenshot-34.png)
-35. **(Design Example) A dark card with a dedication field and picture options: a music release**
-    ![Music release](.wordpress-org/screenshot-35.png)
-36. **(Design Example) Picture cards in a sideways row: pick a book cover**
-    ![Picture cards in a row](.wordpress-org/screenshot-36.png)
-37. **(Design Example) Bubbles and quick amounts: a light-hearted donation page**
-    ![Donation page with bubbles](.wordpress-org/screenshot-37.png)
-38. **(Design Example) Gold on black with a soft progress: a cause to support**
-    ![Gold on black](.wordpress-org/screenshot-38.png)
-
-### Examples
-
-What you can do with the design options. Every button can keep the site-wide look from **Default Design › Checkout & pay page** or have its own in the button's **Design** tab.
-
-1. **Every button with its own design.** Pay Button › Buttons shows each button as it looks on your site, with what it collected and its spots.
-   ![Buttons with their own designs](.wordpress-org/examples/example-1.png)
-2. **Pay buttons on a page.** Gradient, colour, size, icon and width per button. The blue one is hovered, so it lifts.
-   ![Pay buttons on a page](.wordpress-org/examples/example-2.png)
-3. **Aurora gradient with waves.** A ring shows the form's progress, and the priced options set the amount.
-   ![Aurora gradient with waves](.wordpress-org/examples/example-3.png)
-4. **A long form split into pages.** Page breaks turn the form into steps, here with a bar per page and a Back button.
-   ![A form in steps](.wordpress-org/examples/example-4.png)
-5. **Diagonal gradient with crystals.** A light look with a single progress line and a percentage.
-   ![Diagonal gradient with crystals](.wordpress-org/examples/example-5.png)
-6. **A video behind the checkout.** Paste a YouTube or Vimeo link, or pick a video from the Media Library. You can loop all of it or just a part.
-   ![Video background](.wordpress-org/examples/example-6.png)
-7. **Blurred video and a glass card.** The video is blurred, and with card opacity under 100% the card turns to frosted glass. With spots per option, each option shows how many are left.
-   ![Blurred video and a glass card](.wordpress-org/examples/example-7.png)
-8. **A wide card with your logo above it.** Crystals on an aurora, with a gold accent.
-   ![Wide card and logo](.wordpress-org/examples/example-8.png)
-9. **Dark mode.** With "Follow the payer's device", payers whose phone or computer is set to dark get your dark colours.
-   ![Dark mode](.wordpress-org/examples/example-9.png)
-10. **On a phone.** The pay page and the checkout fit any screen.
-    <img class="iftp-shot iftp-shot--phone" src=".wordpress-org/examples/example-10.png" alt="On a phone" height="520">
-11. **A video background on a phone.**
-    <img class="iftp-shot iftp-shot--phone" src=".wordpress-org/examples/example-11.png" alt="Video background on a phone" height="520">
-12. **The Paid popup, in the button's own look.** The Pending, Failed and Cancelled popups match it too.
-    ![Paid popup](.wordpress-org/examples/example-12.png)
-13. **(Admin Only) Start from a look, then tweak it.** The colours, the outcome colours and the glass card, with a live preview of the checkout, the pay page and each popup.
-    ![Checkout design](.wordpress-org/examples/example-13.png)
-14. **(Admin Only) Seven page progress styles, and the pay page background.** Soft glow, gradient, plain, image or video, with crystals, waves, bokeh or grain on top.
-    ![Page progress and pay page](.wordpress-org/examples/example-14.png)
-15. **(Admin Only) Button design.** Start from a preset, then choose the style (filled, outline, soft, gradient, glass, 3D, neon, brutal or ghost), the colours, the corners, the border, the size, a hover effect (lift, grow, shine, glow, fill or nudge), an attention effect (pulse, ripple, heartbeat, wiggle, bounce, shimmer, breathe or orbit) and an icon.
-    ![Button design](.wordpress-org/examples/example-15.png)
+30. **(Design Example) Bubblegum pink and sprinkles: a donut shop**
+    ![Donut shop](.wordpress-org/screenshot-30.png)
+31. **(Design Example) Tomatoes, basil and olives with a step badge: a pizzeria**
+    ![Pizzeria](.wordpress-org/screenshot-31.png)
+32. **(Design Example) A football pitch behind the checkout, with suggested amounts**
+    ![Football club](.wordpress-org/screenshot-32.png)
+33. **(Design Example) A heartbeat line behind a booking form with a date and a time: a clinic**
+    ![Clinic](.wordpress-org/screenshot-33.png)
+34. **(Design Example) A dark card with a dedication field and picture options: a music release**
+    ![Music release](.wordpress-org/screenshot-34.png)
+35. **(Design Example) Picture cards in a sideways row: pick a book cover**
+    ![Picture cards in a row](.wordpress-org/screenshot-35.png)
+36. **(Design Example) Bubbles and quick amounts: a light-hearted donation page**
+    ![Donation page with bubbles](.wordpress-org/screenshot-36.png)
+37. **(Design Example) Gold on black with a soft progress: a cause to support**
+    ![Gold on black](.wordpress-org/screenshot-37.png)
 
 ### Support
 

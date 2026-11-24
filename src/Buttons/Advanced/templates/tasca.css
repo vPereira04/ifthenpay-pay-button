@@ -1,0 +1,56 @@
+.iftp-btn-pay__button {
+	position: relative;
+	isolation: isolate;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 68px;
+	margin: 12px 0;
+	padding: 0 52px 0 128px;
+	border: 0;
+	border-radius: 8px;
+	background-color: #fbfdff;
+	background-image:
+		linear-gradient(90deg, rgba(255, 255, 255, 0) 24%, rgba(255, 255, 255, 0.82) 60%, rgba(255, 255, 255, 0) 100%),
+		radial-gradient(circle at 50% 50%, var(--a1) 0 2.6px, transparent 3.1px),
+		radial-gradient(circle at 50% 50%, transparent 0 9px, hsl(from var(--a1) h s calc(l + 8) / 0.6) 9.4px 11px, transparent 11.4px),
+		radial-gradient(circle at 0 0, hsl(from var(--a1) h s calc(l + 8) / 0.55) 0 7px, transparent 7.4px),
+		radial-gradient(circle at 100% 100%, hsl(from var(--a1) h s calc(l + 8) / 0.55) 0 7px, transparent 7.4px),
+		linear-gradient(90deg, hsl(from var(--a1) h s l / 0.35) 1px, transparent 1px),
+		linear-gradient(180deg, hsl(from var(--a1) h s l / 0.35) 1px, transparent 1px);
+	background-size: 100% 100%, 34px 34px, 34px 34px, 34px 34px, 34px 34px, 34px 34px, 34px 34px;
+	color: hsl(from var(--a1) h s calc(l - 24));
+	font: 900 17px/1 ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	text-shadow: 0 0 6px #fff, 0 0 3px #fff;
+	white-space: nowrap;
+	cursor: pointer;
+	overflow: visible;
+	-webkit-appearance: none;
+	appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	box-shadow: inset 0 0 0 3px var(--a1), inset 0 0 0 5px #fff, inset 0 0 0 6px hsl(from var(--a1) h s calc(l + 20)), 0 5px 0 hsl(from var(--a1) h s calc(l - 22)), 0 5px 0 1px hsl(from var(--a1) h s calc(l - 22)), 0 16px 22px -8px hsl(from var(--a1) h s calc(l - 24) / 0.8);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.iftp-btn-pay__button:hover:not(:disabled), .iftp-btn-pay__button:focus-visible { transform: translateY(-2px); }
+.iftp-btn-pay__button:active:not(:disabled) { transform: translateY(3px); }
+.iftp-btn-pay__button:focus-visible { outline: 3px solid var(--a2); outline-offset: 4px; }
+.iftp-btn-pay__button:disabled { cursor: not-allowed; opacity: 0.55; filter: grayscale(1); }
+.iftp-btn-pay__label { position: relative; z-index: 3; }
+/* The glass and the clay jug. */
+.tc-ic { position: absolute; left: 10px; top: 50%; width: 110px; height: 96px; margin-top: -52px; z-index: 2; pointer-events: none; filter: drop-shadow(0 4px 2px rgba(10, 25, 60, 0.45)); }
+.tc-ic svg { display: block; width: 110px; height: 96px; overflow: visible; }
+.tc-jug { transform-box: view-box; transform-origin: 70px 44px; }
+.tc-st { transform-box: fill-box; transform-origin: 50% 0; scale: 1 0; }
+.tc-gl { transform-box: fill-box; transform-origin: 50% 50%; scale: 0; }
+.iftp-btn-pay__button:hover:not(:disabled) .tc-jug, .iftp-btn-pay__button:focus-visible .tc-jug { animation: tc-jug 4s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .tc-w, .iftp-btn-pay__button:focus-visible .tc-w { animation: tc-wine 4s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .tc-st, .iftp-btn-pay__button:focus-visible .tc-st { animation: tc-pour 4s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .tc-gl, .iftp-btn-pay__button:focus-visible .tc-gl { animation: tc-glint 4s linear infinite; }
+@keyframes tc-jug { 0%, 12% { rotate: 0deg; animation-timing-function: ease-in-out; } 24%, 58% { rotate: -46deg; animation-timing-function: ease-in-out; } 68%, 100% { rotate: 0deg; } }
+@keyframes tc-wine { 0%, 5% { translate: 0 6px; animation-timing-function: ease-in; } 12%, 24% { translate: 0 46px; animation-timing-function: linear; } 58% { translate: 0 6px; } 100% { translate: 0 6px; } }
+@keyframes tc-pour { 0%, 23% { scale: 1 0; } 27% { scale: 1 1; } 56% { scale: 1 1; } 60%, 100% { scale: 1 0; } }
+@keyframes tc-glint { 0%, 70% { scale: 0; opacity: 0; } 76% { scale: 1.2; opacity: 1; } 88%, 100% { scale: 0; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .iftp-btn-pay__button * { animation: none !important; } }

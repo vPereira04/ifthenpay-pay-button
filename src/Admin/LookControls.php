@@ -415,6 +415,7 @@ class LookControls {
 								'plain'    => __( 'Plain', 'ifthenpay-pay-button' ),
 								'image'    => __( 'Image', 'ifthenpay-pay-button' ),
 								'video'    => __( 'Video', 'ifthenpay-pay-button' ),
+								'none'     => __( 'None (your website, blurred and darkened)', 'ifthenpay-pay-button' ),
 							)
 						);
 						?>
@@ -1107,6 +1108,13 @@ class LookControls {
 			'pitch'     => array( __( 'Pitch', 'ifthenpay-pay-button' ), __( 'A whole football pitch: stripes, lines, boxes and goals', 'ifthenpay-pay-button' ) ),
 			'gingham'   => array( __( 'Gingham', 'ifthenpay-pay-button' ), __( 'A picnic-cloth check in the accent', 'ifthenpay-pay-button' ) ),
 		);
+
+		// The retired effects only show for a look that already uses one, so it can still be seen and changed.
+		foreach ( CheckoutLook::RETIRED_FX as $retired ) {
+			if ( $retired !== $look['pay_fx'] ) {
+				unset( $styles[ $retired ] );
+			}
+		}
 		$background     = in_array( $look['pay_bg'], array( 'glow', 'plain', 'gradient' ), true ) ? $look['pay_bg'] : 'glow';
 				$hidden = array_slice( array_keys( $styles ), self::FEATURED_FX );
 		$folded         = array() !== $hidden;

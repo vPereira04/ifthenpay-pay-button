@@ -166,7 +166,7 @@
 			return '#ffffff';
 		}
 
-		return [ 'filled', 'split', 'halo', 'glass', '3d', 'brutal', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut', 'checker', 'hazard', 'marquee', 'pixel', 'frosting', 'pizza', 'football', 'basketball', 'running', 'music', 'pilot', 'school', 'cartoon' ].indexOf( design.variant ) === -1 ? design.color : onColor( design.color );
+		return [ 'filled', 'split', 'halo', 'glass', '3d', 'brutal', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut', 'checker', 'hazard', 'marquee', 'pixel', 'frosting', 'pizza', 'football', 'basketball', 'deadlift', 'running', 'medic', 'music', 'pilot', 'school', 'book', 'cartoon' ].indexOf( design.variant ) === -1 ? design.color : onColor( design.color );
 	}
 
 	function toHex( parts ) {
@@ -353,6 +353,10 @@
 			stopsShape: pick( 'stops_shape' ) || 'linear',
 			stopsAngle: parseInt( pick( 'stops_angle' ), 10 ) || 0,
 			stopsFlow: !! pick( 'stops_flow' ),
+			advanced: pick( 'advanced' ) || '',
+			advancedColors: [ 0, 1, 2, 3, 4, 5 ].map( function ( index ) {
+				return hex( pick( 'advanced_color_' + index ) );
+			} ),
 		};
 
 		// wp_localize_script() hands numbers over as strings.
@@ -397,6 +401,8 @@
 			stopsShape: stored.stops_shape || 'linear',
 			stopsAngle: parseInt( stored.stops_angle, 10 ) || 0,
 			stopsFlow: !! stored.stops_flow,
+			advanced: stored.advanced || '',
+			advancedColors: ( Array.isArray( stored.advanced_colors ) ? stored.advanced_colors : [] ).map( hex ),
 		};
 
 		design.text = design.ownText || autoText( design );
@@ -531,13 +537,25 @@
 		const shown = shownDesign( form );
 
 		if ( wrap ) {
-			showButton( wrap, buildButton( form, shown, label ) );
+			// An Advanced design is drawn by its own code; the others by the plugin's classes.
+			if ( shown.source === 'advanced' && shown.advanced ) {
+				ns.advancedPreview( form, wrap, shown, label );
+			} else {
+				if ( wrap.dataset.iftpAdvanced ) {
+					delete wrap.dataset.iftpAdvanced;
+					wrap.removeAttribute( 'data-iftp-code' );
+					wrap.removeAttribute( 'style' );
+					wrap.textContent = '';
+				}
+
+				showButton( wrap, buildButton( form, shown, label ) );
+			}
 		}
 
 		const note = form.querySelector( '[data-iftp-theme-note]' );
 
 		if ( note ) {
-			note.hidden = shown.source === 'custom';
+			note.hidden = shown.source === 'custom' || shown.source === 'advanced';
 		}
 
 		renderSamples( form, readDesign( form ) );
@@ -618,6 +636,7 @@
 
 		bindSwatches( form );
 		ns.bindSpectrum( form );
+		ns.bindAdvanced( form );
 		bindHoverSamples( form );
 
 		const textAuto = form.querySelector( '[data-iftp-design="text_auto"]' );

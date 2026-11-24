@@ -331,15 +331,6 @@ class SettingsRepository {
 	}
 
 	/**
-	 * Stores the default method entity.
-	 *
-	 * @param string $entity The method entity, or '' to clear.
-	 */
-	public function set_default_method( string $entity ): void {
-		update_option( self::OPTION_DEFAULT_METHOD, $entity );
-	}
-
-	/**
 	 * The hosted payment page description, with merge tags. Until it's set, the button's title; a payment
 	 * without a button then falls back to the site name.
 	 */
@@ -348,28 +339,10 @@ class SettingsRepository {
 	}
 
 	/**
-	 * Stores the payer-facing description.
-	 *
-	 * @param string $description The description text.
-	 */
-	public function set_description( string $description ): void {
-		update_option( self::OPTION_DESCRIPTION, $description );
-	}
-
-	/**
 	 * The number of days an unpaid payment link stays valid.
 	 */
 	public function get_expiry_days(): int {
 		return max( 1, (int) get_option( self::OPTION_EXPIRY_DAYS, 3 ) );
-	}
-
-	/**
-	 * Stores the expiry days, floored at 1.
-	 *
-	 * @param int $days The number of days.
-	 */
-	public function set_expiry_days( int $days ): void {
-		update_option( self::OPTION_EXPIRY_DAYS, max( 1, $days ) );
 	}
 
 	/**

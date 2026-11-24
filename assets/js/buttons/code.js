@@ -6,7 +6,7 @@
 	'use strict';
 
 	const i18n = ns.i18n || {};
-	const MAX = 20000;
+	const MAX = 30000;
 	const CSS_UNNESTABLE = /@(?:import|charset|namespace|layer|page|counter-style)\b/i;
 	const JS_BANNED = /<\/script|<!--/i;
 	const PAIRS = { '}': '{', ')': '(', ']': '[' };

@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The custom look is a few CSS variables plus BEM modifiers, so checkout.css does the drawing and the admin
  * preview uses the exact same rules.
  *
- * @phpstan-type ButtonDesignConfig array{source: string, variant: string, color: string, color2: string, text: string, radius: int, border_width: int, border_style: string, border_color: string, size: string, full: bool, icon: string, icon_style: string, shadow: bool, effect: string, attention: string, upper: bool, logos: bool, still: bool, font: string, stops: array<int, array{color: string, pos: int, spread: int, blur: int}>, stops_shape: string, stops_angle: int, stops_flow: bool}
+ * @phpstan-type ButtonDesignConfig array{source: string, variant: string, color: string, color2: string, text: string, radius: int, border_width: int, border_style: string, border_color: string, size: string, full: bool, icon: string, icon_style: string, shadow: bool, effect: string, attention: string, upper: bool, logos: bool, still: bool, font: string, stops: array<int, array{color: string, pos: int, spread: int, blur: int}>, stops_shape: string, stops_angle: int, stops_flow: bool, advanced: string, advanced_colors: array<int, string>}
  */
 class ButtonDesign {
 
@@ -32,12 +32,19 @@ class ButtonDesign {
 	public const SOURCE_CUSTOM = 'custom';
 	// No styles from us at all: the merchant's own CSS and JavaScript (a button's `code`) do it.
 	public const SOURCE_CODE = 'code';
-	public const SOURCES     = array( self::SOURCE_SITE, self::SOURCE_THEME, self::SOURCE_CUSTOM, self::SOURCE_CODE );
+	// One of the drawn designs that ship with the plugin (Advanced), in colours of the merchant's choosing.
+	public const SOURCE_ADVANCED = 'advanced';
+	public const SOURCES         = array( self::SOURCE_SITE, self::SOURCE_THEME, self::SOURCE_CUSTOM, self::SOURCE_ADVANCED, self::SOURCE_CODE );
 
-	// What the site's default itself can be: it can't point at itself.
-	public const OWN_SOURCES = array( self::SOURCE_THEME, self::SOURCE_CUSTOM );
+	// What the site's default itself can be: it can't point at itself, and it has no code of its own.
+	public const OWN_SOURCES = array( self::SOURCE_THEME, self::SOURCE_CUSTOM, self::SOURCE_ADVANCED );
 
-	public const VARIANTS      = array( 'filled', 'outline', 'soft', 'aurora', 'split', 'halo', 'glass', '3d', 'neon', 'brutal', 'ghost', 'luxe', 'beam', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut', 'checker', 'hazard', 'scanline', 'marquee', 'pixel', 'blueprint', 'spectrum', 'glazed', 'frosting', 'pizza', 'football', 'basketball', 'running', 'coder', 'medic', 'music', 'pilot', 'school', 'cartoon' );
+	// What the AI builder can set: it can't pick or colour the shipped drawings.
+	public const AI_SOURCES = array( self::SOURCE_THEME, self::SOURCE_CUSTOM );
+
+	public const VARIANTS      = array( 'filled', 'outline', 'soft', 'aurora', 'split', 'halo', 'glass', '3d', 'neon', 'brutal', 'ghost', 'luxe', 'beam', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut', 'checker', 'hazard', 'scanline', 'marquee', 'pixel', 'blueprint', 'spectrum', 'glazed', 'frosting', 'pizza', 'football', 'basketball', 'deadlift', 'running', 'coder', 'medic', 'music', 'pilot', 'school', 'book', 'cartoon' );
+	// Styles no longer offered in the picker. They still draw, so a button that already uses one keeps its look.
+	public const RETIRED_VARIANTS = array( 'glazed', 'frosting', 'pizza', 'football', 'basketball', 'deadlift', 'running', 'coder', 'pilot', 'school', 'book' );
 	public const SIZES         = array( 'sm', 'md', 'lg' );
 	public const ICON_STYLES   = array( 'outline', 'filled', 'duotone' );
 	public const ICONS         = array( 'none', 'lock', 'card', 'arrow', 'heart', 'cart', 'gift', 'ticket', 'calendar', 'star', 'sparkles', 'paw', 'leaf', 'bolt' );
@@ -95,7 +102,7 @@ class ButtonDesign {
 	public const BORDER_MAX = 6;
 
 	// The styles drawn solid in the main colour, so their text goes black or white by contrast.
-	private const SOLID_VARIANTS = array( 'filled', 'split', 'halo', 'glass', '3d', 'brutal', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut', 'checker', 'hazard', 'marquee', 'pixel', 'frosting', 'pizza', 'football', 'basketball', 'running', 'music', 'pilot', 'school', 'cartoon' );
+	private const SOLID_VARIANTS = array( 'filled', 'split', 'halo', 'glass', '3d', 'brutal', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut', 'checker', 'hazard', 'marquee', 'pixel', 'frosting', 'pizza', 'football', 'basketball', 'deadlift', 'running', 'medic', 'music', 'pilot', 'school', 'book', 'cartoon' );
 
 	// How far round the colour wheel a gradient's own second colour sits from the first.
 	public const GRADIENT_TURN = 40;
@@ -120,31 +127,42 @@ class ButtonDesign {
 	 */
 	public static function defaults(): array {
 		return array(
-			'source'       => self::SOURCE_THEME,
-			'variant'      => 'filled',
-			'color'        => '#00609c',
-			'color2'       => '',
-			'text'         => '',
-			'radius'       => 10,
-			'border_width' => 2,
-			'border_style' => 'solid',
-			'border_color' => '',
-			'size'         => 'md',
-			'full'         => false,
-			'icon'         => 'none',
-			'icon_style'   => 'outline',
-			'shadow'       => false,
-			'effect'       => 'none',
-			'attention'    => 'none',
-			'upper'        => false,
-			'logos'        => true,
-			'still'        => true,
-			'font'         => '',
-			'stops'        => self::SPECTRUM_RAINBOW,
-			'stops_shape'  => 'linear',
-			'stops_angle'  => 90,
-			'stops_flow'   => false,
+			'source'          => self::SOURCE_THEME,
+			'variant'         => 'filled',
+			'color'           => '#00609c',
+			'color2'          => '',
+			'text'            => '',
+			'radius'          => 10,
+			'border_width'    => 2,
+			'border_style'    => 'solid',
+			'border_color'    => '',
+			'size'            => 'md',
+			'full'            => false,
+			'icon'            => 'none',
+			'icon_style'      => 'outline',
+			'shadow'          => false,
+			'effect'          => 'none',
+			'attention'       => 'none',
+			'upper'           => false,
+			'logos'           => true,
+			'still'           => true,
+			'font'            => '',
+			'stops'           => self::SPECTRUM_RAINBOW,
+			'stops_shape'     => 'linear',
+			'stops_angle'     => 90,
+			'stops_flow'      => false,
+			'advanced'        => '',
+			'advanced_colors' => array( '', '', '', '', '', '' ),
 		);
+	}
+
+	/**
+	 * Whether the button is drawn by code (the merchant's own, or an Advanced design) rather than by our styles.
+	 *
+	 * @param array<string, mixed> $design A sanitized design.
+	 */
+	public static function is_drawn( array $design ): bool {
+		return in_array( $design['source'], array( self::SOURCE_CODE, self::SOURCE_ADVANCED ), true );
 	}
 
 	/**
@@ -670,12 +688,12 @@ class ButtonDesign {
 
 		$choice = static fn( string $key, array $allowed, string $fallback ): string => is_string( $input[ $key ] ?? null ) && in_array( $input[ $key ], $allowed, true ) ? $input[ $key ] : $fallback;
 
-		$design['source']  = $choice( 'source', self::SOURCES, $design['source'] );
-		$design['variant'] = $choice( 'variant', self::VARIANTS, $design['variant'] );
-		$design['size']    = $choice( 'size', self::SIZES, $design['size'] );
-		$design['icon']    = $choice( 'icon', self::ICONS, $design['icon'] );
+		$design['source']     = $choice( 'source', self::SOURCES, $design['source'] );
+		$design['variant']    = $choice( 'variant', self::VARIANTS, $design['variant'] );
+		$design['size']       = $choice( 'size', self::SIZES, $design['size'] );
+		$design['icon']       = $choice( 'icon', self::ICONS, $design['icon'] );
 		$design['icon_style'] = $choice( 'icon_style', self::ICON_STYLES, $design['icon_style'] );
-		$design['effect']  = $choice( 'effect', self::EFFECTS, $design['effect'] );
+		$design['effect']     = $choice( 'effect', self::EFFECTS, $design['effect'] );
 
 		$design['font']         = $choice( 'font', self::FONTS, $design['font'] );
 		$design['attention']    = $choice( 'attention', self::ATTENTIONS, $design['attention'] );
@@ -708,6 +726,14 @@ class ButtonDesign {
 			if ( array_key_exists( $flag, $input ) ) {
 				$design[ $flag ] = ! empty( $input[ $flag ] );
 			}
+		}
+
+		// An Advanced design that isn't one of ours any more (or was never picked) has nothing to draw, so it falls back to the theme's look.
+		if ( Advanced::has( $input['advanced'] ?? null ) ) {
+			$design['advanced']        = $input['advanced'];
+			$design['advanced_colors'] = Advanced::sanitize_colors( $input['advanced_colors'] ?? null, $design['advanced'] );
+		} elseif ( self::SOURCE_ADVANCED === $design['source'] ) {
+			$design['source'] = self::SOURCE_THEME;
 		}
 
 		return $design;
@@ -833,8 +859,8 @@ class ButtonDesign {
 	public static function attributes( array $design ): array {
 		$classes = array( 'iftp-btn-pay__button' );
 
-		// Bare: not even the theme's classes, so nothing but the merchant's code styles it.
-		if ( self::SOURCE_CODE === $design['source'] ) {
+		// Bare: not even the theme's classes, so nothing but the drawing's own code styles it.
+		if ( self::is_drawn( $design ) ) {
 			return array(
 				'class' => 'iftp-btn-pay__button iftp-btn-pay__button--code',
 				'style' => '',
@@ -899,7 +925,7 @@ class ButtonDesign {
 	 */
 	public static function preview_markup( array $design, string $label ): string {
 		$attributes = self::attributes( $design );
-		$class      = in_array( $design['source'], array( self::SOURCE_CUSTOM, self::SOURCE_CODE ), true ) ? $attributes['class'] : 'iftp-btn-pay__button iftp-btn-pay__button--theme ' . implode( ' ', self::shared_modifiers( $design ) );
+		$class      = self::SOURCE_CUSTOM === $design['source'] || self::is_drawn( $design ) ? $attributes['class'] : 'iftp-btn-pay__button iftp-btn-pay__button--theme ' . implode( ' ', self::shared_modifiers( $design ) );
 
 		return '<span class="' . esc_attr( trim( $class ) ) . '" style="' . esc_attr( $attributes['style'] ) . '">' . self::inner_html( $design, $label ) . '</span>';
 	}

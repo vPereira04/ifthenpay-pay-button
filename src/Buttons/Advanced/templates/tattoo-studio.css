@@ -1,0 +1,62 @@
+.iftp-btn-pay__button {
+	--ink: hsl(from var(--a1) h s calc(l - 10));
+	position: relative;
+	isolation: isolate;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 70px;
+	margin: 12px 0;
+	padding: 0 56px 0 126px;
+	border: 0;
+	border-radius: 8px;
+	background:
+		repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 7px),
+		radial-gradient(120% 160% at 18% 0%, hsl(from var(--a1) h s calc(l + 14) / 0.9), transparent 62%),
+		linear-gradient(180deg, hsl(from var(--a1) h s calc(l + 6)), hsl(from var(--a1) h s calc(l - 4)));
+	color: var(--a3);
+	font: 900 17px/1 ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+	white-space: nowrap;
+	cursor: pointer;
+	overflow: visible;
+	-webkit-appearance: none;
+	appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	box-shadow: inset 0 0 0 3px var(--a2), inset 0 0 0 5px var(--ink), inset 0 0 0 6px hsl(from var(--a3) h s l / 0.35), 0 5px 0 hsl(from var(--a2) h s calc(l - 24)), 0 16px 22px -8px hsl(from var(--a2) h s calc(l - 30) / 0.7);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.iftp-btn-pay__button:hover:not(:disabled), .iftp-btn-pay__button:focus-visible { transform: translateY(-2px); }
+.iftp-btn-pay__button:active:not(:disabled) { transform: translateY(3px); }
+.iftp-btn-pay__button:focus-visible { outline: 3px solid var(--a2); outline-offset: 4px; }
+.iftp-btn-pay__button:disabled { cursor: not-allowed; opacity: 0.55; filter: grayscale(1); }
+.iftp-btn-pay__label { position: relative; z-index: 3; }
+.iftp-btn-pay__label::after { content: ""; position: absolute; left: 0; right: 0.2em; bottom: -9px; height: 4px; border-radius: 2px; background: var(--a2); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); }
+/* The skin: a heart is outlined by a tattoo machine, then shaded with back-and-forth hatching. */
+.tt-skin { position: absolute; left: 18px; top: 50%; width: 70px; height: 70px; margin-top: -35px; z-index: 2; border-radius: 16px; background: radial-gradient(circle at 35% 25%, hsl(from var(--a3) calc(h - 8) calc(s + 6) calc(l - 2)), hsl(from var(--a3) calc(h - 10) calc(s + 6) calc(l - 20))); box-shadow: 0 0 0 3px var(--a2), 0 0 0 5px var(--ink), inset 0 -6px 10px hsl(from var(--ink) h s l / 0.25); pointer-events: none; }
+.tt-skin svg.tt-art { position: absolute; inset: 0; width: 70px; height: 70px; overflow: visible; }
+.tt-m { position: absolute; left: 0; top: 0; width: 1px; height: 1px; offset-rotate: 0deg; offset-distance: 0%; opacity: 0; filter: drop-shadow(0 3px 2px hsl(from var(--ink) h s l / 0.5)); }
+.tt-m1 { offset-path: path("M35 58C12 42 8 20 24 17C30 16 35 20 35 25C35 20 40 16 46 17C62 20 58 42 35 58"); }
+.tt-m2 { offset-path: path("M33.5 54.5 L36.0 29.5 L38.0 26.8 L35.5 53.3 L37.4 51.7 L39.9 24.1 L41.9 23.7 L39.4 50.0 L41.3 48.2 L43.8 23.4 L45.8 23.0 L43.2 46.2 L45.2 44.3 L47.7 23.4 L49.6 23.9 L47.1 42.4 L49.1 40.4 L51.6 25.8 L53.5 28.0 L51.0 38.5 L53.0 36.5 L55.5 32.0"); }
+.tt-m svg { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; }
+.tt-mj { display: block; }
+.tt-ol, .tt-sh { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.tt-dt { opacity: 1; }
+.iftp-btn-pay__button:hover:not(:disabled) .tt-ol, .iftp-btn-pay__button:focus-visible .tt-ol { animation: tt-draw 6s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .tt-sh, .iftp-btn-pay__button:focus-visible .tt-sh { animation: tt-shade 6s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .tt-dt, .iftp-btn-pay__button:focus-visible .tt-dt { animation: tt-dots 6s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .tt-ink, .iftp-btn-pay__button:focus-visible .tt-ink { animation: tt-fade 6s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .tt-m1, .iftp-btn-pay__button:focus-visible .tt-m1 { animation: tt-follow1 6s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .tt-m2, .iftp-btn-pay__button:focus-visible .tt-m2 { animation: tt-follow2 6s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .tt-mj, .iftp-btn-pay__button:focus-visible .tt-mj { animation: tt-buzz 0.1s linear infinite; }
+@keyframes tt-draw { 0%, 5% { stroke-dashoffset: 1; } 38%, 100% { stroke-dashoffset: 0; } }
+@keyframes tt-shade { 0%, 40% { stroke-dashoffset: 1; } 82%, 100% { stroke-dashoffset: 0; } }
+@keyframes tt-dots { 0%, 80% { opacity: 0; } 86%, 100% { opacity: 1; } }
+@keyframes tt-fade { 0%, 93% { opacity: 1; } 98%, 100% { opacity: 0; } }
+@keyframes tt-follow1 { 0%, 4.9% { offset-distance: 0%; opacity: 0; } 5% { offset-distance: 0%; opacity: 1; } 38% { offset-distance: 100%; opacity: 1; } 38.5%, 100% { offset-distance: 100%; opacity: 0; } }
+@keyframes tt-follow2 { 0%, 39.9% { offset-distance: 0%; opacity: 0; translate: 0 0; } 40% { offset-distance: 0%; opacity: 1; translate: 0 0; } 82% { offset-distance: 100%; opacity: 1; translate: 0 0; } 89% { offset-distance: 100%; opacity: 0; translate: 22px -26px; } 100% { offset-distance: 100%; opacity: 0; translate: 22px -26px; } }
+@keyframes tt-buzz { 0% { translate: -0.5px 0; } 33% { translate: 0.5px 0.4px; } 66% { translate: 0 -0.5px; } 100% { translate: -0.5px 0; } }
+@media (prefers-reduced-motion: reduce) { .iftp-btn-pay__button * { animation: none !important; } }

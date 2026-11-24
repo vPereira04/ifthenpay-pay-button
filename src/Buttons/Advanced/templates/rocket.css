@@ -1,0 +1,55 @@
+.iftp-btn-pay__button {
+	position: relative;
+	isolation: isolate;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 72px;
+	margin: 12px 0;
+	padding: 0 52px 0 118px;
+	border: 0;
+	border-radius: 14px;
+	background:
+		radial-gradient(circle at 12% 28%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.6px),
+		radial-gradient(circle at 46% 74%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.6px),
+		radial-gradient(circle at 63% 22%, rgba(255, 255, 255, 0.8) 0 1.2px, transparent 1.8px),
+		radial-gradient(circle at 88% 66%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.6px),
+		radial-gradient(circle at 95% 20%, rgba(255, 255, 255, 0.6) 0 1px, transparent 1.6px),
+		radial-gradient(120% 160% at 85% 120%, hsl(from var(--a3) h s l / 0.25), transparent 60%),
+		linear-gradient(180deg, hsl(from var(--a1) h s calc(l + 8)), hsl(from var(--a1) h s calc(l - 8)));
+	color: #fff;
+	font: 900 17px/1 ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	text-shadow: 0 0 12px hsl(from var(--a3) h s l / 0.7), 0 2px 0 rgba(0, 0, 0, 0.5);
+	white-space: nowrap;
+	cursor: pointer;
+	overflow: visible;
+	-webkit-appearance: none;
+	appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	box-shadow: inset 0 0 0 2px hsl(from var(--a3) h s l / 0.55), inset 0 0 0 4px hsl(from var(--a1) h s calc(l - 8)), 0 5px 0 hsl(from var(--a1) h s calc(l - 14)), 0 16px 24px -8px hsl(from var(--a1) h s calc(l - 12) / 0.9);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.iftp-btn-pay__button:hover:not(:disabled), .iftp-btn-pay__button:focus-visible { transform: translateY(-2px); }
+.iftp-btn-pay__button:active:not(:disabled) { transform: translateY(3px); }
+.iftp-btn-pay__button:focus-visible { outline: 3px solid var(--a3); outline-offset: 4px; }
+.iftp-btn-pay__button:disabled { cursor: not-allowed; opacity: 0.55; filter: grayscale(1); }
+.iftp-btn-pay__label { position: relative; z-index: 3; }
+/* The porthole: a rocket holds still while the Earth falls away and the stars streak past. */
+.rk-win { position: absolute; left: 14px; top: 50%; width: 68px; height: 68px; margin-top: -34px; z-index: 2; border-radius: 50%; overflow: hidden; pointer-events: none; background: radial-gradient(circle at 50% 30%, #1b2a66, #070b22 75%); box-shadow: 0 0 0 3px #e3eaf5, 0 0 0 5px #7f8ba3, 0 0 0 6px #2b3550, 0 5px 6px 4px rgba(0, 0, 10, 0.45), inset 0 0 14px rgba(0, 0, 0, 0.7); }
+.rk-win svg { display: block; width: 68px; height: 68px; }
+.rk-rk, .rk-fl, .rk-er { transform-box: view-box; }
+.rk-fl { transform-origin: 50px 62px; }
+.iftp-btn-pay__button:hover:not(:disabled) .rk-st, .iftp-btn-pay__button:focus-visible .rk-st { animation: rk-stars 0.55s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .rk-er, .iftp-btn-pay__button:focus-visible .rk-er { animation: rk-earth 4s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .rk-rk, .iftp-btn-pay__button:focus-visible .rk-rk { animation: rk-shake 0.12s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .rk-fl, .iftp-btn-pay__button:focus-visible .rk-fl { animation: rk-flame 0.16s ease-in-out infinite alternate; }
+.iftp-btn-pay__button:hover:not(:disabled) .rk-all, .iftp-btn-pay__button:focus-visible .rk-all { animation: rk-cycle 4s linear infinite; }
+@keyframes rk-stars { to { translate: 0 40px; } }
+@keyframes rk-earth { 0%, 8% { translate: 0 0; animation-timing-function: ease-in; } 78%, 100% { translate: 0 70px; } }
+@keyframes rk-shake { 0% { translate: -0.6px 0; } 25% { translate: 0.6px 0.5px; } 50% { translate: -0.4px -0.5px; } 75% { translate: 0.6px 0.2px; } 100% { translate: -0.6px 0; } }
+@keyframes rk-flame { from { scale: 1 0.8; } to { scale: 1.1 1.4; } }
+@keyframes rk-cycle { 0%, 90% { opacity: 1; } 95% { opacity: 0; } 99% { opacity: 0; } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .iftp-btn-pay__button * { animation: none !important; } }

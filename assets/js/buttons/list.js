@@ -15,6 +15,7 @@
 	const toolbar = document.querySelector( '[data-iftp-btoolbar]' );
 	const search = document.querySelector( '[data-iftp-bsearch]' );
 	const typeSelect = document.querySelector( '[data-iftp-btype]' );
+	const lookSelect = document.querySelector( '[data-iftp-blook]' );
 	const sortSelect = document.querySelector( '[data-iftp-bsort]' );
 	const listKey = 'iftpBtnList';
 	// Select mode's parts sit up here because the first applyFilter() call already syncs the bar.
@@ -23,7 +24,11 @@
 	const batchDialog = document.querySelector( '[data-iftp-bbatch-dialog]' );
 	let batching = false;
 
-	const perPage = 19; // plus the new-button tile makes 20 cards a page.
+	const sizeSelect = document.querySelector( '[data-iftp-bsize]' );
+	const sizeCustom = document.querySelector( '[data-iftp-bsize-custom]' );
+	const defaultSize = 20;
+	// The size counts the new-button tile, so a page holds one button fewer than it.
+	let perPage = defaultSize - 1;
 	let filter = 'all';
 	let page = 1;
 
@@ -44,16 +49,49 @@
 		} catch ( e ) {}
 	}
 
+	// The filters survive a reload (a delete, an undo, a save) but not a new tab, so a forgotten search can't hide buttons for good.
+	const filterKey = 'iftpBtnListFilters';
+
+	function savedFilters() {
+		try {
+			return JSON.parse( window.sessionStorage.getItem( filterKey ) ) || {};
+		} catch ( e ) {
+			return {};
+		}
+	}
+
+	function saveFilters() {
+		try {
+			window.sessionStorage.setItem( filterKey, JSON.stringify( {
+				status: filter,
+				type: typeSelect ? typeSelect.value : '',
+				look: lookSelect ? lookSelect.value : '',
+				term: search ? search.value : '',
+				page: page,
+			} ) );
+		} catch ( e ) {}
+	}
+
+	// Takes a card count, tile included, and keeps it between 2 (one button and the tile) and 200.
+	function setSize( size ) {
+		const count = Math.min( 200, Math.max( 2, parseInt( size, 10 ) || defaultSize ) );
+
+		perPage = count - 1;
+
+		return count;
+	}
+
 	function applyFilter( keepPage ) {
 		const term = search ? search.value.trim().toLowerCase().normalize( 'NFD' ).replace( /[̀-ͯ]/g, '' ) : '';
 		const type = typeSelect ? typeSelect.value : '';
+		const look = lookSelect ? lookSelect.value.split( ':' ) : [ '' ];
 		const matches = [];
 
 		// The DOM order is the sorted order, so the pages follow it.
 		Array.prototype.forEach.call( grid.querySelectorAll( '[data-iftp-bcard]' ), function ( card ) {
 			const on = card.dataset.active === '1';
 			const status = filter === 'all' || ( filter === 'sold' ? card.dataset.sold === '1' : ( filter === 'on' ) === on );
-			const visible = status && ( ! type || card.dataset.mode === type ) && ( ! term || card.dataset.title.indexOf( term ) !== -1 );
+			const visible = status && ( ! type || card.dataset.mode === type ) && ( ! look[ 0 ] || card.dataset[ look[ 0 ] ] === look[ 1 ] ) && ( ! term || card.dataset.search.indexOf( term ) !== -1 );
 
 			card.hidden = true;
 
@@ -76,10 +114,11 @@
 
 		// The new-button tile only belongs to the unfiltered list.
 		document.querySelectorAll( '[data-iftp-bcard-new]' ).forEach( function ( tile ) {
-			tile.hidden = filter !== 'all' || !! term || !! type;
+			tile.hidden = filter !== 'all' || !! term || !! type || !! look[ 0 ];
 		} );
 
 		syncBatch();
+		saveFilters();
 
 		const pager = document.querySelector( '[data-iftp-bpager]' );
 		if ( pager ) {
@@ -161,6 +200,9 @@
 		typeSelect.addEventListener( 'change', function () {
 			applyFilter();
 		} );
+		lookSelect.addEventListener( 'change', function () {
+			applyFilter();
+		} );
 
 		toolbar.parentNode.querySelectorAll( '[data-iftp-bpage]' ).forEach( function ( step ) {
 			step.addEventListener( 'click', function () {
@@ -169,6 +211,65 @@
 				grid.scrollIntoView( { block: 'start', behavior: 'smooth' } );
 			} );
 		} );
+
+		if ( sizeSelect ) {
+			const presets = Array.prototype.map.call( sizeSelect.options, function ( option ) {
+				return option.value;
+			} );
+
+			// Shows the custom box only for Custom, and puts the dropdown's label back in step.
+			const showSize = function ( custom ) {
+				sizeCustom.hidden = ! custom;
+
+				if ( sizeSelect.iftpDropdown ) {
+					sizeSelect.iftpDropdown.sync();
+				}
+			};
+
+			sizeSelect.addEventListener( 'change', function () {
+				const custom = sizeSelect.value === 'custom';
+
+				showSize( custom );
+
+				if ( custom ) {
+					sizeCustom.value = setSize( sizeCustom.value || ( perPage + 1 ) );
+					sizeCustom.focus();
+					remember( 'size', sizeCustom.value );
+				} else {
+					setSize( sizeSelect.value );
+					remember( 'size', sizeSelect.value );
+				}
+
+				applyFilter();
+			} );
+
+			sizeCustom.addEventListener( 'input', function () {
+				if ( sizeCustom.value === '' ) {
+					return;
+				}
+
+				setSize( sizeCustom.value );
+				remember( 'size', String( perPage + 1 ) );
+				applyFilter();
+			} );
+
+			sizeCustom.addEventListener( 'blur', function () {
+				sizeCustom.value = perPage + 1;
+			} );
+
+			if ( saved.size ) {
+				const wanted = String( setSize( saved.size ) );
+
+				if ( presets.indexOf( wanted ) !== -1 ) {
+					sizeSelect.value = wanted;
+				} else {
+					sizeSelect.value = 'custom';
+					sizeCustom.value = wanted;
+				}
+
+				showSize( sizeSelect.value === 'custom' );
+			}
+		}
 
 		sortSelect.addEventListener( 'change', function () {
 			applySort( sortSelect.value );
@@ -205,11 +306,42 @@
 			}
 		}
 
-		applyFilter();
+		// Puts the last filters back, only the ones that still exist (a deleted button can take its type or look with it).
+		const kept = savedFilters();
+		const statusButton = toolbar.querySelector( '[data-iftp-bfilter="' + kept.status + '"]' );
+
+		if ( statusButton ) {
+			filter = kept.status;
+			toolbar.querySelectorAll( '[data-iftp-bfilter]' ).forEach( function ( other ) {
+				other.setAttribute( 'aria-pressed', other === statusButton ? 'true' : 'false' );
+			} );
+		}
+
+		[ [ typeSelect, kept.type ], [ lookSelect, kept.look ] ].forEach( function ( pair ) {
+			if ( pair[ 1 ] && pair[ 0 ].querySelector( 'option[value="' + pair[ 1 ] + '"]' ) ) {
+				pair[ 0 ].value = pair[ 1 ];
+
+				if ( pair[ 0 ].iftpDropdown ) {
+					pair[ 0 ].iftpDropdown.sync();
+				}
+			}
+		} );
+
+		if ( 'string' === typeof kept.term ) {
+			search.value = kept.term;
+		}
+
+		page = Math.max( 1, parseInt( kept.page, 10 ) || 1 );
+		applyFilter( true );
 
 		if ( saved.view === 'list' ) {
 			applyView( 'list' );
 		}
+	}
+
+	// The cards arrive from the server unfiltered, so the grid stays hidden until the saved filters, sort and page are on it.
+	if ( grid ) {
+		grid.classList.add( 'is-ready' );
 	}
 
 	/* ---------------------------------------------------------------- Batch */

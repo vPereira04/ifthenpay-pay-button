@@ -34,7 +34,7 @@ class CodeFields {
 		$may = current_user_can( 'unfiltered_html' ) || 'config[code][button_css]' === $name;
 		?>
 		<label class="screen-reader-text" for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $label ); ?></label>
-		<textarea class="iftp-btn-field__control iftp-btn-code-input" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $name ); ?>" rows="8" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="20000" placeholder="<?php echo esc_attr( $placeholder ); ?>" data-iftp-codebox="<?php echo esc_attr( $kind ); ?>" aria-describedby="<?php echo esc_attr( $id ); ?>-state"<?php echo $may ? '' : ' readonly'; ?>><?php echo esc_textarea( $value ); ?></textarea>
+		<textarea class="iftp-btn-field__control iftp-btn-code-input" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $name ); ?>" rows="8" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="30000" placeholder="<?php echo esc_attr( $placeholder ); ?>" data-iftp-codebox="<?php echo esc_attr( $kind ); ?>" aria-describedby="<?php echo esc_attr( $id ); ?>-state"<?php echo $may ? '' : ' readonly'; ?>><?php echo esc_textarea( $value ); ?></textarea>
 		<p class="iftp-btn-code-state" id="<?php echo esc_attr( $id ); ?>-state" data-iftp-code-state role="status"></p>
 		<?php if ( ! $may ) : ?>
 			<p class="iftp-btn-field__help"><?php esc_html_e( 'Only users who may post unfiltered HTML can change custom code.', 'ifthenpay-pay-button' ); ?></p>

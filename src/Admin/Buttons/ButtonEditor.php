@@ -406,7 +406,7 @@ class ButtonEditor {
 		<div class="iftp-btn-design" data-iftp-when-source="code"<?php echo ButtonDesign::SOURCE_CODE === $design['source'] ? '' : ' hidden'; ?>>
 			<?php CodeFields::render_button_code( $button->config['code'] ); ?>
 		</div>
-		<div class="iftp-btn-makedefault" data-iftp-when-source="theme custom"<?php echo ButtonDesign::SOURCE_SITE === $design['source'] ? ' hidden' : ''; ?>>
+		<div class="iftp-btn-makedefault" data-iftp-when-source="theme custom advanced"<?php echo ButtonDesign::SOURCE_SITE === $design['source'] ? ' hidden' : ''; ?>>
 			<p class="iftp-btn-makedefault__text"><?php esc_html_e( 'Like it? Make it the default design: every button set to Default design wears it, and this one switches to it.', 'ifthenpay-pay-button' ); ?></p>
 			<button type="submit" class="iftp-btn-btn iftp-btn-btn--secondary" name="make_default" value="1"><?php esc_html_e( 'Save and make it the default', 'ifthenpay-pay-button' ); ?></button>
 		</div>

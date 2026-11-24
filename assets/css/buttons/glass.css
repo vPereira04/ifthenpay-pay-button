@@ -135,9 +135,12 @@ body.iftp-btn-screen .iftp-btn-glass .iftp-btn-bcard__toggle input.iftp-btn-bcar
 		var(--g-stage);
 }
 
-.iftp-btn-glass .iftp-btn-bcard__status,
 .iftp-btn-glass .iftp-btn-bcard__badge {
 	background: var(--g-card);
+	font-weight: 800;
+}
+
+.iftp-btn-glass .iftp-btn-bcard__status {
 	font-weight: 800;
 }
 

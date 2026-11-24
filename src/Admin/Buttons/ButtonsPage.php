@@ -19,6 +19,7 @@ use Ifthenpay\PayButton\Admin\Toast;
 use Ifthenpay\PayButton\Ai\Studio;
 use Ifthenpay\PayButton\Ajax\SettingsController;
 use Ifthenpay\PayButton\Bridge\PayLinks;
+use Ifthenpay\PayButton\Buttons\Advanced;
 use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
@@ -108,6 +109,13 @@ class ButtonsPage {
 	 * @var CheckoutSettings
 	 */
 	private CheckoutSettings $checkout_settings;
+
+	/**
+	 * The Advanced designs already printed on the list, by slug, so each is carried once.
+	 *
+	 * @var array<string, bool>
+	 */
+	private array $designs = array();
 
 	/**
 	 * Sets up the screen.
@@ -210,10 +218,11 @@ class ButtonsPage {
 				'lookSkins'    => CheckoutLook::card_skins(),
 				'siteLook'     => self::site_look_for_js(),
 				'siteDesign'   => $this->checkout_settings->get_button_design(),
+				'advanced'     => Advanced::script_data( wp_create_nonce( self::AJAX_NONCE ) ),
 				'sample'       => CheckoutSettingsPage::sample_values(),
 				'i18n'         => array(
 					'codeOk'      => __( 'Looks good.', 'ifthenpay-pay-button' ),
-					'codeLength'  => __( 'Too long: 20,000 characters at most.', 'ifthenpay-pay-button' ),
+					'codeLength'  => __( 'Too long: 30,000 characters at most.', 'ifthenpay-pay-button' ),
 					'codeOpen'    => __( 'A bracket or a quote is never closed.', 'ifthenpay-pay-button' ),
 					'codeBanned'  => __( 'Not allowed here: a closing script tag or an HTML comment opener, which would break the page.', 'ifthenpay-pay-button' ),
 					'codeNest'    => __( '@import, @layer and similar at-rules cannot sit inside one button\'s scope. Use @media or @supports.', 'ifthenpay-pay-button' ),
@@ -352,11 +361,11 @@ class ButtonsPage {
 						'opFilled'        => __( 'is filled in', 'ifthenpay-pay-button' ),
 						'opEmpty'         => __( 'is left empty', 'ifthenpay-pay-button' ),
 						'whenNumber'      => __( 'Number', 'ifthenpay-pay-button' ),
-						'opContains'    => __( 'contains', 'ifthenpay-pay-button' ),
-						'opEquals'      => __( 'is exactly', 'ifthenpay-pay-button' ),
-						'opNotEquals'   => __( 'is not', 'ifthenpay-pay-button' ),
-						'whenText'      => __( 'Text', 'ifthenpay-pay-button' ),
-						'whenTypeText'  => __( 'Type the text to look for, or this stays shown for everyone.', 'ifthenpay-pay-button' ),
+						'opContains'      => __( 'contains', 'ifthenpay-pay-button' ),
+						'opEquals'        => __( 'is exactly', 'ifthenpay-pay-button' ),
+						'opNotEquals'     => __( 'is not', 'ifthenpay-pay-button' ),
+						'whenText'        => __( 'Text', 'ifthenpay-pay-button' ),
+						'whenTypeText'    => __( 'Type the text to look for, or this stays shown for everyone.', 'ifthenpay-pay-button' ),
 						'whenType'        => __( 'Type the number to compare with, or this stays shown for everyone.', 'ifthenpay-pay-button' ),
 						'showPage'        => __( 'Show this page', 'ifthenpay-pay-button' ),
 						'pageRules'       => __( 'Show this page only for some answers', 'ifthenpay-pay-button' ),
@@ -540,10 +549,10 @@ class ButtonsPage {
 	public static function nav_menu(): string {
 		$label = __( 'Pay Button menu', 'ifthenpay-pay-button' );
 		$items = array(
-			Menu::SLUG                         => __( 'Buttons', 'ifthenpay-pay-button' ),
-			EntriesPage::PAGE_SLUG             => __( 'Payments', 'ifthenpay-pay-button' ),
-			ConfigurationPage::PAGE_SLUG       => __( 'Configuration', 'ifthenpay-pay-button' ),
-			CheckoutSettingsPage::PAGE_SLUG    => __( 'Default Design', 'ifthenpay-pay-button' ),
+			Menu::SLUG                      => __( 'Buttons', 'ifthenpay-pay-button' ),
+			EntriesPage::PAGE_SLUG          => __( 'Payments', 'ifthenpay-pay-button' ),
+			ConfigurationPage::PAGE_SLUG    => __( 'Configuration', 'ifthenpay-pay-button' ),
+			CheckoutSettingsPage::PAGE_SLUG => __( 'Default Design', 'ifthenpay-pay-button' ),
 		);
 
 		// Payments only exists once a Backoffice Key is connected.
@@ -753,6 +762,12 @@ class ButtonsPage {
 					<?php foreach ( $buttons as $button ) : ?>
 						<?php $this->render_card( $button, $stats[ $button->id ] ?? null, $taken[ $button->id ]['total'] ?? 0, $opens[ $button->id ]['opens'] ?? 0, $opens[ $button->id ]['since'] ?? 0, $paid[ $button->id ] ?? 0, $links, $order[ $button->id ] ); ?>
 					<?php endforeach; ?>
+					<?php
+					// Each design's script runs once over every card that wears it, now that they are all in the page.
+					foreach ( array_keys( $this->designs ) as $slug ) {
+						echo '<script>' . CustomCode::scope_js( Advanced::scope_name( $slug ), 'button', Advanced::js( $slug ) ) . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own file.
+					}
+					?>
 					<li class="iftp-btn-bcard iftp-btn-bcard--new" data-iftp-bcard-new>
 						<a class="iftp-btn-bcard__half iftp-btn-bcard__half--new" href="<?php echo esc_url( self::edit_url( 0 ) ); ?>">
 							<span class="iftp-btn-bcard__new-icon" aria-hidden="true"><?php echo self::icon( 'plus' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></span>
@@ -1029,6 +1044,7 @@ class ButtonsPage {
 			'paid'      => __( 'Most paid', 'ifthenpay-pay-button' ),
 			'title'     => __( 'Name (A–Z)', 'ifthenpay-pay-button' ),
 		);
+		$sizes   = array( 20, 40, 60 );
 		$views   = array(
 			'grid' => __( 'Grid view', 'ifthenpay-pay-button' ),
 			'list' => __( 'List view', 'ifthenpay-pay-button' ),
@@ -1050,6 +1066,19 @@ class ButtonsPage {
 				</select>
 			</label>
 			<label class="iftp-btn-btoolbar__select">
+				<span class="screen-reader-text"><?php esc_html_e( 'Look', 'ifthenpay-pay-button' ); ?></span>
+				<select class="iftp-btn-bselect" data-iftp-blook>
+					<option value=""><?php esc_html_e( 'All looks', 'ifthenpay-pay-button' ); ?></option>
+					<option value="look:site"><?php esc_html_e( 'Default design', 'ifthenpay-pay-button' ); ?></option>
+					<option value="look:theme"><?php esc_html_e( 'Theme look', 'ifthenpay-pay-button' ); ?></option>
+					<option value="look:custom"><?php esc_html_e( 'Custom look', 'ifthenpay-pay-button' ); ?></option>
+					<option value="look:advanced"><?php esc_html_e( 'Advanced design', 'ifthenpay-pay-button' ); ?></option>
+					<option value="look:code"><?php esc_html_e( 'Drawn in code', 'ifthenpay-pay-button' ); ?></option>
+					<option value="checkout:own"><?php esc_html_e( 'Custom checkout look', 'ifthenpay-pay-button' ); ?></option>
+					<option value="checkout:code"><?php esc_html_e( 'Drawn checkout page', 'ifthenpay-pay-button' ); ?></option>
+				</select>
+			</label>
+			<label class="iftp-btn-btoolbar__select">
 				<span class="screen-reader-text"><?php esc_html_e( 'Sort by', 'ifthenpay-pay-button' ); ?></span>
 				<select class="iftp-btn-bselect" data-iftp-bsort>
 					<?php foreach ( $sorts as $key => $label ) : ?>
@@ -1057,6 +1086,18 @@ class ButtonsPage {
 					<?php endforeach; ?>
 				</select>
 			</label>
+			<div class="iftp-btn-bsize">
+				<label class="iftp-btn-btoolbar__select">
+					<span class="screen-reader-text"><?php esc_html_e( 'Cards per page', 'ifthenpay-pay-button' ); ?></span>
+					<select class="iftp-btn-bselect" data-iftp-bsize>
+						<?php foreach ( $sizes as $size ) : ?>
+							<option value="<?php echo esc_attr( (string) $size ); ?>"><?php /* translators: %s: number of cards on a page */ echo esc_html( sprintf( __( '%s per page', 'ifthenpay-pay-button' ), number_format_i18n( $size ) ) ); ?></option>
+						<?php endforeach; ?>
+						<option value="custom"><?php esc_html_e( 'Custom', 'ifthenpay-pay-button' ); ?></option>
+					</select>
+				</label>
+				<input type="number" class="iftp-btn-bsize__custom" min="2" max="200" step="1" value="20" data-iftp-bsize-custom aria-label="<?php esc_attr_e( 'Custom cards per page', 'ifthenpay-pay-button' ); ?>" hidden />
+			</div>
 			<div class="iftp-btn-bfilter" role="group" aria-label="<?php esc_attr_e( 'Show', 'ifthenpay-pay-button' ); ?>">
 				<?php foreach ( $filters as $key => $filter ) : ?>
 					<button type="button" class="iftp-btn-bfilter__option" data-iftp-bfilter="<?php echo esc_attr( $key ); ?>" aria-pressed="<?php echo 'all' === $key ? 'true' : 'false'; ?>">
@@ -1134,21 +1175,26 @@ class ButtonsPage {
 	 * @param int                                                         $order  Its place newest first, for the Newest sort.
 	 */
 	private function render_card( Button $button, ?array $stats, int $taken, int $opens, int $since, int $paid, PayLinks $links, int $order ): void {
-		$shortcode  = sprintf( '[%1$s id="%2$d"]', Shortcode::TAG, $button->id );
-		$pay_link   = $links->url( $button );
-		$edit       = self::edit_url( $button->id );
-		$paid_count = null !== $stats ? $stats['paid_count'] : 0;
-		$limit      = Spots::capacity( $button );
-		$abandon    = CheckoutOpens::abandon_rate( $opens, $paid );
-		$share      = $limit > 0 ? min( 1.0, $taken / $limit ) : 0.0;
-		$sold_out   = self::sold_out( $button, $taken );
-		$looks      = array(
-			ButtonDesign::SOURCE_SITE   => __( 'Default design', 'ifthenpay-pay-button' ),
-			ButtonDesign::SOURCE_THEME  => __( 'Theme look', 'ifthenpay-pay-button' ),
-			ButtonDesign::SOURCE_CUSTOM => __( 'Custom look', 'ifthenpay-pay-button' ),
-			ButtonDesign::SOURCE_CODE   => __( 'Drawn in code', 'ifthenpay-pay-button' ),
+		$shortcode      = sprintf( '[%1$s id="%2$d"]', Shortcode::TAG, $button->id );
+		$pay_link       = $links->url( $button );
+		$edit           = self::edit_url( $button->id );
+		$paid_count     = null !== $stats ? $stats['paid_count'] : 0;
+		$limit          = Spots::capacity( $button );
+		$abandon        = CheckoutOpens::abandon_rate( $opens, $paid );
+		$share          = $limit > 0 ? min( 1.0, $taken / $limit ) : 0.0;
+		$sold_out       = self::sold_out( $button, $taken );
+		$looks          = array(
+			ButtonDesign::SOURCE_SITE     => __( 'Default design', 'ifthenpay-pay-button' ),
+			ButtonDesign::SOURCE_THEME    => __( 'Theme look', 'ifthenpay-pay-button' ),
+			ButtonDesign::SOURCE_CUSTOM   => __( 'Custom look', 'ifthenpay-pay-button' ),
+			ButtonDesign::SOURCE_ADVANCED => __( 'Advanced design', 'ifthenpay-pay-button' ),
+			ButtonDesign::SOURCE_CODE     => __( 'Drawn in code', 'ifthenpay-pay-button' ),
 		);
-		$payments   = add_query_arg(
+		$checkout_looks = array(
+			Button::LOOK_OWN  => __( 'Custom checkout look', 'ifthenpay-pay-button' ),
+			Button::LOOK_CODE => __( 'Drawn checkout page', 'ifthenpay-pay-button' ),
+		);
+		$payments       = add_query_arg(
 			array(
 				'page'   => EntriesPage::PAGE_SLUG,
 				'button' => (string) $button->id,
@@ -1156,22 +1202,31 @@ class ButtonsPage {
 			admin_url( 'admin.php' )
 		);
 		?>
-		<li class="iftp-btn-bcard<?php echo $button->active ? '' : ' iftp-btn-bcard--off'; ?>" data-iftp-bcard data-id="<?php echo esc_attr( (string) $button->id ); ?>" data-title="<?php echo esc_attr( strtolower( remove_accents( $button->title ) ) ); ?>" data-active="<?php echo $button->active ? '1' : '0'; ?>" data-mode="<?php echo esc_attr( $button->mode() ); ?>" data-sold="<?php echo $sold_out ? '1' : '0'; ?>" data-collected="<?php echo esc_attr( (string) ( null !== $stats ? $stats['paid_amount'] : 0 ) ); ?>" data-paid="<?php echo esc_attr( (string) $paid_count ); ?>" data-order="<?php echo esc_attr( (string) $order ); ?>" data-edited="<?php echo esc_attr( (string) get_post_modified_time( 'U', true, $button->id ) ); ?>">
+		<li class="iftp-btn-bcard<?php echo $button->active ? '' : ' iftp-btn-bcard--off'; ?>" data-iftp-bcard data-id="<?php echo esc_attr( (string) $button->id ); ?>" data-title="<?php echo esc_attr( strtolower( remove_accents( $button->title ) ) ); ?>" data-active="<?php echo $button->active ? '1' : '0'; ?>" data-mode="<?php echo esc_attr( $button->mode() ); ?>" data-look="<?php echo esc_attr( (string) $button->config['design']['source'] ); ?>" data-checkout="<?php echo esc_attr( (string) $button->config['look_mode'] ); ?>" data-search="<?php echo esc_attr( strtolower( remove_accents( $button->title . ' ' . ( $looks[ $button->config['design']['source'] ] ?? '' ) . ( ButtonDesign::SOURCE_ADVANCED === $button->config['design']['source'] ? ' ' . ( Advanced::catalogue()[ $button->config['design']['advanced'] ]['name'] ?? '' ) : '' ) . ( Button::LOOK_SITE !== $button->config['look_mode'] ? ' ' . $checkout_looks[ $button->config['look_mode'] ] : '' ) ) ) ); ?>" data-sold="<?php echo $sold_out ? '1' : '0'; ?>" data-collected="<?php echo esc_attr( (string) ( null !== $stats ? $stats['paid_amount'] : 0 ) ); ?>" data-paid="<?php echo esc_attr( (string) $paid_count ); ?>" data-order="<?php echo esc_attr( (string) $order ); ?>" data-edited="<?php echo esc_attr( (string) get_post_modified_time( 'U', true, $button->id ) ); ?>">
 			<a class="iftp-btn-bcard__stage" href="<?php echo esc_url( $edit ); ?>" tabindex="-1" aria-hidden="true">
 				<?php
 				// A drawn button brings its own CSS, so its card shows the real design. The CSS was cleaned when it was saved (no tags can get in).
-				$drawn = ButtonRenderer::preview_css( $button );
-				echo '' !== $drawn ? '<style>' . $drawn . '</style>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CustomCode strips tags and checks the CSS on save.
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes; the attribute is an integer.
-				echo '<span class="iftp-btn-pay"' . ( '' !== $drawn ? ' data-iftp-code="' . (int) $button->id . '"' : '' ) . '>' . ButtonDesign::preview_markup( ButtonDesign::for_button( $button, $this->checkout_settings ), $button->display_label() ) . '</span>';
+				$design = ButtonDesign::for_button( $button, $this->checkout_settings );
+
+				// An Advanced design is the same code for every button that wears it, so the page carries it once, under the design's name, and each card only sets its colours.
+				if ( ButtonDesign::SOURCE_ADVANCED === $design['source'] && Advanced::has( $design['advanced'] ) ) {
+					if ( ! isset( $this->designs[ $design['advanced'] ] ) ) {
+						$this->designs[ $design['advanced'] ] = true;
+						echo '<style>' . CustomCode::scope_css( Advanced::scope_name( $design['advanced'] ), Advanced::css( $design['advanced'], array() ), 4, '{pointer-events:auto}' ) . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own file.
+					}
+
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes; the name is a slug from our list and the colours are hex.
+					echo '<span class="iftp-btn-pay" data-iftp-code="' . esc_attr( Advanced::scope_name( $design['advanced'] ) ) . '" style="' . esc_attr( Advanced::variables( $design['advanced'], $design['advanced_colors'] ) ) . '">' . ButtonDesign::preview_markup( $design, $button->display_label() ) . '</span>';
+				} else {
+					// A drawn button brings its own CSS, and its script too, so the card plays what the button plays.
+					$drawn    = ButtonRenderer::preview_css( $button, $this->checkout_settings );
+					$drawn_js = ButtonRenderer::preview_js( $button, $this->checkout_settings );
+					echo '' !== $drawn ? '<style>' . $drawn . '</style>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CustomCode strips tags and checks the CSS on save.
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes; the attribute is an integer.
+					echo '<span class="iftp-btn-pay"' . ( '' !== $drawn ? ' data-iftp-code="' . (int) $button->id . '"' : '' ) . '>' . ButtonDesign::preview_markup( $design, $button->display_label() ) . '</span>';
+					echo '' !== $drawn_js ? '<script>' . $drawn_js . '</script>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- saved only by users who may post unfiltered HTML, and checked on save (no closing script tag).
+				}
 				?>
-				<?php
-				// Its script too, once its preview is in the page, so the card plays what the button plays.
-				$drawn_js = ButtonRenderer::preview_js( $button );
-				echo '' !== $drawn_js ? '<script>' . $drawn_js . '</script>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- saved only by users who may post unfiltered HTML, and checked on save (no closing script tag).
-				?>
-				<span class="iftp-btn-bcard__status"><?php echo esc_html( $button->active ? __( 'Active', 'ifthenpay-pay-button' ) : __( 'Inactive', 'ifthenpay-pay-button' ) ); ?></span>
-				<span class="iftp-btn-bcard__look"><?php echo esc_html( $looks[ $button->config['design']['source'] ] ?? $looks[ ButtonDesign::SOURCE_THEME ] ); ?></span>
 				<?php if ( $sold_out ) : ?>
 					<span class="iftp-btn-bcard__badge iftp-btn-bcard__badge--sold"><?php esc_html_e( 'Sold out', 'ifthenpay-pay-button' ); ?></span>
 				<?php elseif ( $limit > 0 && $share >= self::ALMOST_FULL ) : ?>
@@ -1186,6 +1241,7 @@ class ButtonsPage {
 						<p class="iftp-btn-bcard__amount">
 							<span class="iftp-btn-bcard__mode iftp-btn-bcard__mode--<?php echo esc_attr( $button->mode() ); ?>"><?php echo esc_html( self::mode_label( $button ) ); ?></span>
 							<span><?php echo esc_html( self::amount_detail( $button ) ); ?></span>
+							<span class="iftp-btn-bcard__look"><?php echo esc_html( $looks[ $button->config['design']['source'] ] ?? $looks[ ButtonDesign::SOURCE_THEME ] ); ?></span>
 							<?php if ( $sold_out ) : ?>
 								<span class="iftp-btn-bcard__state iftp-btn-bcard__badge--sold"><?php esc_html_e( 'Sold out', 'ifthenpay-pay-button' ); ?></span>
 							<?php elseif ( $limit > 0 && $share >= self::ALMOST_FULL ) : ?>
@@ -1193,6 +1249,7 @@ class ButtonsPage {
 							<?php endif; ?>
 						</p>
 					</div>
+					<span class="iftp-btn-bcard__status"><?php echo esc_html( $button->active ? __( 'Active', 'ifthenpay-pay-button' ) : __( 'Inactive', 'ifthenpay-pay-button' ) ); ?></span>
 					<label class="iftp-btn-bcard__toggle">
 						<span class="screen-reader-text">
 							<?php

@@ -972,7 +972,7 @@
 				'--iftp-card-ring': cardRing( card ),
 				'--iftp-skin-a': String( Math.max( 0, Math.min( 100, parseInt( read( 'card_skin_strength' ), 10 ) ) ) / 100 ),
 				'--iftp-mark-size': Math.max( 40, Math.min( 480, parseInt( read( 'pay_mark_size' ), 10 ) || 160 ) ) + 'px',
-				'--iftp-body-bg': card < 100 ? 'transparent' : 'initial',
+				'--iftp-body-bg': card < 100 || read( 'card_skin' ) !== 'none' ? 'transparent' : 'initial',
 				'--iftp-page-video-blur': ( parseInt( read( 'pay_video_blur' ), 10 ) || 0 ) + 'px',
 			} );
 

@@ -56,8 +56,10 @@ class CheckoutLook {
 	public const POPUP_ICONS  = array( 'soft', 'solid' );
 	public const POPUP_ALIGNS = array( 'center', 'left' );
 	public const STEP_STYLES  = array( 'bars', 'labels', 'line', 'numbers', 'dots', 'ring', 'text', 'chevrons', 'stairs', 'pills', 'counter', 'gauge', 'pixel', 'donuts', 'pizza' );
-	public const PAY_BGS      = array( 'glow', 'plain', 'gradient', 'image', 'video' );
+	public const PAY_BGS      = array( 'glow', 'plain', 'gradient', 'image', 'video', 'none' );
 	public const PAY_GRADS    = array( 'soft', 'aurora', 'diagonal' );
+	// Effects no longer offered in the picker. They still draw, so a button that already uses one keeps its look.
+	public const RETIRED_FX = array( 'pizza', 'code', 'diner', 'ecg', 'waveform', 'court', 'track', 'pitch', 'sky', 'gingham' );
 	public const PAY_FX       = array( 'none', 'crystals', 'waves', 'bokeh', 'grain', 'dots', 'grid', 'stripes', 'rings', 'liquid', 'mesh', 'tide', 'gilt', 'rays', 'spotlight', 'starlight', 'satin', 'confetti', 'hexagons', 'diamonds', 'scales', 'chevrons', 'bubbles', 'fireflies', 'pixels', 'sprinkles', 'pizza', 'gingham', 'pitch', 'court', 'track', 'code', 'diner', 'ecg', 'waveform', 'sky' );
 	public const ANIMS        = array( 'grow', 'rise', 'slide', 'zoom', 'blur', 'drawer', 'voxel', 'waves', 'shutter', 'curtain', 'iris', 'ripple', 'pixelate', 'shatter', 'stripes', 'confetti', 'none' );
 	public const PAY_BLURS    = array( 'none', 'soft', 'frosted', 'tilt', 'vignette' );
@@ -699,7 +701,8 @@ class CheckoutLook {
 	/**
 	 * The class that tells the checkout popup how to open and close.
 	 *
-	 * @param Look $look The look.
+	 * @param array<string, mixed> $look The look.
+	 * @phpstan-param Look $look
 	 */
 	public static function anim_class( array $look ): string {
 		return 'iftp-btn-anim--' . $look['anim'];
@@ -989,7 +992,8 @@ class CheckoutLook {
 			// A see-through card: frosted behind, a fine light edge, and no opaque scroll shading inside.
 			'--iftp-card-filter'     => $glass && $look['card_blur'] > 0 ? 'blur(' . $look['card_blur'] . 'px) saturate(1.6)' : 'none',
 			'--iftp-card-ring'       => array() !== $ring ? implode( ', ', $ring ) : '0 0 #0000',
-			'--iftp-body-bg'         => $glass ? 'transparent' : 'initial',
+			// A card design (ruled lines, dots and so on) is painted on the card, so the body must not cover it with a solid colour.
+			'--iftp-body-bg'         => $glass || 'none' !== $look['card_skin'] ? 'transparent' : 'initial',
 			'--iftp-mark-size'       => $look['pay_mark_size'] . 'px',
 			'--iftp-skin-a'          => (string) ( $look['card_skin_strength'] / 100 ),
 			'--iftp-page-image'      => self::page_image( $look ),
@@ -1522,6 +1526,6 @@ class CheckoutLook {
 	public static function clean_css( string $css ): string {
 		$css = wp_strip_all_tags( $css );
 
-		return trim( mb_substr( str_replace( array( '<', '\\3c', '\\3C' ), '', $css ), 0, 20000 ) );
+		return trim( mb_substr( str_replace( array( '<', '\\3c', '\\3C' ), '', $css ), 0, 30000 ) );
 	}
 }

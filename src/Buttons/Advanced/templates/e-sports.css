@@ -1,0 +1,50 @@
+.iftp-btn-pay__button {
+	position: relative;
+	isolation: isolate;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 68px;
+	margin: 6px 0;
+	padding: 0 40px 0 124px;
+	border: 0;
+	border-radius: 0;
+	background: #0a0d18;
+	clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+	color: #fff;
+	font: italic 900 17px/1 "Segoe UI", system-ui, -apple-system, sans-serif;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	text-shadow: 0 0 10px var(--a1), 2px 2px 0 var(--a2);
+	white-space: nowrap;
+	cursor: pointer;
+	overflow: hidden;
+	-webkit-appearance: none;
+	appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	transition: transform 0.2s ease, filter 0.2s ease;
+}
+/* The neon edge: a big conic gradient that turns behind the plate, which sits 3px in from it. */
+.iftp-btn-pay__button::before { content: ""; position: absolute; left: 50%; top: 50%; width: 520px; height: 520px; margin: -260px 0 0 -260px; z-index: -2; background: conic-gradient(from 0deg, var(--a1), #0a0d18 25%, var(--a2) 50%, #0a0d18 75%, var(--a1)); }
+.iftp-btn-pay__button::after { content: ""; position: absolute; inset: 3px; z-index: -1; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px), radial-gradient(90% 160% at 12% 50%, hsl(from var(--a1) h s calc(l - 38) / 0.55), transparent 60%), linear-gradient(180deg, #131830, #080a14); clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
+.iftp-btn-pay__button:hover:not(:disabled), .iftp-btn-pay__button:focus-visible { transform: translateY(-2px); filter: brightness(1.12); }
+.iftp-btn-pay__button:hover:not(:disabled)::before, .iftp-btn-pay__button:focus-visible::before { animation: es-spin 2.4s linear infinite; }
+.iftp-btn-pay__button:active:not(:disabled) { transform: translateY(2px); }
+.iftp-btn-pay__button:focus-visible { outline: 3px solid var(--a1); outline-offset: 3px; }
+.iftp-btn-pay__button:disabled { cursor: not-allowed; opacity: 0.55; filter: grayscale(1); }
+.iftp-btn-pay__label { position: relative; z-index: 3; }
+/* The pad. */
+.es-ic { position: absolute; left: 14px; top: 50%; width: 100px; height: 62px; margin-top: -31px; z-index: 2; pointer-events: none; }
+.es-ic svg { display: block; width: 100px; height: 62px; overflow: visible; filter: drop-shadow(0 0 6px hsl(from var(--a1) h s l / 0.6)); }
+.es-bt { transform-box: fill-box; transform-origin: 50% 50%; }
+.es-lt { opacity: 0.35; }
+.es-pad { transform-box: view-box; transform-origin: 50px 31px; }
+.iftp-btn-pay__button:hover:not(:disabled) .es-pad, .iftp-btn-pay__button:focus-visible .es-pad { animation: es-rumble 0.18s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .es-bt, .iftp-btn-pay__button:focus-visible .es-bt { animation: es-press 1.6s ease-in-out infinite; animation-delay: calc(var(--i) * 0.2s); }
+.iftp-btn-pay__button:hover:not(:disabled) .es-lt, .iftp-btn-pay__button:focus-visible .es-lt { animation: es-led 0.8s steps(1) infinite; }
+@keyframes es-spin { to { rotate: 360deg; } }
+@keyframes es-rumble { 0% { translate: 0 0; } 25% { translate: 0.7px -0.5px; } 50% { translate: -0.6px 0.6px; } 75% { translate: 0.5px 0.4px; } 100% { translate: 0 0; } }
+@keyframes es-press { 0%, 40%, 100% { scale: 1; filter: brightness(0.75); } 10%, 25% { scale: 0.78; filter: brightness(1.7) drop-shadow(0 0 5px currentColor); } }
+@keyframes es-led { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .iftp-btn-pay__button *, .iftp-btn-pay__button::before { animation: none !important; } }

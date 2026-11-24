@@ -290,17 +290,25 @@ body.iftp-btn-screen .iftp-btn-looks__item:hover {
 	display: none;
 }
 
-/* Basketball and running keep their art in the padding too, so their samples drop the icon. */
+/* Basketball, deadlift, book and running keep their art in the padding too, so their samples drop the icon. */
 .iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--basketball,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--deadlift,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--book,
 .iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--running,
 .iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--basketball,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--deadlift,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--book,
 .iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--running {
 	--iftp-pb-size: 11px;
 }
 
 .iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--basketball .iftp-btn-pay__icon,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--deadlift .iftp-btn-pay__icon,
+.iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--book .iftp-btn-pay__icon,
 .iftp-btn-fxstyles__sample .iftp-btn-pay .iftp-btn-pay__button--running .iftp-btn-pay__icon,
 .iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--basketball .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--deadlift .iftp-btn-pay__icon,
+.iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--book .iftp-btn-pay__icon,
 .iftp-btn-fxpick__stage .iftp-btn-pay .iftp-btn-pay__button--running .iftp-btn-pay__icon {
 	display: none;
 }
@@ -792,15 +800,89 @@ body.iftp-btn-screen .iftp-btn-tags__chip:hover {
 }
 
 
-/* Default design, Theme, Custom and My own code. */
-.iftp-btn-segment--four {
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+/* Default design, Theme, Custom, Advanced and My own code (five), or without the default (three). */
+.iftp-btn-segment--five,
+.iftp-btn-segment--three {
+	grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
 }
 
-@media (min-width: 1200px) {
-	.iftp-btn-segment--four {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-	}
+/* Advanced: a tile for each drawn design. The drawing is its own size, so the sample is scaled down to fit the tile. */
+.iftp-btn-advpick {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 10px;
+	max-height: 460px;
+	padding: 2px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.iftp-btn-advpick__item {
+	position: relative;
+	display: grid;
+	min-width: 0;
+	border: 1px solid var(--iftp-line-strong);
+	border-radius: var(--iftp-r-md);
+	background: var(--iftp-raised);
+	color: var(--iftp-ink);
+	cursor: pointer;
+	transition: border-color var(--iftp-fast) var(--iftp-ease), box-shadow var(--iftp-mid) var(--iftp-ease);
+}
+
+.iftp-btn-advpick__item input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.iftp-btn-advpick__item:hover {
+	border-color: rgb(0 96 156 / 45%);
+}
+
+.iftp-btn-advpick__item:has(input:checked) {
+	border-color: var(--iftp-brand);
+	box-shadow: 0 0 0 1px var(--iftp-brand);
+}
+
+.iftp-btn-advpick__item:has(input:focus-visible) {
+	box-shadow: 0 0 0 1px var(--iftp-brand), var(--iftp-ring);
+}
+
+.iftp-btn-advpick__stage {
+	display: grid;
+	place-items: center;
+	min-height: 96px;
+	padding: 16px 8px;
+	overflow: hidden;
+	border-radius: calc(var(--iftp-r-md) - 1px) calc(var(--iftp-r-md) - 1px) 0 0;
+	background:
+		radial-gradient(circle at 1px 1px, rgb(18 26 44 / 8%) 1px, transparent 0) 0 0 / 12px 12px,
+		var(--iftp-surface);
+}
+
+/* advanced.js shrinks a wide drawing to fit its tile (zoom), so it is never cut off. */
+.iftp-btn-advpick__stage .iftp-btn-pay {
+	width: max-content;
+	max-width: none;
+}
+
+.iftp-btn-advpick__name {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 10px;
+	border-top: 1px solid var(--iftp-line);
+	font-size: 12.5px;
+	font-weight: 650;
+}
+
+.iftp-btn-advpick__item:has(input:checked) .iftp-btn-advpick__name::after {
+	content: "";
+	width: 6px;
+	height: 6px;
+	margin-left: auto;
+	border-radius: 50%;
+	background: var(--iftp-brand);
 }
 
 .iftp-btn-codepair {

@@ -1,0 +1,62 @@
+.iftp-btn-pay__button {
+	position: relative;
+	isolation: isolate;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 72px;
+	margin: 12px 0;
+	padding: 0 100px 0 118px;
+	border: 0;
+	border-radius: 12px;
+	background:
+		linear-gradient(135deg, rgba(255, 255, 255, 0.07) 25%, transparent 25%) -9px 0 / 18px 18px,
+		linear-gradient(225deg, rgba(255, 255, 255, 0.07) 25%, transparent 25%) -9px 0 / 18px 18px,
+		linear-gradient(315deg, rgba(0, 0, 0, 0.38) 25%, transparent 25%) 0 0 / 18px 18px,
+		linear-gradient(45deg, rgba(0, 0, 0, 0.38) 25%, transparent 25%) 0 0 / 18px 18px,
+		linear-gradient(180deg, hsl(from var(--a2) h s calc(l + 6)), hsl(from var(--a2) h s calc(l - 4)));
+	color: #fff;
+	font: 800 15px/1 ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+	white-space: nowrap;
+	cursor: pointer;
+	overflow: visible;
+	-webkit-appearance: none;
+	appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	box-shadow: inset 0 0 0 2px hsl(from var(--a2) h s calc(l + 16)), inset 0 0 0 3px rgba(0, 0, 0, 0.5), 0 5px 0 hsl(from var(--a2) h s calc(l - 12)), 0 16px 24px -8px hsl(from var(--a2) h s calc(l - 6) / 0.9);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.iftp-btn-pay__button:hover:not(:disabled), .iftp-btn-pay__button:focus-visible { transform: translateY(-2px); box-shadow: inset 0 0 0 2px hsl(from var(--a1) h s l / 0.8), inset 0 0 0 3px rgba(0, 0, 0, 0.5), 0 7px 0 hsl(from var(--a2) h s calc(l - 12)), 0 22px 30px -8px hsl(from var(--a1) h s l / 0.4); }
+.iftp-btn-pay__button:active:not(:disabled) { transform: translateY(3px); box-shadow: inset 0 0 0 2px hsl(from var(--a1) h s l / 0.8), 0 1px 0 hsl(from var(--a2) h s calc(l - 12)); }
+.iftp-btn-pay__button:focus-visible { outline: 3px solid var(--a1); outline-offset: 4px; }
+.iftp-btn-pay__button:disabled { cursor: not-allowed; opacity: 0.55; filter: grayscale(1); }
+.iftp-btn-pay__label { position: relative; z-index: 3; }
+/* The studio mic in its shock mount. */
+.pc-mic { position: absolute; left: 10px; top: 50%; width: 96px; height: 108px; margin-top: -54px; z-index: 2; pointer-events: none; filter: drop-shadow(0 6px 4px rgba(0, 0, 0, 0.55)); }
+.pc-mic svg { display: block; width: 96px; height: 108px; overflow: visible; }
+.pc-hd { transform-box: view-box; transform-origin: 48px 38px; }
+.pc-wv { transform-box: fill-box; transform-origin: 50% 50%; opacity: 0; }
+.pc-rc { opacity: 0.35; }
+/* The ON AIR sign. */
+.pc-sign { position: absolute; right: 14px; top: 50%; width: 68px; height: 30px; margin-top: -15px; z-index: 2; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border-radius: 7px; border: 2px solid hsl(from var(--a1) h s calc(l - 22)); background: hsl(from var(--a1) h s calc(l - 38)); color: hsl(from var(--a1) h s calc(l - 6) / 0.55); font: 900 11px/1 ui-rounded, "Segoe UI", system-ui, sans-serif; letter-spacing: 0.1em; text-shadow: none; box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.08), 0 2px 0 rgba(0, 0, 0, 0.5); pointer-events: none; }
+.pc-sign::before { content: ""; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: currentColor; }
+/* Equalizer bars under the sign. */
+.pc-eq { position: absolute; right: 18px; bottom: 9px; width: 60px; height: 12px; z-index: 2; display: flex; align-items: flex-end; justify-content: space-between; pointer-events: none; }
+.pc-eq i { display: block; width: 5px; height: 100%; border-radius: 2px; background: hsl(from var(--a1) h s calc(l + 4)); transform-origin: 50% 100%; transform: scaleY(0.2); opacity: 0.45; }
+.iftp-btn-pay__button:hover:not(:disabled) .pc-sign, .iftp-btn-pay__button:focus-visible .pc-sign { animation: pc-glow 1.4s ease-in-out infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .pc-eq i, .iftp-btn-pay__button:focus-visible .pc-eq i { animation: pc-bar 0.7s ease-in-out infinite alternate; animation-delay: calc(var(--n) * -0.17s); opacity: 1; }
+.iftp-btn-pay__button:hover:not(:disabled) .pc-hd, .iftp-btn-pay__button:focus-visible .pc-hd { animation: pc-hum 0.35s ease-in-out infinite alternate; }
+.iftp-btn-pay__button:hover:not(:disabled) .pc-wv, .iftp-btn-pay__button:focus-visible .pc-wv { animation: pc-wave 1.5s ease-out infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .pc-w2, .iftp-btn-pay__button:focus-visible .pc-w2 { animation-delay: 0.5s; }
+.iftp-btn-pay__button:hover:not(:disabled) .pc-w3, .iftp-btn-pay__button:focus-visible .pc-w3 { animation-delay: 1s; }
+.iftp-btn-pay__button:hover:not(:disabled) .pc-rc, .iftp-btn-pay__button:focus-visible .pc-rc { animation: pc-rec 1s steps(1) infinite; }
+@keyframes pc-glow { 0%, 100% { color: #fff; background: hsl(from var(--a1) h s calc(l - 4)); border-color: hsl(from var(--a1) h s calc(l + 14)); box-shadow: 0 0 10px 2px hsl(from var(--a1) h s l / 0.8), 0 0 22px 4px hsl(from var(--a1) h s l / 0.45); } 50% { color: #fff; background: hsl(from var(--a1) h s calc(l - 10)); border-color: hsl(from var(--a1) h s calc(l + 6)); box-shadow: 0 0 6px 1px hsl(from var(--a1) h s l / 0.6), 0 0 14px 2px hsl(from var(--a1) h s l / 0.3); } }
+@keyframes pc-bar { from { transform: scaleY(0.2); } to { transform: scaleY(1); } }
+@keyframes pc-hum { from { scale: 1; } to { scale: 1.025 0.985; } }
+@keyframes pc-wave { 0% { opacity: 0.9; scale: 0.6; } 100% { opacity: 0; scale: 1.5; } }
+@keyframes pc-rec { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .iftp-btn-pay__button * { animation: none !important; } }

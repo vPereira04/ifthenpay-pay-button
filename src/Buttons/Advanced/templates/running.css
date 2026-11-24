@@ -1,0 +1,62 @@
+.iftp-btn-pay__button {
+	position: relative;
+	isolation: isolate;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 70px;
+	margin: 12px 0;
+	padding: 0 58px 0 118px;
+	border: 0;
+	border-radius: 10px;
+	background:
+		radial-gradient(circle at 30% 40%, rgba(0, 0, 0, 0.12) 0 1px, transparent 1.6px) 0 0 / 9px 9px,
+		radial-gradient(110% 150% at 15% 0%, hsl(from var(--a1) h s calc(l + 14) / 0.85), transparent 62%),
+		linear-gradient(180deg, hsl(from var(--a1) h s calc(l + 3)), hsl(from var(--a1) h s calc(l - 9)));
+	color: #fff;
+	font: italic 900 18px/1 ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	text-shadow: 0 2px 0 hsl(from var(--a1) h s calc(l - 34)), 0 0 10px hsl(from var(--a1) h s calc(l - 34) / 0.45);
+	white-space: nowrap;
+	cursor: pointer;
+	overflow: visible;
+	-webkit-appearance: none;
+	appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	box-shadow: inset 0 0 0 3px hsl(from var(--a1) h s calc(l - 18)), 0 5px 0 hsl(from var(--a1) h s calc(l - 28)), 0 16px 22px -8px hsl(from var(--a1) h s calc(l - 30) / 0.85);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+/* The lane markings along the top and bottom of the track; they scroll past while the runner runs. */
+.iftp-btn-pay__button::before { content: ""; position: absolute; left: 8px; right: 8px; top: 9px; bottom: 9px; z-index: 0; background: linear-gradient(90deg, rgba(255, 255, 255, 0.88) 0 14px, transparent 14px 24px) 0 0 / 24px 2px repeat-x, linear-gradient(90deg, rgba(255, 255, 255, 0.88) 0 14px, transparent 14px 24px) 0 100% / 24px 2px repeat-x; pointer-events: none; animation: rn2-lane 0.36s linear infinite paused; }
+.iftp-btn-pay__button:hover:not(:disabled), .iftp-btn-pay__button:focus-visible { transform: translateY(-2px); }
+.iftp-btn-pay__button:hover:not(:disabled)::before, .iftp-btn-pay__button:focus-visible::before { animation-play-state: running; }
+.iftp-btn-pay__button:active:not(:disabled) { transform: translateY(3px); }
+.iftp-btn-pay__button:focus-visible { outline: 3px solid var(--a3); outline-offset: 4px; }
+.iftp-btn-pay__button:disabled { cursor: not-allowed; opacity: 0.55; filter: grayscale(1); }
+.iftp-btn-pay__label { position: relative; z-index: 3; }
+/* The runner: a side-view run cycle. At rest it holds a stride; on hover it runs. */
+.rn2-ic { position: absolute; left: 6px; top: 50%; width: 98px; height: 78px; margin-top: -41px; z-index: 2; pointer-events: none; }
+.rn2-ic svg { display: block; width: 98px; height: 78px; overflow: visible; }
+.rn2-ic svg g { transform-box: view-box; }
+.rn2-bd { animation: rn2-bob 0.36s ease-in-out infinite paused; animation-delay: -0.05s; filter: drop-shadow(0 3px 1px rgba(60, 14, 4, 0.45)); }
+.rn2-la, .rn2-lb { transform-origin: 44px 46px; animation: rn2-th 0.72s ease-in-out infinite paused; }
+.rn2-sa, .rn2-sb { transform-origin: 44px 61px; animation: rn2-sh 0.72s ease-in-out infinite paused; }
+.rn2-aa, .rn2-ab { transform-origin: 50px 24px; animation: rn2-ar 0.72s ease-in-out infinite paused; }
+.rn2-fa, .rn2-fb { transform-origin: 50px 35px; animation: rn2-fr 0.72s ease-in-out infinite paused; }
+.rn2-la, .rn2-sa, .rn2-ab, .rn2-fb { animation-delay: -0.1s; }
+.rn2-lb, .rn2-sb, .rn2-aa, .rn2-fa { animation-delay: -0.46s; }
+.rn2-sl { opacity: 0; }
+.iftp-btn-pay__button:hover:not(:disabled) .rn2-ic *, .iftp-btn-pay__button:focus-visible .rn2-ic * { animation-play-state: running; }
+.iftp-btn-pay__button:hover:not(:disabled) .rn2-sl, .iftp-btn-pay__button:focus-visible .rn2-sl { animation: rn2-streak 0.5s linear infinite; }
+.iftp-btn-pay__button:hover:not(:disabled) .rn2-s2, .iftp-btn-pay__button:focus-visible .rn2-s2 { animation-delay: 0.17s; }
+.iftp-btn-pay__button:hover:not(:disabled) .rn2-s3, .iftp-btn-pay__button:focus-visible .rn2-s3 { animation-delay: 0.33s; }
+@keyframes rn2-lane { to { background-position-x: -24px, -24px; } }
+@keyframes rn2-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2.4px; } }
+@keyframes rn2-th { 0%, 100% { rotate: -38deg; } 25% { rotate: -4deg; } 50% { rotate: 34deg; } 75% { rotate: 6deg; } }
+@keyframes rn2-sh { 0%, 100% { rotate: -8deg; } 25% { rotate: 12deg; } 50% { rotate: 28deg; } 75% { rotate: 88deg; } }
+@keyframes rn2-ar { 0%, 100% { rotate: -42deg; } 50% { rotate: 46deg; } }
+@keyframes rn2-fr { 0%, 100% { rotate: -88deg; } 50% { rotate: -52deg; } }
+@keyframes rn2-streak { 0% { translate: 8px 0; opacity: 0; } 20% { opacity: 0.95; } 100% { translate: -26px 0; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .iftp-btn-pay__button *, .iftp-btn-pay__button::before { animation: none !important; } }

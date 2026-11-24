@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Admin;
 
+use Ifthenpay\PayButton\Buttons\Advanced;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
 
@@ -91,59 +92,69 @@ class DesignControls {
 	 * @phpstan-param ButtonDesignConfig $design
 	 */
 	public function render( array $design ): void {
-		$custom     = ButtonDesign::SOURCE_CUSTOM === $design['source'];
-		$own        = ButtonDesign::SOURCE_SITE !== $design['source'];
-		$auto       = '' === $design['text'];
-		$auto2      = '' === $design['color2'];
-		$auto_bc    = '' === $design['border_color'];
-		$sources    = array(
-			ButtonDesign::SOURCE_SITE   => array( __( 'Default design', 'ifthenpay-pay-button' ), __( 'The same as every button set to it.', 'ifthenpay-pay-button' ) ),
-			ButtonDesign::SOURCE_THEME  => array( __( 'Match my theme', 'ifthenpay-pay-button' ), __( 'Looks like the other buttons on your site.', 'ifthenpay-pay-button' ) ),
-			ButtonDesign::SOURCE_CUSTOM => array( __( 'Custom', 'ifthenpay-pay-button' ), __( 'Your own colour, shape and size.', 'ifthenpay-pay-button' ) ),
-			ButtonDesign::SOURCE_CODE   => array( __( 'My own code', 'ifthenpay-pay-button' ), __( 'No styles from us. Your CSS and JavaScript do it.', 'ifthenpay-pay-button' ) ),
+		$custom      = ButtonDesign::SOURCE_CUSTOM === $design['source'];
+		$own         = ButtonDesign::SOURCE_SITE !== $design['source'];
+		$auto        = '' === $design['text'];
+		$auto2       = '' === $design['color2'];
+		$auto_bc     = '' === $design['border_color'];
+		$sources     = array(
+			ButtonDesign::SOURCE_SITE     => array( __( 'Default design', 'ifthenpay-pay-button' ), __( 'The same as every button set to it.', 'ifthenpay-pay-button' ) ),
+			ButtonDesign::SOURCE_THEME    => array( __( 'Match my theme', 'ifthenpay-pay-button' ), __( 'Looks like the other buttons on your site.', 'ifthenpay-pay-button' ) ),
+			ButtonDesign::SOURCE_CUSTOM   => array( __( 'Custom', 'ifthenpay-pay-button' ), __( 'Your own colour, shape and size.', 'ifthenpay-pay-button' ) ),
+			ButtonDesign::SOURCE_ADVANCED => array( __( 'Advanced', 'ifthenpay-pay-button' ), __( 'Drawn buttons for businesses, in your colours.', 'ifthenpay-pay-button' ) ),
+			ButtonDesign::SOURCE_CODE     => array( __( 'My own code', 'ifthenpay-pay-button' ), __( 'No styles from us. Your CSS and JavaScript do it.', 'ifthenpay-pay-button' ) ),
 		);
-		$sources    = $this->with_site ? $sources : array_intersect_key( $sources, array_flip( ButtonDesign::OWN_SOURCES ) );
-		$variants   = array(
-			'filled'    => __( 'Filled', 'ifthenpay-pay-button' ),
-			'outline'   => __( 'Outline', 'ifthenpay-pay-button' ),
-			'soft'      => __( 'Soft', 'ifthenpay-pay-button' ),
-			'aurora'    => __( 'Aurora', 'ifthenpay-pay-button' ),
-			'split'     => __( 'Split', 'ifthenpay-pay-button' ),
-			'halo'      => __( 'Halo', 'ifthenpay-pay-button' ),
-			'glass'     => __( 'Glass', 'ifthenpay-pay-button' ),
-			'3d'        => __( '3D', 'ifthenpay-pay-button' ),
-			'neon'      => __( 'Neon', 'ifthenpay-pay-button' ),
-			'brutal'    => __( 'Brutal', 'ifthenpay-pay-button' ),
-			'ghost'     => __( 'Ghost', 'ifthenpay-pay-button' ),
-			'luxe'      => __( 'Luxe', 'ifthenpay-pay-button' ),
-			'beam'      => __( 'Beam', 'ifthenpay-pay-button' ),
-			'clay'      => __( 'Clay', 'ifthenpay-pay-button' ),
-			'ticket'    => __( 'Ticket', 'ifthenpay-pay-button' ),
-			'gloss'     => __( 'Gloss', 'ifthenpay-pay-button' ),
-			'ring'      => __( 'Ring', 'ifthenpay-pay-button' ),
-			'stripe'    => __( 'Stripe', 'ifthenpay-pay-button' ),
-			'cut'       => __( 'Cut', 'ifthenpay-pay-button' ),
-			'checker'   => __( 'Checker', 'ifthenpay-pay-button' ),
-			'hazard'    => __( 'Hazard', 'ifthenpay-pay-button' ),
-			'scanline'  => __( 'Scanline', 'ifthenpay-pay-button' ),
-			'marquee'   => __( 'Marquee', 'ifthenpay-pay-button' ),
-			'pixel'     => __( 'Pixel', 'ifthenpay-pay-button' ),
-			'blueprint' => __( 'Blueprint', 'ifthenpay-pay-button' ),
-			'spectrum'  => __( 'Spectrum', 'ifthenpay-pay-button' ),
-			'glazed'    => __( 'Glazed', 'ifthenpay-pay-button' ),
-			'frosting'  => __( 'Frosting', 'ifthenpay-pay-button' ),
-			'pizza'     => __( 'Pizza', 'ifthenpay-pay-button' ),
-			'football'  => __( 'Football', 'ifthenpay-pay-button' ),
+		$sources     = $this->with_site ? $sources : array_intersect_key( $sources, array_flip( ButtonDesign::OWN_SOURCES ) );
+		$variants    = array(
+			'filled'     => __( 'Filled', 'ifthenpay-pay-button' ),
+			'outline'    => __( 'Outline', 'ifthenpay-pay-button' ),
+			'soft'       => __( 'Soft', 'ifthenpay-pay-button' ),
+			'aurora'     => __( 'Aurora', 'ifthenpay-pay-button' ),
+			'split'      => __( 'Split', 'ifthenpay-pay-button' ),
+			'halo'       => __( 'Halo', 'ifthenpay-pay-button' ),
+			'glass'      => __( 'Glass', 'ifthenpay-pay-button' ),
+			'3d'         => __( '3D', 'ifthenpay-pay-button' ),
+			'neon'       => __( 'Neon', 'ifthenpay-pay-button' ),
+			'brutal'     => __( 'Brutal', 'ifthenpay-pay-button' ),
+			'ghost'      => __( 'Ghost', 'ifthenpay-pay-button' ),
+			'luxe'       => __( 'Luxe', 'ifthenpay-pay-button' ),
+			'beam'       => __( 'Beam', 'ifthenpay-pay-button' ),
+			'clay'       => __( 'Clay', 'ifthenpay-pay-button' ),
+			'ticket'     => __( 'Ticket', 'ifthenpay-pay-button' ),
+			'gloss'      => __( 'Gloss', 'ifthenpay-pay-button' ),
+			'ring'       => __( 'Ring', 'ifthenpay-pay-button' ),
+			'stripe'     => __( 'Stripe', 'ifthenpay-pay-button' ),
+			'cut'        => __( 'Cut', 'ifthenpay-pay-button' ),
+			'checker'    => __( 'Checker', 'ifthenpay-pay-button' ),
+			'hazard'     => __( 'Hazard', 'ifthenpay-pay-button' ),
+			'scanline'   => __( 'Scanline', 'ifthenpay-pay-button' ),
+			'marquee'    => __( 'Marquee', 'ifthenpay-pay-button' ),
+			'pixel'      => __( 'Pixel', 'ifthenpay-pay-button' ),
+			'blueprint'  => __( 'Blueprint', 'ifthenpay-pay-button' ),
+			'spectrum'   => __( 'Spectrum', 'ifthenpay-pay-button' ),
+			'glazed'     => __( 'Glazed', 'ifthenpay-pay-button' ),
+			'frosting'   => __( 'Frosting', 'ifthenpay-pay-button' ),
+			'pizza'      => __( 'Pizza', 'ifthenpay-pay-button' ),
+			'football'   => __( 'Football', 'ifthenpay-pay-button' ),
 			'basketball' => __( 'Basketball', 'ifthenpay-pay-button' ),
-			'running'   => __( 'Running', 'ifthenpay-pay-button' ),
-			'coder'     => __( 'Coder', 'ifthenpay-pay-button' ),
-			'medic'     => __( 'Medic', 'ifthenpay-pay-button' ),
-			'music'     => __( 'Music', 'ifthenpay-pay-button' ),
-			'pilot'     => __( 'Pilot', 'ifthenpay-pay-button' ),
-			'school'    => __( 'School', 'ifthenpay-pay-button' ),
-			'cartoon'   => __( 'Cartoon', 'ifthenpay-pay-button' ),
+			'deadlift'   => __( 'Deadlift', 'ifthenpay-pay-button' ),
+			'running'    => __( 'Running', 'ifthenpay-pay-button' ),
+			'coder'      => __( 'Coder', 'ifthenpay-pay-button' ),
+			'medic'      => __( 'Medic', 'ifthenpay-pay-button' ),
+			'music'      => __( 'Music', 'ifthenpay-pay-button' ),
+			'pilot'      => __( 'Pilot', 'ifthenpay-pay-button' ),
+			'school'     => __( 'School', 'ifthenpay-pay-button' ),
+			'book'       => __( 'Book', 'ifthenpay-pay-button' ),
+			'cartoon'    => __( 'Cartoon', 'ifthenpay-pay-button' ),
 		);
-		$effects    = array(
+
+		// The retired styles only show for a button that already wears one, so it can still be seen and changed.
+		foreach ( ButtonDesign::RETIRED_VARIANTS as $retired ) {
+			if ( $retired !== $design['variant'] ) {
+				unset( $variants[ $retired ] );
+			}
+		}
+		$effects     = array(
 			'none'  => __( 'None', 'ifthenpay-pay-button' ),
 			'lift'  => __( 'Lift', 'ifthenpay-pay-button' ),
 			'grow'  => __( 'Grow', 'ifthenpay-pay-button' ),
@@ -154,7 +165,7 @@ class DesignControls {
 			'gild'  => __( 'Gild', 'ifthenpay-pay-button' ),
 			'tilt'  => __( 'Tilt', 'ifthenpay-pay-button' ),
 		);
-		$attentions = array(
+		$attentions  = array(
 			'none'      => __( 'None', 'ifthenpay-pay-button' ),
 			'pulse'     => __( 'Pulse', 'ifthenpay-pay-button' ),
 			'ripple'    => __( 'Ripple', 'ifthenpay-pay-button' ),
@@ -165,18 +176,18 @@ class DesignControls {
 			'breathe'   => __( 'Breathe', 'ifthenpay-pay-button' ),
 			'orbit'     => __( 'Orbit', 'ifthenpay-pay-button' ),
 		);
-		$borders    = array(
+		$borders     = array(
 			'solid'  => __( 'Solid', 'ifthenpay-pay-button' ),
 			'dashed' => __( 'Dashed', 'ifthenpay-pay-button' ),
 			'dotted' => __( 'Dotted', 'ifthenpay-pay-button' ),
 			'double' => __( 'Double', 'ifthenpay-pay-button' ),
 		);
-		$sizes      = array(
+		$sizes       = array(
 			'sm' => __( 'Small', 'ifthenpay-pay-button' ),
 			'md' => __( 'Medium', 'ifthenpay-pay-button' ),
 			'lg' => __( 'Large', 'ifthenpay-pay-button' ),
 		);
-		$icons      = array(
+		$icons       = array(
 			'none'     => __( 'None', 'ifthenpay-pay-button' ),
 			'lock'     => __( 'Lock', 'ifthenpay-pay-button' ),
 			'card'     => __( 'Card', 'ifthenpay-pay-button' ),
@@ -197,12 +208,12 @@ class DesignControls {
 			'filled'  => __( 'Filled', 'ifthenpay-pay-button' ),
 			'duotone' => __( 'Duotone', 'ifthenpay-pay-button' ),
 		);
-		$widths     = array(
+		$widths      = array(
 			'0' => __( 'Fit the text', 'ifthenpay-pay-button' ),
 			'1' => __( 'Full width', 'ifthenpay-pay-button' ),
 		);
 		?>
-		<fieldset class="iftp-btn-segment<?php echo $this->with_site ? ' iftp-btn-segment--four' : ' iftp-btn-segment--two'; ?>">
+		<fieldset class="iftp-btn-segment<?php echo $this->with_site ? ' iftp-btn-segment--five' : ' iftp-btn-segment--three'; ?>">
 			<legend class="screen-reader-text"><?php esc_html_e( 'Where the look comes from', 'ifthenpay-pay-button' ); ?></legend>
 			<?php foreach ( $sources as $source => $labels ) : ?>
 				<label class="iftp-btn-segment__option">
@@ -379,7 +390,7 @@ class DesignControls {
 				</span>
 			</label>
 
-			<div data-iftp-when-variant="aurora beam stripe checker hazard scanline marquee pixel blueprint glazed frosting pizza football basketball running coder medic music pilot school cartoon"<?php echo in_array( $design['variant'], array( 'aurora', 'beam', 'stripe', 'checker', 'hazard', 'scanline', 'marquee', 'pixel', 'blueprint', 'glazed', 'frosting', 'pizza', 'football', 'basketball', 'running', 'coder', 'medic', 'music', 'pilot', 'school', 'cartoon' ), true ) ? '' : ' hidden'; ?>>
+			<div data-iftp-when-variant="aurora beam stripe checker hazard scanline marquee pixel blueprint glazed frosting pizza football basketball deadlift running coder medic music pilot school book cartoon"<?php echo in_array( $design['variant'], array( 'aurora', 'beam', 'stripe', 'checker', 'hazard', 'scanline', 'marquee', 'pixel', 'blueprint', 'glazed', 'frosting', 'pizza', 'football', 'basketball', 'deadlift', 'running', 'coder', 'medic', 'music', 'pilot', 'school', 'book', 'cartoon' ), true ) ? '' : ' hidden'; ?>>
 				<label class="iftp-btn-np__toggle">
 					<input type="hidden" name="<?php echo esc_attr( $this->name( 'still' ) ); ?>" value="0" />
 					<input type="checkbox" class="iftp-btn-switch" name="<?php echo esc_attr( $this->name( 'still' ) ); ?>" value="1" <?php checked( $design['still'] ); ?> data-iftp-design="still" />
@@ -418,8 +429,10 @@ class DesignControls {
 			<?php self::close_fold(); ?>
 		</div>
 
+		<?php $this->render_advanced( $design ); ?>
+
 		<div class="iftp-btn-design iftp-btn-design__shared" data-iftp-when-source="theme custom"<?php echo $own ? '' : ' hidden'; ?>>
-			<?php self::open_fold( 'design-extras', __( 'Icon, width and logos', 'ifthenpay-pay-button' ), __( 'These work with your theme\'s look too.', 'ifthenpay-pay-button' ) ); ?>
+			<?php self::open_fold( 'design-extras', __( 'Icon and width', 'ifthenpay-pay-button' ), __( 'These work with your theme\'s look too.', 'ifthenpay-pay-button' ) ); ?>
 			<div class="iftp-btn-design__grid">
 				<fieldset class="iftp-btn-field iftp-btn-design__wide">
 					<legend class="iftp-btn-field__label"><?php esc_html_e( 'Icon', 'ifthenpay-pay-button' ); ?></legend>
@@ -461,6 +474,10 @@ class DesignControls {
 				</fieldset>
 			</div>
 
+			<?php self::close_fold(); ?>
+		</div>
+
+		<div class="iftp-btn-design iftp-btn-design__shared" data-iftp-when-source="theme custom advanced code"<?php echo $own ? '' : ' hidden'; ?>>
 			<label class="iftp-btn-np__toggle">
 				<input type="hidden" name="<?php echo esc_attr( $this->name( 'logos' ) ); ?>" value="0" />
 				<input type="checkbox" class="iftp-btn-switch" name="<?php echo esc_attr( $this->name( 'logos' ) ); ?>" value="1" <?php checked( $design['logos'] ); ?> data-iftp-design="logos" />
@@ -469,6 +486,57 @@ class DesignControls {
 					<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Payers see how they can pay before they click. Uses the methods this button offers.', 'ifthenpay-pay-button' ); ?></span>
 				</span>
 			</label>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Advanced: a tile for each drawn design, and the colours of the one picked. advanced.js draws the tiles once the page
+	 * asks for the library, and turns the colour boxes to the picked design's own.
+	 *
+	 * @param array<string, mixed> $design The design to show.
+	 * @phpstan-param ButtonDesignConfig $design
+	 */
+	private function render_advanced( array $design ): void {
+		$picked  = Advanced::has( $design['advanced'] ) ? $design['advanced'] : '';
+		$colors  = '' !== $picked ? Advanced::colors( $picked, $design['advanced_colors'] ) : array();
+		$roles   = Advanced::script_data()['roles'];
+		$names   = '' !== $picked ? Advanced::roles( $picked ) : array();
+		$shown   = ButtonDesign::SOURCE_ADVANCED === $design['source'];
+		$default = '' !== $picked ? Advanced::catalogue()[ $picked ]['colors'] : array();
+		?>
+		<div class="iftp-btn-design" data-iftp-when-source="advanced"<?php echo $shown ? '' : ' hidden'; ?> data-iftp-advanced>
+			<?php self::open_fold( 'design-advanced', __( 'Pick a design', 'ifthenpay-pay-button' ), __( 'Drawn in code, with motion on hover. Pick one, then change its colours.', 'ifthenpay-pay-button' ), true ); ?>
+			<div class="iftp-btn-field">
+				<span class="screen-reader-text" id="iftp-btn-advanced-label"><?php esc_html_e( 'Advanced design', 'ifthenpay-pay-button' ); ?></span>
+				<div class="iftp-btn-advpick" role="radiogroup" aria-labelledby="iftp-btn-advanced-label" data-iftp-advanced-grid>
+					<?php foreach ( Advanced::catalogue() as $slug => $entry ) : ?>
+						<label class="iftp-btn-advpick__item" data-iftp-advanced-item="<?php echo esc_attr( $slug ); ?>" data-colors="<?php echo esc_attr( implode( ',', $entry['colors'] ) ); ?>" data-label="<?php echo esc_attr( $entry['label'] ); ?>" data-roles="<?php echo esc_attr( implode( '|', Advanced::roles( $slug ) ) ); ?>">
+							<input type="radio" name="<?php echo esc_attr( $this->name( 'advanced' ) ); ?>" value="<?php echo esc_attr( $slug ); ?>" <?php checked( $picked, $slug ); ?> data-iftp-design="advanced" />
+							<span class="iftp-btn-advpick__stage" aria-hidden="true">
+								<span class="iftp-btn-pay" data-iftp-code="<?php echo esc_attr( Advanced::scope_name( $slug ) ); ?>" data-iftp-advanced-sample><span class="iftp-btn-pay__button iftp-btn-pay__button--code"><span class="iftp-btn-pay__label"><?php echo esc_html( $entry['label'] ); ?></span></span></span>
+							</span>
+							<span class="iftp-btn-advpick__name"><?php echo esc_html( $entry['name'] ); ?></span>
+						</label>
+					<?php endforeach; ?>
+				</div>
+			</div>
+			<?php self::close_fold(); ?>
+
+			<?php self::open_fold( 'design-advanced-colors', __( 'Colours', 'ifthenpay-pay-button' ), __( 'Every shade in the drawing follows these.', 'ifthenpay-pay-button' ), true ); ?>
+			<div class="iftp-btn-design__grid" data-iftp-advanced-colors>
+				<?php for ( $index = 0; $index < Advanced::MAX_COLORS; $index++ ) : ?>
+					<?php $color = $colors[ $index ] ?? '#888888'; ?>
+					<div class="iftp-btn-field" data-iftp-advanced-color="<?php echo esc_attr( (string) $index ); ?>"<?php echo isset( $colors[ $index ] ) ? '' : ' hidden'; ?>>
+						<label class="iftp-btn-field__label" for="iftp-btn-adv-color-<?php echo esc_attr( (string) $index ); ?>" data-iftp-advanced-role><?php echo esc_html( $names[ $index ] ?? $roles[ $index ] ); ?></label>
+						<span class="iftp-btn-color">
+							<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( $color ); ?>" aria-label="<?php echo esc_attr( $names[ $index ] ?? $roles[ $index ] ); ?>" data-iftp-color-for="iftp-btn-adv-color-<?php echo esc_attr( (string) $index ); ?>" />
+							<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="iftp-btn-adv-color-<?php echo esc_attr( (string) $index ); ?>" name="<?php echo esc_attr( $this->name( 'advanced_colors' ) . '[' . $index . ']' ); ?>" value="<?php echo esc_attr( isset( $colors[ $index ] ) ? $color : '' ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-design="advanced_color_<?php echo esc_attr( (string) $index ); ?>" data-default="<?php echo esc_attr( $default[ $index ] ?? '' ); ?>" />
+						</span>
+					</div>
+				<?php endfor; ?>
+			</div>
+			<p><button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-advanced-reset><?php esc_html_e( 'Back to the design\'s own colours', 'ifthenpay-pay-button' ); ?></button></p>
 			<?php self::close_fold(); ?>
 		</div>
 		<?php
@@ -713,7 +781,7 @@ class DesignControls {
 			<span class="iftp-btn-pay__logos" data-iftp-preview-logos<?php echo $design['logos'] && '' !== $logos ? '' : ' hidden'; ?>><span class="iftp-btn-pay__logos-label"><?php echo esc_html( CheckoutTexts::get( 'pay_with' ) ); ?></span><span class="iftp-btn-pay__logos-list" data-iftp-preview-logo-list><?php echo $logos; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the caller. ?></span></span>
 			</span>
 		</div>
-		<p class="iftp-btn-preview__note" data-iftp-theme-note<?php echo ButtonDesign::SOURCE_CUSTOM === $design['source'] ? ' hidden' : ''; ?>><?php esc_html_e( 'A close guess: on your pages it takes your theme\'s exact button style.', 'ifthenpay-pay-button' ); ?></p>
+		<p class="iftp-btn-preview__note" data-iftp-theme-note<?php echo in_array( $design['source'], array( ButtonDesign::SOURCE_CUSTOM, ButtonDesign::SOURCE_ADVANCED ), true ) ? ' hidden' : ''; ?>><?php esc_html_e( 'A close guess: on your pages it takes your theme\'s exact button style.', 'ifthenpay-pay-button' ); ?></p>
 		<?php
 	}
 }

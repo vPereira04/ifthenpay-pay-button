@@ -13,6 +13,7 @@ use Ifthenpay\PayButton\Admin\SchemeControl;
 use Ifthenpay\PayButton\Api\PaymentLinks;
 use Ifthenpay\PayButton\Api\ReturnHandler;
 use Ifthenpay\PayButton\Bridge\PayLinks;
+use Ifthenpay\PayButton\Buttons\Advanced;
 use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\ButtonDesign;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
@@ -232,17 +233,17 @@ class ButtonRenderer {
 	 * @return string The attributes its wrapper (or the pay page's <html>) carries, so the code finds it; '' when it has none.
 	 */
 	public function register_code( Button $button ): string {
-		$design_code = ButtonDesign::SOURCE_CODE === $button->config['design']['source'];
-		$page_code   = Button::LOOK_CODE === $button->config['look_mode'];
+		$drawn     = self::drawn( $button, $this->checkout_settings );
+		$page_code = Button::LOOK_CODE === $button->config['look_mode'];
 
-		if ( ! $design_code && ! $page_code ) {
+		if ( null === $drawn && ! $page_code ) {
 			return '';
 		}
 
 		if ( ! isset( $this->code[ $button->id ] ) ) {
 			$code  = $button->config['code'];
-			$css   = ( $design_code ? $code['button_css'] : '' ) . ( $page_code ? "\n" . $code['page_css'] : '' );
-			$js    = ( $design_code ? CustomCode::scope_js( $button->id, 'button', $code['button_js'] ) : '' ) . ( $page_code ? CustomCode::scope_js( $button->id, 'page', $code['page_js'] ) : '' );
+			$css   = ( null !== $drawn ? $drawn['css'] : '' ) . ( $page_code ? "\n" . $code['page_css'] : '' );
+			$js    = ( null !== $drawn ? CustomCode::scope_js( $button->id, 'button', $drawn['js'] ) : '' ) . ( $page_code ? CustomCode::scope_js( $button->id, 'page', $code['page_js'] ) : '' );
 			$scope = CustomCode::scope_selector( $button->id );
 
 			// @keyframes can't sit inside the scope's braces, so they go ahead of it at the top level.
@@ -260,22 +261,50 @@ class ButtonRenderer {
 	}
 
 	/**
+	 * The CSS and JavaScript that draw a button, when code does: the merchant's own ("My own code"), or an Advanced design in its
+	 * colours, which a button that follows the default design gets from the default.
+	 *
+	 * @param Button           $button   The button.
+	 * @param CheckoutSettings $settings Where the site's default design is kept.
+	 * @return array{css: string, js: string}|null Null when the button is styled by the plugin or the theme.
+	 */
+	public static function drawn( Button $button, CheckoutSettings $settings ): ?array {
+		$design = ButtonDesign::for_button( $button, $settings );
+
+		if ( ButtonDesign::SOURCE_CODE === $design['source'] ) {
+			return array(
+				'css' => $button->config['code']['button_css'],
+				'js'  => $button->config['code']['button_js'],
+			);
+		}
+
+		if ( ButtonDesign::SOURCE_ADVANCED === $design['source'] && Advanced::has( $design['advanced'] ) ) {
+			return array(
+				'css' => Advanced::css( $design['advanced'], $design['advanced_colors'] ),
+				'js'  => Advanced::js( $design['advanced'] ),
+			);
+		}
+
+		return null;
+	}
+
+	/**
 	 * A drawn button's CSS for its card on the Buttons screen, where the preview is a plain span: scoped like on the site, strong
 	 * enough to beat the card's own sizing rules, and with pointer events back so hovering it plays its hover. Only CSS: a drawn
 	 * button's script isn't run in a list, so it shows the CSS-only version, which is why drawn designs always carry one.
 	 *
-	 * @param Button $button The button.
+	 * @param Button           $button   The button.
+	 * @param CheckoutSettings $settings Where the site's default design is kept.
 	 * @return string The stylesheet, or '' for a button that isn't drawn.
 	 */
-	public static function preview_css( Button $button ): string {
-		if ( ButtonDesign::SOURCE_CODE !== $button->config['design']['source'] || '' === trim( $button->config['code']['button_css'] ) ) {
+	public static function preview_css( Button $button, CheckoutSettings $settings ): string {
+		$drawn = self::drawn( $button, $settings );
+
+		if ( null === $drawn || '' === trim( $drawn['css'] ) ) {
 			return '';
 		}
 
-		$scope                = CustomCode::scope_selector( $button->id );
-		list( $frames, $css ) = CustomCode::lift_keyframes( $button->id, $button->config['code']['button_css'] );
-
-		return ( '' !== $frames ? $frames . "\n" : '' ) . str_repeat( $scope, 4 ) . '{pointer-events:auto}' . "\n" . str_repeat( $scope, 4 ) . '{' . $css . "\n}";
+		return CustomCode::scope_css( (string) $button->id, $drawn['css'], 4, '{pointer-events:auto}' );
 	}
 
 	/**
@@ -283,11 +312,14 @@ class ButtonRenderer {
 	 * button plays: its own CSS-only look is only the fallback. It is the code the editor's own demo frame already runs on this
 	 * origin, and only a user who may post unfiltered HTML could save it.
 	 *
-	 * @param Button $button The button.
+	 * @param Button           $button   The button.
+	 * @param CheckoutSettings $settings Where the site's default design is kept.
 	 * @return string The script, or '' for a button that isn't drawn or has none.
 	 */
-	public static function preview_js( Button $button ): string {
-		return ButtonDesign::SOURCE_CODE === $button->config['design']['source'] ? CustomCode::scope_js( $button->id, 'button', $button->config['code']['button_js'] ) : '';
+	public static function preview_js( Button $button, CheckoutSettings $settings ): string {
+		$drawn = self::drawn( $button, $settings );
+
+		return null !== $drawn ? CustomCode::scope_js( $button->id, 'button', $drawn['js'] ) : '';
 	}
 
 	/**
@@ -375,7 +407,6 @@ class ButtonRenderer {
 				'method'      => CheckoutTexts::get( 'method' ),
 				'redirecting' => CheckoutTexts::get( 'redirecting' ),
 				'chooseOne'   => CheckoutTexts::get( 'choose_one' ),
-				'close'       => CheckoutTexts::get( 'close' ),
 				'number'      => array(
 					'whole' => CheckoutTexts::get( 'number_whole' ),
 					'min'   => CheckoutTexts::get( 'number_min' ),
@@ -1216,8 +1247,8 @@ class ButtonRenderer {
 	/**
 	 * A field's help line, if it has one.
 	 *
-	 * @param string $help The text.
-	 * @param string $id   Its id, for aria-describedby.
+	 * @param string             $help The text.
+	 * @param string             $id   Its id, for aria-describedby.
 	 * @param array<int, string> $tags The ids a live tag can name.
 	 */
 	private static function print_help( string $help, string $id, array $tags = array() ): void {

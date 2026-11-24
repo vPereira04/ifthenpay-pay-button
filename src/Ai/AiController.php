@@ -344,7 +344,9 @@ class AiController {
 			return __( 'Default design', 'ifthenpay-pay-button' );
 		}
 
-		return (string) get_post_field( 'post_title', (int) $target, 'raw' );
+		$title = get_post_field( 'post_title', (int) $target, 'raw' );
+
+		return is_string( $title ) ? $title : '';
 	}
 
 	/**
