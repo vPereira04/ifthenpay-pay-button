@@ -237,4 +237,16 @@ return array(
 		'colors' => array( '#8e1b2b', '#ffd86b', '#e63946' ),
 		'roles'  => array( 'Velvet', 'Gold', 'Bucket' ),
 	),
+	'pilates' => array(
+		'name'   => 'Pilates',
+		'label'  => 'Pay now',
+		'colors' => array( '#4d7566', '#f5cdbd' ),
+		'roles'  => array( 'Plate', 'Leggings' ),
+	),
+	'forms' => array(
+		'name'   => 'Forms',
+		'label'  => 'Pay now',
+		'colors' => array( '#1f4f9a', '#2fc58a', '#ffb52e' ),
+		'roles'  => array( 'Plate', 'Ticks', 'Pencil' ),
+	),
 );

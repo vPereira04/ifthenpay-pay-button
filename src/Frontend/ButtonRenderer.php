@@ -280,7 +280,7 @@ class ButtonRenderer {
 
 		if ( ButtonDesign::SOURCE_ADVANCED === $design['source'] && Advanced::has( $design['advanced'] ) ) {
 			return array(
-				'css' => Advanced::css( $design['advanced'], $design['advanced_colors'] ),
+				'css' => Advanced::css( $design['advanced'], $design['advanced_colors'], $design['advanced_size'] ),
 				'js'  => Advanced::js( $design['advanced'] ),
 			);
 		}

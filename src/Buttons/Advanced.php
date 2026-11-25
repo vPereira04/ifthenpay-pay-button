@@ -28,6 +28,11 @@ class Advanced {
 	// How many colours a design can have at most.
 	public const MAX_COLORS = 6;
 
+	// How big a design is drawn, in percent: the merchant can shrink it, or grow it a little, from what it was drawn at.
+	public const SIZE_MIN     = 50;
+	public const SIZE_MAX     = 120;
+	public const SIZE_DEFAULT = 100;
+
 	// The folder with the templates and the list.
 	private const DIR = __DIR__ . '/Advanced';
 
@@ -106,13 +111,35 @@ class Advanced {
 	}
 
 	/**
+	 * A size in percent, kept inside what a drawing can take.
+	 *
+	 * @param mixed $input What was sent.
+	 */
+	public static function sanitize_size( $input ): int {
+		return is_numeric( $input ) ? max( self::SIZE_MIN, min( self::SIZE_MAX, (int) $input ) ) : self::SIZE_DEFAULT;
+	}
+
+	/**
+	 * The declaration that draws a button at a size, or nothing at the size it was drawn at.
+	 *
+	 * @param int $size In percent.
+	 */
+	public static function zoom( int $size ): string {
+		return self::SIZE_DEFAULT === $size ? '' : 'zoom:' . ( self::sanitize_size( $size ) / 100 ) . ';';
+	}
+
+	/**
 	 * A design's CSS with its colours set, ready to go inside a button's scope.
 	 *
 	 * @param string             $slug   The design.
 	 * @param array<int, string> $picked The colours picked.
+	 * @param int                $size   How big it is drawn, in percent.
 	 */
-	public static function css( string $slug, array $picked ): string {
-		return self::variables( $slug, $picked ) . "\n" . self::read( $slug, 'css' );
+	public static function css( string $slug, array $picked, int $size = self::SIZE_DEFAULT ): string {
+		// Only the button is sized: the logos and the "pay with" line around it stay as they are.
+		$resize = self::SIZE_DEFAULT === $size ? '' : "\n.iftp-btn-pay__button{" . self::zoom( $size ) . '}';
+
+		return self::variables( $slug, $picked ) . "\n" . self::read( $slug, 'css' ) . $resize;
 	}
 
 	/**

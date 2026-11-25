@@ -538,6 +538,15 @@ class DesignControls {
 			</div>
 			<p><button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-advanced-reset><?php esc_html_e( 'Back to the design\'s own colours', 'ifthenpay-pay-button' ); ?></button></p>
 			<?php self::close_fold(); ?>
+
+			<?php self::open_fold( 'design-advanced-size', __( 'Size', 'ifthenpay-pay-button' ), __( 'Make the button smaller if it feels too big on your page.', 'ifthenpay-pay-button' ), true ); ?>
+			<div class="iftp-btn-field">
+				<label class="iftp-btn-field__label" for="iftp-btn-adv-size"><?php esc_html_e( 'Button size', 'ifthenpay-pay-button' ); ?> <output class="iftp-btn-range__value" for="iftp-btn-adv-size" data-iftp-advanced-size-out><?php echo esc_html( (string) $design['advanced_size'] ); ?>%</output></label>
+				<span class="iftp-btn-range">
+				<input type="range" class="iftp-btn-range__input" id="iftp-btn-adv-size" name="<?php echo esc_attr( $this->name( 'advanced_size' ) ); ?>" min="<?php echo esc_attr( (string) Advanced::SIZE_MIN ); ?>" max="<?php echo esc_attr( (string) Advanced::SIZE_MAX ); ?>" step="5" value="<?php echo esc_attr( (string) $design['advanced_size'] ); ?>" data-iftp-design="advanced_size" />
+				</span>
+			</div>
+			<?php self::close_fold(); ?>
 		</div>
 		<?php
 	}

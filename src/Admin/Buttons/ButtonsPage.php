@@ -1216,7 +1216,7 @@ class ButtonsPage {
 					}
 
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- preview_markup() escapes; the name is a slug from our list and the colours are hex.
-					echo '<span class="iftp-btn-pay" data-iftp-code="' . esc_attr( Advanced::scope_name( $design['advanced'] ) ) . '" style="' . esc_attr( Advanced::variables( $design['advanced'], $design['advanced_colors'] ) ) . '">' . ButtonDesign::preview_markup( $design, $button->display_label() ) . '</span>';
+					echo '<span class="iftp-btn-pay" data-iftp-code="' . esc_attr( Advanced::scope_name( $design['advanced'] ) ) . '" style="' . esc_attr( Advanced::variables( $design['advanced'], $design['advanced_colors'] ) . Advanced::zoom( $design['advanced_size'] ) ) . '">' . ButtonDesign::preview_markup( $design, $button->display_label() ) . '</span>';
 				} else {
 					// A drawn button brings its own CSS, and its script too, so the card plays what the button plays.
 					$drawn    = ButtonRenderer::preview_css( $button, $this->checkout_settings );

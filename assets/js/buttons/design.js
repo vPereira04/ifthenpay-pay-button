@@ -354,6 +354,7 @@
 			stopsAngle: parseInt( pick( 'stops_angle' ), 10 ) || 0,
 			stopsFlow: !! pick( 'stops_flow' ),
 			advanced: pick( 'advanced' ) || '',
+			advancedSize: Math.max( 50, Math.min( 120, parseInt( pick( 'advanced_size' ), 10 ) || 100 ) ),
 			advancedColors: [ 0, 1, 2, 3, 4, 5 ].map( function ( index ) {
 				return hex( pick( 'advanced_color_' + index ) );
 			} ),
@@ -402,6 +403,7 @@
 			stopsAngle: parseInt( stored.stops_angle, 10 ) || 0,
 			stopsFlow: !! stored.stops_flow,
 			advanced: stored.advanced || '',
+			advancedSize: Math.max( 50, Math.min( 120, parseInt( stored.advanced_size, 10 ) || 100 ) ),
 			advancedColors: ( Array.isArray( stored.advanced_colors ) ? stored.advanced_colors : [] ).map( hex ),
 		};
 
@@ -658,6 +660,7 @@
 
 		const radius = form.querySelector( '[data-iftp-design="radius"]' );
 		const radiusOut = form.querySelector( '[data-iftp-radius-out]' );
+		const sizeOut = form.querySelector( '[data-iftp-advanced-size-out]' );
 		const borderOut = form.querySelector( '[data-iftp-border-out]' );
 		const borderAuto = form.querySelector( '[data-iftp-design="border_color_auto"]' );
 		const borderBox = form.querySelector( '[data-iftp-border-color]' );
@@ -721,6 +724,10 @@
 					borderField.value = design.variant === 'brutal' ? '#121a2c' : design.color;
 					borderSwatch.value = borderField.value;
 				}
+			}
+
+			if ( sizeOut ) {
+				sizeOut.textContent = design.advancedSize + '%';
 			}
 
 			if ( radius && radiusOut ) {

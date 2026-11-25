@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The custom look is a few CSS variables plus BEM modifiers, so checkout.css does the drawing and the admin
  * preview uses the exact same rules.
  *
- * @phpstan-type ButtonDesignConfig array{source: string, variant: string, color: string, color2: string, text: string, radius: int, border_width: int, border_style: string, border_color: string, size: string, full: bool, icon: string, icon_style: string, shadow: bool, effect: string, attention: string, upper: bool, logos: bool, still: bool, font: string, stops: array<int, array{color: string, pos: int, spread: int, blur: int}>, stops_shape: string, stops_angle: int, stops_flow: bool, advanced: string, advanced_colors: array<int, string>}
+ * @phpstan-type ButtonDesignConfig array{source: string, variant: string, color: string, color2: string, text: string, radius: int, border_width: int, border_style: string, border_color: string, size: string, full: bool, icon: string, icon_style: string, shadow: bool, effect: string, attention: string, upper: bool, logos: bool, still: bool, font: string, stops: array<int, array{color: string, pos: int, spread: int, blur: int}>, stops_shape: string, stops_angle: int, stops_flow: bool, advanced: string, advanced_colors: array<int, string>, advanced_size: int}
  */
 class ButtonDesign {
 
@@ -153,6 +153,7 @@ class ButtonDesign {
 			'stops_flow'      => false,
 			'advanced'        => '',
 			'advanced_colors' => array( '', '', '', '', '', '' ),
+			'advanced_size'   => Advanced::SIZE_DEFAULT,
 		);
 	}
 
@@ -732,6 +733,7 @@ class ButtonDesign {
 		if ( Advanced::has( $input['advanced'] ?? null ) ) {
 			$design['advanced']        = $input['advanced'];
 			$design['advanced_colors'] = Advanced::sanitize_colors( $input['advanced_colors'] ?? null, $design['advanced'] );
+			$design['advanced_size']   = Advanced::sanitize_size( $input['advanced_size'] ?? null );
 		} elseif ( self::SOURCE_ADVANCED === $design['source'] ) {
 			$design['source'] = self::SOURCE_THEME;
 		}

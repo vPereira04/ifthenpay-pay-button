@@ -140,6 +140,14 @@
 
 			paint( holder, colors );
 
+			// The merchant's size is on the button alone; the holder's own zoom is only the squeeze to fit the room.
+			const drawn = holder.querySelector( '.iftp-btn-pay__button' );
+			const size = design.advancedSize || 100;
+
+			if ( drawn ) {
+				drawn.style.zoom = 100 === size ? '' : String( size / 100 );
+			}
+
 			const stage = holder.closest( '[data-iftp-stage]' ) || holder.parentElement;
 
 			fitWidth( holder, stage.clientWidth - 48 );

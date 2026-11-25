@@ -156,19 +156,15 @@
    -------------------------------------------------------------------------- */
 @media (width <= 480px) {
 
+	/* On a phone the card stays centred with the same gap on all four sides, so a bit of the background shows around it. */
 	.iftp-btn-sheet {
-		width: 100vw;
+		width: calc(100vw - 32px);
 		max-width: none;
-		max-height: 92dvh;
-		margin: auto 0 0;
-		border-radius: var(--iftp-radius) var(--iftp-radius) 0 0;
+		max-height: calc(100dvh - 32px);
+		margin: auto;
+		border-radius: var(--iftp-radius);
 	}
 
-	.iftp-btn-sheet[open] {
-		animation-name: iftp-btn-sheet;
-	}
-
-	/* On a phone the card still rises from the bottom, over the background. */
 	.iftp-btn-sheet--scene {
 		width: 100vw;
 		max-height: none;
@@ -177,24 +173,22 @@
 	}
 
 	.iftp-btn-sheet--scene[open] {
-		align-content: end;
-		padding: 48px 0 0;
-		animation-name: iftp-btn-fade;
+		padding: 16px;
 	}
 
 	.iftp-btn-sheet--scene > .iftp-btn-form,
 	.iftp-btn-sheet--scene > .iftp-btn-result__box {
 		max-width: none;
-		max-height: 92dvh;
-		border-radius: var(--iftp-radius) var(--iftp-radius) 0 0;
-		animation-name: iftp-btn-sheet;
+		max-height: calc(100dvh - 32px);
+		border-radius: var(--iftp-radius);
 	}
 
-	@keyframes iftp-btn-sheet {
+	.iftp-btn-page {
+		padding: 16px;
+	}
 
-		from {
-			transform: translateY(40px);
-		}
+	.iftp-btn-page .iftp-btn-form {
+		max-height: calc(100dvh - 32px);
 	}
 }
 
@@ -210,24 +204,6 @@
    the home-bar inset respected, and the trust footer folding away when the keyboard leaves little height.
    -------------------------------------------------------------------------- */
 @media (width <= 560px) {
-
-	/* A grabber on the card's edge says "this is a sheet". */
-	.iftp-btn-sheet:not(.iftp-btn-sheet--scene) .iftp-btn-form__header,
-	.iftp-btn-sheet--scene .iftp-btn-form__header {
-		position: relative;
-	}
-
-	.iftp-btn-form__header::before {
-		content: "";
-		position: absolute;
-		top: 7px;
-		left: 50%;
-		width: 36px;
-		height: 4px;
-		background: var(--iftp-line-strong);
-		border-radius: 999px;
-		transform: translateX(-50%);
-	}
 
 	.iftp-btn-form__header {
 		padding: 20px 16px 0;
