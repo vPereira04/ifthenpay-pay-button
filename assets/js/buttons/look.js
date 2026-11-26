@@ -556,7 +556,7 @@
 		// Same as CheckoutLook::card_awning(): eight stripes with a scalloped valance, as a layer over the card's top.
 		const cardAwning = function ( name ) {
 			if ( name !== 'awning' ) {
-				return { '--iftp-edge-on': 'none', '--iftp-edge-pos': 'static', '--iftp-edge-h': '0px', '--iftp-edge-bg': 'none', '--iftp-edge-fx': 'none', '--iftp-card-pad': '0px' };
+				return { '--iftp-edge-on': 'none', '--iftp-edge-pos': 'relative', '--iftp-edge-h': '0px', '--iftp-edge-bg': 'none', '--iftp-edge-fx': 'none', '--iftp-card-pad': '0px' };
 			}
 
 			const white = 'color-mix(in srgb, var(--iftp-brand) 6%, #fff)';
@@ -683,6 +683,36 @@
 
 			return '#' + [ 0, 1, 2 ].map( function ( at ) {
 				return ( '0' + Math.round( 0.06 * a[ at ] + 0.94 * b[ at ] ).toString( 16 ) ).slice( -2 );
+			} ).join( '' );
+		};
+
+		// Same as the deepening in CheckoutLook::dark_page(): the colour's hue and saturation (capped), at most 16% light.
+		const deepen = function ( color ) {
+			const c = channels( color ).map( function ( v ) {
+				return v / 255;
+			} );
+			const max = Math.max( c[ 0 ], c[ 1 ], c[ 2 ] );
+			const min = Math.min( c[ 0 ], c[ 1 ], c[ 2 ] );
+			const span = max - min;
+			let light = ( max + min ) / 2;
+			let sat = span === 0 ? 0 : span / ( 1 - Math.abs( 2 * light - 1 ) );
+			let hue = 0;
+
+			if ( span !== 0 ) {
+				hue = max === c[ 0 ] ? ( ( c[ 1 ] - c[ 2 ] ) / span ) % 6 : max === c[ 1 ] ? ( c[ 2 ] - c[ 0 ] ) / span + 2 : ( c[ 0 ] - c[ 1 ] ) / span + 4;
+			}
+
+			hue = ( hue * 60 + 360 ) % 360;
+			light = Math.min( light, 0.16 );
+			sat = Math.min( sat, 0.6 );
+
+			const chroma = ( 1 - Math.abs( 2 * light - 1 ) ) * sat;
+			const x = chroma * ( 1 - Math.abs( ( ( hue / 60 ) % 2 ) - 1 ) );
+			const m = light - chroma / 2;
+			const rgb = [ [ chroma, x, 0 ], [ x, chroma, 0 ], [ 0, chroma, x ], [ 0, x, chroma ], [ x, 0, chroma ], [ chroma, 0, x ] ][ Math.floor( hue / 60 ) % 6 ];
+
+			return '#' + rgb.map( function ( v ) {
+				return ( '0' + Math.round( ( v + m ) * 255 ).toString( 16 ) ).slice( -2 );
 			} ).join( '' );
 		};
 
@@ -856,7 +886,7 @@
 			const glassBlur = parseInt( read( 'card_blur' ), 10 ) || 0;
 
 			// Same as CheckoutLook::variables(): the card's edge, then the glass ring.
-			const cardRing = function ( opacity ) {
+			const cardRingParts = function ( opacity ) {
 				const longColor = 'color-mix(in srgb, var(--iftp-brand) 35%, var(--iftp-surface))';
 				const edges = {
 					hairline: [ 'inset 0 0 0 1px color-mix(in srgb, var(--iftp-second) 65%, transparent)' ],
@@ -881,9 +911,14 @@
 						return step + 'px ' + step + 'px 0 0 ' + longColor;
 					} ),
 				};
-				const ring = edges[ read( 'frame' ) ] || ( opacity < 100 ? [ 'inset 0 0 0 1px rgb(255 255 255 / 22%)' ] : [] );
 
-				return ring.length ? ring.join( ', ' ) : '0 0 #0000';
+				return edges[ read( 'frame' ) ] || ( opacity < 100 ? [ 'inset 0 0 0 1px rgb(255 255 255 / 22%)' ] : [] );
+			};
+			const joinRing = function ( parts ) {
+				return parts.length ? parts.join( ', ' ) : '0 0 #0000';
+			};
+			const cardRing = function ( opacity ) {
+				return joinRing( cardRingParts( opacity ) );
 			};
 			// Same as CheckoutLook::variables(): the button wears the fields' and the card edge's touch too.
 			const sharp = read( 'frame' ) === 'pixel' || read( 'fields' ) === 'pixel';
@@ -936,12 +971,16 @@
 				const darkSurface = hex( read( 'dark_surface' ) ) || '#131a2a';
 				const darkInk = hex( read( 'dark_ink' ) ) || '#eef2f8';
 
+				// Same as CheckoutLook::dark_page(): their own pick, else the light page colour kept in its hue but deep.
+				const lightPage = pageAuto ? '' : hex( read( 'pay_color' ) );
+				const darkPage = ! read( 'dark_page_auto' ) && hex( read( 'dark_page' ) ) ? hex( read( 'dark_page' ) ) : lightPage ? deepen( lightPage ) : pageColor( darkInk, darkSurface );
+
 				colors = palette( {
 					accent: darkAccent,
 					onBrand: darkAccentAuto ? onBrand : onColor( darkAccent ),
 					surface: darkSurface,
 					ink: darkInk,
-					page: pageColor( darkInk, darkSurface ),
+					page: darkPage,
 					second: ownSecond || darkAccent,
 				} );
 			}
@@ -970,6 +1009,9 @@
 				'--iftp-result-align': read( 'popup_align' ) === 'left' ? 'start' : 'center',
 				'--iftp-card-filter': card < 100 && glassBlur > 0 ? 'blur(' + glassBlur + 'px) saturate(1.6)' : 'none',
 				'--iftp-card-ring': cardRing( card ),
+				'--iftp-card-ring-in': joinRing( cardRingParts( card ).filter( function ( shadow ) {
+					return shadow.indexOf( 'inset' ) === 0;
+				} ) ),
 				'--iftp-skin-a': String( Math.max( 0, Math.min( 100, parseInt( read( 'card_skin_strength' ), 10 ) ) ) / 100 ),
 				'--iftp-mark-size': Math.max( 40, Math.min( 480, parseInt( read( 'pay_mark_size' ), 10 ) || 160 ) ) + 'px',
 				'--iftp-body-bg': card < 100 || read( 'card_skin' ) !== 'none' ? 'transparent' : 'initial',
@@ -1094,6 +1136,12 @@
 				}
 			}
 
+			const darkPageBox = form.querySelector( '[data-iftp-dark-page]' );
+
+			if ( darkPageBox && ! siteMode() ) {
+				darkPageBox.classList.toggle( 'is-auto', !! read( 'dark_page_auto' ) );
+			}
+
 			const darkAccentBox = form.querySelector( '[data-iftp-dark-accent]' );
 
 			if ( darkAccentBox && ! siteMode() ) {
@@ -1196,6 +1244,24 @@
 				} );
 				set( 'accent_text_auto', true );
 
+				// The dark side: a look without one (the dark looks) turns dark mode off, the others bring their colours.
+				set( 'dark', preset.dark || 'off' );
+
+				if ( preset.dark ) {
+					set( 'dark_surface', preset.dark_surface );
+					set( 'dark_ink', preset.dark_ink );
+					set( 'dark_accent_auto', ! preset.dark_accent );
+					set( 'dark_accent', preset.dark_accent || read( 'accent' ) );
+					set( 'dark_page_auto', ! preset.dark_page );
+					set( 'dark_page', preset.dark_page || preset.dark_surface );
+				}
+
+				const darkPicked = form.querySelector( '[data-iftp-look="dark"]:checked' );
+
+				if ( darkPicked ) {
+					darkPicked.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+				}
+
 				// Only the Pixel look sets the progress style; picking another look drops a pixel one.
 				if ( preset.steps ) {
 					set( 'steps', preset.steps );
@@ -1289,6 +1355,19 @@
 					pickScheme( 'dark' );
 				}
 			} );
+		} );
+
+		// Touching the dark page colour means they want their own.
+		[ form.querySelector( '[data-iftp-look="dark_page"]' ), form.querySelector( '[data-iftp-color-for="iftp-btn-look-dark_page"]' ) ].forEach( function ( input ) {
+			if ( input ) {
+				input.addEventListener( 'input', function () {
+					const auto = form.querySelector( '[data-iftp-look="dark_page_auto"]' );
+
+					if ( auto && auto.checked ) {
+						auto.checked = false;
+					}
+				} );
+			}
 		} );
 
 		// Touching the dark accent means they want their own.

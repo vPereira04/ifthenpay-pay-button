@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * A handful of base choices (colours, corners, field style, width, backdrop) that become CSS variables over
  * checkout.css's tokens; the shades in between are mixed in CSS from these. Then the merchant's own CSS, last.
  *
- * @phpstan-type Look array{accent: string, accent_text: string, surface: string, ink: string, radius: int, field_radius: int, fields: string, frame: string, card_skin: string, card_skin_strength: int, font: string, width: string, backdrop: string, anim: string, paid: string, pending: string, failed: string, popup_icon: string, popup_align: string, steps: string, logos: bool, secure: bool, pay_bg: string, pay_color: string, pay_image: int, pay_dim: int, pay_logo: bool, pay_mark: string, pay_mark_id: int, pay_mark_place: string, pay_mark_size: int, pay_back: bool, pay_grad: string, pay_color2: string, pay_fx: string, pay_fx_size: int, pay_fx_strength: int, pay_fx_still: bool, pay_blur_type: string, pay_blur: int, pay_video_src: string, pay_video: int, pay_video_url: string, pay_video_blur: int, pay_video_loop: string, pay_video_start: int, pay_video_end: int, card_opacity: int, card_blur: int, dark: string, dark_surface: string, dark_ink: string, dark_accent: string, scene: bool, css: string}
+ * @phpstan-type Look array{accent: string, accent_text: string, surface: string, ink: string, radius: int, field_radius: int, fields: string, frame: string, card_skin: string, card_skin_strength: int, font: string, width: string, backdrop: string, anim: string, paid: string, pending: string, failed: string, popup_icon: string, popup_align: string, steps: string, logos: bool, secure: bool, pay_bg: string, pay_color: string, pay_image: int, pay_dim: int, pay_logo: bool, pay_mark: string, pay_mark_id: int, pay_mark_place: string, pay_mark_size: int, pay_back: bool, pay_grad: string, pay_color2: string, pay_fx: string, pay_fx_size: int, pay_fx_strength: int, pay_fx_still: bool, pay_blur_type: string, pay_blur: int, pay_video_src: string, pay_video: int, pay_video_url: string, pay_video_blur: int, pay_video_loop: string, pay_video_start: int, pay_video_end: int, card_opacity: int, card_blur: int, dark: string, dark_surface: string, dark_ink: string, dark_accent: string, dark_page: string, scene: bool, css: string}
  */
 class CheckoutLook {
 
@@ -55,7 +55,7 @@ class CheckoutLook {
 	public const BACKDROPS    = array( 'blur', 'dim', 'light' );
 	public const POPUP_ICONS  = array( 'soft', 'solid' );
 	public const POPUP_ALIGNS = array( 'center', 'left' );
-	public const STEP_STYLES  = array( 'bars', 'labels', 'line', 'numbers', 'dots', 'ring', 'text', 'chevrons', 'stairs', 'pills', 'counter', 'gauge', 'pixel', 'donuts', 'pizza' );
+	public const STEP_STYLES  = array( 'bars', 'labels', 'line', 'numbers', 'dots', 'ring', 'text', 'chevrons', 'stairs', 'pills', 'counter', 'gauge', 'pixel', 'pizza' );
 	public const PAY_BGS      = array( 'glow', 'plain', 'gradient', 'image', 'video', 'none' );
 	public const PAY_GRADS    = array( 'soft', 'aurora', 'diagonal' );
 	// Effects no longer offered in the picker. They still draw, so a button that already uses one keeps its look.
@@ -134,6 +134,7 @@ class CheckoutLook {
 			'dark_surface'       => '#131a2a',
 			'dark_ink'           => '#eef2f8',
 			'dark_accent'        => '',
+			'dark_page'          => '',
 			'scene'              => true,
 			'css'                => '',
 		);
@@ -175,21 +176,26 @@ class CheckoutLook {
 			),
 			'midnight'   => array(
 				'label'           => __( 'Midnight', 'ifthenpay-pay-button' ),
-				'accent'          => '#7cc4ff',
-				'surface'         => '#141c2f',
-				'ink'             => '#eef2f8',
+				'accent'          => '#3157d5',
+				'surface'         => '#f6f8ff',
+				'ink'             => '#141c2f',
 				'radius'          => 22,
 				'field_radius'    => 12,
 				'fields'          => 'soft',
 				'pay_bg'          => 'gradient',
 				'pay_grad'        => 'aurora',
-				'pay_color'       => '#0a1020',
+				'pay_color'       => '#e6ebfb',
 				'pay_color2'      => '#6d5dfc',
 				'pay_fx'          => 'bokeh',
 				'pay_fx_size'     => 120,
 				'pay_fx_strength' => 40,
 				'card_opacity'    => 84,
 				'card_blur'       => 18,
+				'dark'            => 'auto',
+				'dark_surface'    => '#141c2f',
+				'dark_ink'        => '#eef2f8',
+				'dark_accent'     => '#7cc4ff',
+				'dark_page'       => '#0a1020',
 			),
 			'paper'      => array(
 				'label'           => __( 'Paper', 'ifthenpay-pay-button' ),
@@ -290,35 +296,45 @@ class CheckoutLook {
 			),
 			'neon'       => array(
 				'label'           => __( 'Neon', 'ifthenpay-pay-button' ),
-				'accent'          => '#22d3ee',
-				'surface'         => '#0f1424',
-				'ink'             => '#e6f6ff',
+				'accent'          => '#0891b2',
+				'surface'         => '#fbfdff',
+				'ink'             => '#0f1424',
 				'radius'          => 16,
 				'field_radius'    => 10,
 				'fields'          => 'outline',
 				'pay_bg'          => 'gradient',
 				'pay_grad'        => 'diagonal',
-				'pay_color'       => '#070b16',
+				'pay_color'       => '#eaf6fb',
 				'pay_color2'      => '#a855f7',
 				'pay_fx'          => 'crystals',
 				'pay_fx_size'     => 120,
 				'pay_fx_strength' => 35,
 				'card_opacity'    => 80,
 				'card_blur'       => 18,
+				'dark'            => 'auto',
+				'dark_surface'    => '#0f1424',
+				'dark_ink'        => '#e6f6ff',
+				'dark_accent'     => '#22d3ee',
+				'dark_page'       => '#070b16',
 			),
 			'noir'       => array(
 				'label'           => __( 'Noir', 'ifthenpay-pay-button' ),
-				'accent'          => '#e8b931',
-				'surface'         => '#131313',
-				'ink'             => '#f4f1ea',
+				'accent'          => '#a87b0a',
+				'surface'         => '#fbfaf7',
+				'ink'             => '#131313',
 				'radius'          => 8,
 				'field_radius'    => 4,
 				'fields'          => 'underline',
 				'pay_bg'          => 'plain',
-				'pay_color'       => '#060606',
+				'pay_color'       => '#ece9e2',
 				'pay_fx'          => 'grain',
 				'pay_fx_size'     => 140,
 				'pay_fx_strength' => 30,
+				'dark'            => 'auto',
+				'dark_surface'    => '#131313',
+				'dark_ink'        => '#f4f1ea',
+				'dark_accent'     => '#e8b931',
+				'dark_page'       => '#060606',
 			),
 			'latte'      => array(
 				'label'           => __( 'Latte', 'ifthenpay-pay-button' ),
@@ -337,10 +353,9 @@ class CheckoutLook {
 			),
 			'pixel'      => array(
 				'label'           => __( 'Pixel', 'ifthenpay-pay-button' ),
-				'accent'          => '#22c55e',
-				'accent_text'     => '#07130b',
-				'surface'         => '#1b1340',
-				'ink'             => '#f5f1ff',
+				'accent'          => '#16a34a',
+				'surface'         => '#f5f1ff',
+				'ink'             => '#1b1340',
 				'radius'          => 0,
 				'field_radius'    => 0,
 				'fields'          => 'pixel',
@@ -349,20 +364,24 @@ class CheckoutLook {
 				'steps'           => 'pixel',
 				'pay_bg'          => 'gradient',
 				'pay_grad'        => 'diagonal',
-				'pay_color'       => '#0f0a24',
+				'pay_color'       => '#e4dcff',
 				'pay_color2'      => '#ff3d81',
 				'pay_fx'          => 'pixels',
 				'pay_fx_size'     => 120,
 				'pay_fx_strength' => 60,
 				'pay_fx_still'    => false,
 				'card_opacity'    => 100,
+				'dark'            => 'auto',
+				'dark_surface'    => '#1b1340',
+				'dark_ink'        => '#f5f1ff',
+				'dark_accent'     => '#22c55e',
+				'dark_page'       => '#0f0a24',
 			),
 			'terminal'   => array(
 				'label'           => __( 'Terminal', 'ifthenpay-pay-button' ),
-				'accent'          => '#4ade80',
-				'accent_text'     => '#04130a',
-				'surface'         => '#0a120d',
-				'ink'             => '#c8f7d6',
+				'accent'          => '#15803d',
+				'surface'         => '#f3fbf5',
+				'ink'             => '#0a2a14',
 				'radius'          => 2,
 				'field_radius'    => 0,
 				'fields'          => 'underline',
@@ -370,13 +389,18 @@ class CheckoutLook {
 				'font'            => 'vt323',
 				'steps'           => 'counter',
 				'pay_bg'          => 'plain',
-				'pay_color'       => '#040806',
+				'pay_color'       => '#e1f3e6',
 				'pay_color2'      => '#4ade80',
 				'pay_fx'          => 'grid',
 				'pay_fx_size'     => 100,
 				'pay_fx_strength' => 45,
 				'pay_fx_still'    => false,
 				'card_opacity'    => 100,
+				'dark'            => 'auto',
+				'dark_surface'    => '#0a120d',
+				'dark_ink'        => '#c8f7d6',
+				'dark_accent'     => '#4ade80',
+				'dark_page'       => '#040806',
 			),
 			'brutal'     => array(
 				'label'           => __( 'Brutal', 'ifthenpay-pay-button' ),
@@ -439,17 +463,16 @@ class CheckoutLook {
 			),
 			'premium'    => array(
 				'label'           => __( 'Premium', 'ifthenpay-pay-button' ),
-				'accent'          => '#c9a24a',
-				'accent_text'     => '#17130a',
-				'surface'         => '#16140f',
-				'ink'             => '#f4eddc',
+				'accent'          => '#8a6a1c',
+				'surface'         => '#fffdf8',
+				'ink'             => '#1a160c',
 				'radius'          => 6,
 				'field_radius'    => 0,
 				'fields'          => 'underline',
 				'frame'           => 'gilded',
 				'pay_bg'          => 'gradient',
 				'pay_grad'        => 'diagonal',
-				'pay_color'       => '#0b0a08',
+				'pay_color'       => '#f1ebdd',
 				'pay_color2'      => '#b8923a',
 				'pay_fx'          => 'rays',
 				'pay_fx_size'     => 120,
@@ -457,19 +480,24 @@ class CheckoutLook {
 				'pay_fx_still'    => false,
 				'card_opacity'    => 92,
 				'card_blur'       => 18,
+				'dark'            => 'auto',
+				'dark_surface'    => '#16140f',
+				'dark_ink'        => '#f4eddc',
+				'dark_accent'     => '#c9a24a',
+				'dark_page'       => '#0b0a08',
 			),
 			'emerald'    => array(
 				'label'           => __( 'Emerald', 'ifthenpay-pay-button' ),
-				'accent'          => '#3ddc97',
-				'surface'         => '#0f1f1a',
-				'ink'             => '#e7f6ee',
+				'accent'          => '#0f8a5a',
+				'surface'         => '#f6fcf9',
+				'ink'             => '#0f1f1a',
 				'radius'          => 18,
 				'field_radius'    => 10,
 				'fields'          => 'soft',
 				'frame'           => 'hairline',
 				'pay_bg'          => 'gradient',
 				'pay_grad'        => 'aurora',
-				'pay_color'       => '#06130f',
+				'pay_color'       => '#e3f5ec',
 				'pay_color2'      => '#1fa37a',
 				'pay_fx'          => 'starlight',
 				'pay_fx_size'     => 130,
@@ -477,6 +505,11 @@ class CheckoutLook {
 				'pay_fx_still'    => false,
 				'card_opacity'    => 86,
 				'card_blur'       => 18,
+				'dark'            => 'auto',
+				'dark_surface'    => '#0f1f1a',
+				'dark_ink'        => '#e7f6ee',
+				'dark_accent'     => '#3ddc97',
+				'dark_page'       => '#06130f',
 			),
 			'rose'       => array(
 				'label'           => __( 'Rosé', 'ifthenpay-pay-button' ),
@@ -498,20 +531,25 @@ class CheckoutLook {
 			),
 			'slate'      => array(
 				'label'           => __( 'Slate', 'ifthenpay-pay-button' ),
-				'accent'          => '#9ab4ff',
-				'surface'         => '#1b1f2a',
-				'ink'             => '#edf0f7',
+				'accent'          => '#4c6ef5',
+				'surface'         => '#ffffff',
+				'ink'             => '#1b1f2a',
 				'radius'          => 12,
 				'field_radius'    => 8,
 				'fields'          => 'outline',
 				'pay_bg'          => 'plain',
-				'pay_color'       => '#0d1017',
+				'pay_color'       => '#eceff6',
 				'pay_color2'      => '#6f8cff',
 				'pay_fx'          => 'spotlight',
 				'pay_fx_strength' => 45,
 				'pay_fx_still'    => false,
 				'card_opacity'    => 94,
 				'card_blur'       => 16,
+				'dark'            => 'auto',
+				'dark_surface'    => '#1b1f2a',
+				'dark_ink'        => '#edf0f7',
+				'dark_accent'     => '#9ab4ff',
+				'dark_page'       => '#0d1017',
 			),
 			'sunrise'    => array(
 				'label'           => __( 'Sunrise', 'ifthenpay-pay-button' ),
@@ -589,14 +627,14 @@ class CheckoutLook {
 			'koi'        => array(
 				'label'           => __( 'Koi', 'ifthenpay-pay-button' ),
 				'accent'          => '#0f766e',
-				'surface'         => '#0c1d24',
-				'ink'             => '#e6f4f2',
+				'surface'         => '#f4fbfa',
+				'ink'             => '#0c1d24',
 				'radius'          => 20,
 				'field_radius'    => 12,
 				'fields'          => 'soft',
 				'pay_bg'          => 'gradient',
 				'pay_grad'        => 'aurora',
-				'pay_color'       => '#05141a',
+				'pay_color'       => '#e2f3f1',
 				'pay_color2'      => '#f0803c',
 				'pay_fx'          => 'scales',
 				'pay_fx_size'     => 150,
@@ -604,6 +642,11 @@ class CheckoutLook {
 				'pay_fx_still'    => false,
 				'card_opacity'    => 86,
 				'card_blur'       => 18,
+				'dark'            => 'auto',
+				'dark_surface'    => '#0c1d24',
+				'dark_ink'        => '#e6f4f2',
+				'dark_accent'     => '',
+				'dark_page'       => '#05141a',
 			),
 			'arrow'      => array(
 				'label'           => __( 'Arrow', 'ifthenpay-pay-button' ),
@@ -645,16 +688,15 @@ class CheckoutLook {
 			),
 			'twilight'   => array(
 				'label'           => __( 'Twilight', 'ifthenpay-pay-button' ),
-				'accent'          => '#f2c14e',
-				'accent_text'     => '#1c1405',
-				'surface'         => '#141a2e',
-				'ink'             => '#f1efe6',
+				'accent'          => '#b7791f',
+				'surface'         => '#fbf9f3',
+				'ink'             => '#141a2e',
 				'radius'          => 22,
 				'field_radius'    => 12,
 				'fields'          => 'soft',
 				'pay_bg'          => 'gradient',
 				'pay_grad'        => 'aurora',
-				'pay_color'       => '#070b1a',
+				'pay_color'       => '#eceaf6',
 				'pay_color2'      => '#f2c14e',
 				'pay_fx'          => 'fireflies',
 				'pay_fx_size'     => 130,
@@ -662,6 +704,11 @@ class CheckoutLook {
 				'pay_fx_still'    => false,
 				'card_opacity'    => 84,
 				'card_blur'       => 18,
+				'dark'            => 'auto',
+				'dark_surface'    => '#141a2e',
+				'dark_ink'        => '#f1efe6',
+				'dark_accent'     => '#f2c14e',
+				'dark_page'       => '#070b1a',
 			),
 			'lava'       => array(
 				'label'           => __( 'Lava', 'ifthenpay-pay-button' ),
@@ -683,6 +730,42 @@ class CheckoutLook {
 				'card_blur'       => 16,
 			),
 		);
+
+		// The light looks also get a dark side for payers on a dark device: surface, ink and an accent that still
+		// reads on it ('' keeps the look's own). The looks that are dark already have none, so they stay as drawn.
+		$dark = array(
+			'ifthenpay'  => array( '#0f1b2b', '#e8f0f8', '#5bb6ee' ),
+			'paper'      => array( '#1c1b18', '#efece4', '#e8e4d8' ),
+			'meadow'     => array( '#101b14', '#e6f1e8', '#4cc27c' ),
+			'ocean'      => array( '#0b1b27', '#e3f1f8', '#4cb8e8' ),
+			'sunset'     => array( '#231519', '#fbe9e4', '#ff7d86' ),
+			'prism'      => array( '#17172e', '#ececff', '#9a9aff' ),
+			'blossom'    => array( '#231520', '#fbe9f1', '#f27bae' ),
+			'latte'      => array( '#1f1913', '#f3ebe0', '#d3a574' ),
+			'brutal'     => array( '#1a1714', '#fffae7', '', '#532249' ),
+			'editorial'  => array( '#1b1416', '#f4ebe0', '#d9707d' ),
+			'typewriter' => array( '#1c1a15', '#f0e8d4', '#e6dcc0' ),
+			'rose'       => array( '#24161a', '#fbe9ee', '#e58aa0' ),
+			'sunrise'    => array( '#231710', '#fdeee2', '#ff8a4c' ),
+			'lavender'   => array( '#1b1628', '#f0eaff', '#b497f0' ),
+			'honeycomb'  => array( '#211a0a', '#fbf0d4', '#f0a830' ),
+			'harlequin'  => array( '#240f17', '#fbe6ec', '#ec5f89' ),
+			'arrow'      => array( '#0f1830', '#e6edff', '#6b9bff' ),
+			'soda'       => array( '#0a1d24', '#e2f6fb', '#3cc7e4' ),
+			'lava'       => array( '#241410', '#fdeadf', '#ff8a4a' ),
+		);
+
+		foreach ( $dark as $key => $colors ) {
+			if ( isset( $presets[ $key ] ) ) {
+				$presets[ $key ] += array(
+					'dark'         => 'auto',
+					'dark_surface' => $colors[0],
+					'dark_ink'     => $colors[1],
+					'dark_accent'  => $colors[2],
+					'dark_page'    => $colors[3] ?? '',
+				);
+			}
+		}
 
 		return ButtonDesign::by_colour( array_map( static fn( array $preset ): array => $preset + $base, $presets ), 'accent' );
 	}
@@ -842,6 +925,7 @@ class CheckoutLook {
 		}
 
 		$look['dark_accent'] = empty( $input['dark_accent_auto'] ) && is_string( $input['dark_accent'] ?? null ) ? ButtonDesign::hex( $input['dark_accent'] ) : '';
+		$look['dark_page']   = empty( $input['dark_page_auto'] ) && is_string( $input['dark_page'] ?? null ) ? ButtonDesign::hex( $input['dark_page'] ) : '';
 
 		// An image background without an image is just the glow; so is a video one without a video.
 		if ( ( 'image' === $look['pay_bg'] && 0 === $look['pay_image'] ) || ( 'video' === $look['pay_bg'] && null === self::video( $look ) ) ) {
@@ -963,6 +1047,7 @@ class CheckoutLook {
 		);
 		$submit_radius = 'marker' === $look['fields'] ? '0 8px 8px 0' : 'calc(var(--iftp-field-r) + 2px)';
 		$ring          = array_merge( $edges[ $look['frame'] ], $glass && 'none' === $look['frame'] ? array( 'inset 0 0 0 1px rgb(255 255 255 / 22%)' ) : array() );
+		$inset         = array_values( array_filter( $ring, static fn( string $shadow ): bool => str_starts_with( $shadow, 'inset' ) ) );
 
 		$font = isset( self::FONT_STACKS[ $look['font'] ] ) ? array( '--iftp-font' => self::FONT_STACKS[ $look['font'] ] ) : array();
 
@@ -992,6 +1077,8 @@ class CheckoutLook {
 			// A see-through card: frosted behind, a fine light edge, and no opaque scroll shading inside.
 			'--iftp-card-filter'     => $glass && $look['card_blur'] > 0 ? 'blur(' . $look['card_blur'] . 'px) saturate(1.6)' : 'none',
 			'--iftp-card-ring'       => array() !== $ring ? implode( ', ', $ring ) : '0 0 #0000',
+			// The inset part again, drawn over the card's content: the scrolling body would otherwise hide it on both sides.
+			'--iftp-card-ring-in'    => array() !== $inset ? implode( ', ', $inset ) : '0 0 #0000',
 			// A card design (ruled lines, dots and so on) is painted on the card, so the body must not cover it with a solid colour.
 			'--iftp-body-bg'         => $glass || 'none' !== $look['card_skin'] ? 'transparent' : 'initial',
 			'--iftp-mark-size'       => $look['pay_mark_size'] . 'px',
@@ -1083,7 +1170,7 @@ class CheckoutLook {
 		if ( 'awning' !== $frame ) {
 			return array(
 				'--iftp-edge-on'  => 'none',
-				'--iftp-edge-pos' => 'static',
+				'--iftp-edge-pos' => 'relative',
 				'--iftp-edge-h'   => '0px',
 				'--iftp-edge-bg'  => 'none',
 				'--iftp-edge-fx'  => 'none',
@@ -1159,7 +1246,7 @@ class CheckoutLook {
 			'ink'         => $look['dark_ink'],
 			'accent'      => '' !== $look['dark_accent'] ? $look['dark_accent'] : $look['accent'],
 			'accent_text' => '' !== $look['dark_accent'] ? '' : $look['accent_text'],
-			'pay_color'   => '',
+			'pay_color'   => self::dark_page( $look ),
 		) + $look;
 		$vars = array();
 
@@ -1168,6 +1255,60 @@ class CheckoutLook {
 		}
 
 		return $vars;
+	}
+
+	/**
+	 * The pay page's colour in the dark: the merchant's own pick, else the light page colour kept in its hue but
+	 * taken deep, so a pink page stays a wine one instead of going grey. Blank when the page colour is auto, which
+	 * mixes from the dark colours.
+	 *
+	 * @param array<string, mixed> $look A sanitized look.
+	 * @phpstan-param Look $look
+	 */
+	private static function dark_page( array $look ): string {
+		if ( '' !== $look['dark_page'] ) {
+			return $look['dark_page'];
+		}
+
+		$page = sscanf( $look['pay_color'], '#%02x%02x%02x' );
+
+		if ( '' === $look['pay_color'] || ! is_array( $page ) ) {
+			return '';
+		}
+
+		[ $r, $g, $b ] = array_map( static fn( $c ): float => (int) $c / 255, $page );
+		$max           = max( $r, $g, $b );
+		$min           = min( $r, $g, $b );
+		$light         = ( $max + $min ) / 2;
+		$span          = $max - $min;
+		$sat           = 0.0 === $span ? 0.0 : $span / ( 1 - abs( 2 * $light - 1 ) );
+
+		if ( 0.0 === $span ) {
+			$hue = 0.0;
+		} elseif ( $max === $r ) {
+			$hue = fmod( ( $g - $b ) / $span, 6 );
+		} elseif ( $max === $g ) {
+			$hue = ( $b - $r ) / $span + 2;
+		} else {
+			$hue = ( $r - $g ) / $span + 4;
+		}
+
+		$hue   = fmod( $hue * 60 + 360, 360 );
+		$light = min( $light, 0.16 );
+		$sat   = min( $sat, 0.6 );
+		$chrom = ( 1 - abs( 2 * $light - 1 ) ) * $sat;
+		$x     = $chrom * ( 1 - abs( fmod( $hue / 60, 2 ) - 1 ) );
+		$m     = $light - $chrom / 2;
+		$rgb   = array(
+			array( $chrom, $x, 0 ),
+			array( $x, $chrom, 0 ),
+			array( 0, $chrom, $x ),
+			array( 0, $x, $chrom ),
+			array( $x, 0, $chrom ),
+			array( $chrom, 0, $x ),
+		)[ (int) floor( $hue / 60 ) % 6 ];
+
+		return sprintf( '#%02x%02x%02x', (int) round( ( $rgb[0] + $m ) * 255 ), (int) round( ( $rgb[1] + $m ) * 255 ), (int) round( ( $rgb[2] + $m ) * 255 ) );
 	}
 
 	/**

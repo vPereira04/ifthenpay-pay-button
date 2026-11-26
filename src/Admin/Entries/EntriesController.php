@@ -388,7 +388,7 @@ class EntriesController {
 		$record = $this->transactions->get( $ref );
 
 		if ( null === $record || ! ReceiptPdf::available( $record ) ) {
-			wp_die( esc_html__( 'Only a paid payment has a receipt.', 'ifthenpay-pay-button' ), '', array( 'response' => 404 ) );
+			wp_die( esc_html__( 'Only a paid payment has a proof of payment.', 'ifthenpay-pay-button' ), '', array( 'response' => 404 ) );
 		}
 
 		nocache_headers();

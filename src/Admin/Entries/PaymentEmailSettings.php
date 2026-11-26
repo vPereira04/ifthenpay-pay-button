@@ -83,18 +83,19 @@ final class PaymentEmailSettings {
 	}
 
 	/**
-	 * The editor as a panel of the Emails tab. Its fields have no name, so the page's own Save button leaves them alone;
-	 * the panel saves itself, and says so.
+	 * The editor as a panel of the Emails tab. The page's Save Settings keeps it too, through store(); the
+	 * panel's own button saves just the email, over AJAX.
 	 */
 	public function render_panel(): void {
 		$template = $this->current();
 		?>
-		<section class="iftp-btn-panel iftp-btn-panel--stack iftp-btn-email" aria-labelledby="iftp-btn-email-title" data-iftp-email>
-			<div class="iftp-btn-panel__intro">
-				<h2 id="iftp-btn-email-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Payment request email', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'What customers get from "Send payment email". Click a tag to drop a payment detail where your cursor is — it\'s filled in for each customer when the email goes out. This panel has its own Save button.', 'ifthenpay-pay-button' ); ?></p>
-			</div>
-			<div class="iftp-btn-panel__body">
+		<details class="iftp-btn-ecard iftp-btn-ecard--fold iftp-btn-email" data-iftp-fold="config-email-request" data-iftp-email>
+			<summary class="iftp-btn-ecard__intro">
+				<h2 id="iftp-btn-email-title" class="iftp-btn-ecard__title"><?php esc_html_e( 'Payment request email', 'ifthenpay-pay-button' ); ?></h2>
+				<p class="iftp-btn-ecard__description"><?php esc_html_e( 'What customers get from "Send payment email": the subject and the message, with tags for their payment details.', 'ifthenpay-pay-button' ); ?></p>
+			</summary>
+			<div class="iftp-btn-ecard__body">
+				<p class="iftp-btn-field__help"><?php esc_html_e( 'Click a tag to drop a payment detail where your cursor is; it is filled in for each customer when the email goes out. Save Settings keeps this too, or save just this email below.', 'ifthenpay-pay-button' ); ?></p>
 				<p class="iftp-btn-field__error" data-iftp-email-error role="alert" hidden></p>
 
 				<div class="iftp-btn-email__editor">
@@ -102,7 +103,7 @@ final class PaymentEmailSettings {
 						<p class="iftp-btn-email__col-head"><?php esc_html_e( 'Message', 'ifthenpay-pay-button' ); ?></p>
 						<div class="iftp-btn-field">
 							<label class="iftp-btn-field__label" for="iftp-btn-email-subject"><?php esc_html_e( 'Subject', 'ifthenpay-pay-button' ); ?></label>
-							<input type="text" class="iftp-btn-field__control" id="iftp-btn-email-subject" maxlength="<?php echo esc_attr( (string) PaymentEmailTemplate::MAX_SUBJECT_LENGTH ); ?>" value="<?php echo esc_attr( $template['subject'] ); ?>" data-iftp-email-subject />
+							<input type="text" class="iftp-btn-field__control" id="iftp-btn-email-subject" name="payment_email[subject]" maxlength="<?php echo esc_attr( (string) PaymentEmailTemplate::MAX_SUBJECT_LENGTH ); ?>" value="<?php echo esc_attr( $template['subject'] ); ?>" data-iftp-email-subject />
 						</div>
 
 						<div class="iftp-btn-email__tags" role="group" aria-labelledby="iftp-btn-email-tags-label">
@@ -125,7 +126,7 @@ final class PaymentEmailSettings {
 									<?php esc_html_e( 'Add image', 'ifthenpay-pay-button' ); ?>
 								</button>
 							</div>
-							<textarea class="iftp-btn-field__control iftp-btn-email__textarea" id="iftp-btn-email-body" rows="18" spellcheck="false" data-iftp-email-body><?php echo esc_textarea( $template['body'] ); ?></textarea>
+							<textarea class="iftp-btn-field__control iftp-btn-email__textarea" id="iftp-btn-email-body" name="payment_email[body]" rows="18" spellcheck="false" data-iftp-email-body><?php echo esc_textarea( $template['body'] ); ?></textarea>
 							<p class="iftp-btn-field__help"><?php esc_html_e( 'Inline styles and tables work best in mail clients. Scripts, forms, embeds and event handlers are removed when you save.', 'ifthenpay-pay-button' ); ?></p>
 						</div>
 					</div>
@@ -152,7 +153,7 @@ final class PaymentEmailSettings {
 					<button type="button" class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-email-save><?php esc_html_e( 'Save payment email', 'ifthenpay-pay-button' ); ?></button>
 				</div>
 			</div>
-		</section>
+		</details>
 		<?php
 	}
 
@@ -164,25 +165,54 @@ final class PaymentEmailSettings {
 	public function ajax_save(): void {
 		$this->guard();
 
-		$posted  = $this->posted();
-		$subject = PaymentEmailTemplate::sanitize_subject( $posted['subject'] );
-		$body    = PaymentEmailTemplate::sanitize_body( $posted['body'] );
+		$posted = $this->posted();
+		$result = $this->store( $posted['subject'], $posted['body'] );
 
-		if ( '' === $subject ) {
-			wp_send_json_error( array( 'message' => __( 'Enter a subject.', 'ifthenpay-pay-button' ) ), 400 );
+		if ( ! $result['ok'] ) {
+			wp_send_json_error( array( 'message' => $result['message'] ), 400 );
 		}
 
-		if ( '' === $body ) {
-			wp_send_json_error( array( 'message' => __( 'The email body is empty.', 'ifthenpay-pay-button' ) ), 400 );
+		wp_send_json_success(
+			array(
+				'subject' => $result['subject'],
+				'body'    => $result['body'],
+				'message' => $result['message'],
+			)
+		);
+	}
+
+	/**
+	 * Cleans and stores the template, or says why not. Used by the panel's own Save and by the page's Save Settings.
+	 *
+	 * @param string $subject The subject as typed.
+	 * @param string $body    The HTML body as typed.
+	 * @return array{ok: bool, message: string, subject: string, body: string} What was stored, after cleaning, on success.
+	 */
+	public function store( string $subject, string $body ): array {
+		$clean_subject = PaymentEmailTemplate::sanitize_subject( $subject );
+		$clean_body    = PaymentEmailTemplate::sanitize_body( $body );
+		$failed        = array(
+			'ok'      => false,
+			'message' => '',
+			'subject' => $clean_subject,
+			'body'    => $clean_body,
+		);
+
+		if ( '' === $clean_subject ) {
+			return array_merge( $failed, array( 'message' => __( 'Enter a subject.', 'ifthenpay-pay-button' ) ) );
 		}
 
-		if ( false === strpos( $body, PaymentEmailTemplate::TAG_PAYMENT_URL ) ) {
-			wp_send_json_error(
+		if ( '' === $clean_body ) {
+			return array_merge( $failed, array( 'message' => __( 'The email body is empty.', 'ifthenpay-pay-button' ) ) );
+		}
+
+		if ( false === strpos( $clean_body, PaymentEmailTemplate::TAG_PAYMENT_URL ) ) {
+			return array_merge(
+				$failed,
 				array(
 					/* translators: %s: the {payment_url} tag */
 					'message' => sprintf( __( 'Add the %s tag to the body (e.g. as a button\'s link), or your customer has no way to pay.', 'ifthenpay-pay-button' ), PaymentEmailTemplate::TAG_PAYMENT_URL ),
-				),
-				400
+				)
 			);
 		}
 
@@ -190,20 +220,17 @@ final class PaymentEmailSettings {
 
 		// The default is stored as '', so it keeps following the site language.
 		$this->settings->set_payment_email(
-			$subject === $defaults['subject'] ? '' : $subject,
-			$body === $defaults['body'] ? '' : $body
+			$clean_subject === $defaults['subject'] ? '' : $clean_subject,
+			$clean_body === $defaults['body'] ? '' : $clean_body
 		);
 
-		$lost = PaymentEmailTemplate::lost_markup( $posted['body'], $body );
-
-		wp_send_json_success(
-			array(
-				'subject' => $subject,
-				'body'    => $body,
-				'message' => $lost
-					? __( 'Payment email saved. Some HTML that isn\'t allowed in emails was removed — the editor now shows what will be sent.', 'ifthenpay-pay-button' )
-					: __( 'Payment email saved.', 'ifthenpay-pay-button' ),
-			)
+		return array(
+			'ok'      => true,
+			'message' => PaymentEmailTemplate::lost_markup( $body, $clean_body )
+				? __( 'Payment email saved. Some HTML that isn\'t allowed in emails was removed — the editor now shows what will be sent.', 'ifthenpay-pay-button' )
+				: __( 'Payment email saved.', 'ifthenpay-pay-button' ),
+			'subject' => $clean_subject,
+			'body'    => $clean_body,
 		);
 	}
 

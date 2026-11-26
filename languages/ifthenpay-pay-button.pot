@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-26T10:44:27+00:00\n"
+"POT-Creation-Date: 2026-11-26T11:50:22+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ifthenpay-pay-button\n"
@@ -44,7 +44,7 @@ msgid "ifthenpay | Pay Button could not load its classes. Run \"composer install
 msgstr ""
 
 #: src/Admin/AiPanel.php:91
-#: src/Admin/ConfigurationForm.php:432
+#: src/Admin/ConfigurationForm.php:482
 msgid "AI assistant"
 msgstr ""
 
@@ -63,7 +63,7 @@ msgid "Connect again: this site's secret keys changed, so the saved key can't be
 msgstr ""
 
 #: src/Admin/AiPanel.php:129
-#: src/Admin/ConfigurationPage.php:306
+#: src/Admin/ConfigurationPage.php:316
 msgid "Not connected"
 msgstr ""
 
@@ -78,8 +78,8 @@ msgstr ""
 #: src/Admin/AiPanel.php:143
 #: src/Admin/AiPanel.php:234
 #: src/Admin/ConfigurationPage.php:166
-#: src/Admin/ConfigurationPage.php:310
-#: src/Admin/ConfigurationPage.php:373
+#: src/Admin/ConfigurationPage.php:320
+#: src/Admin/ConfigurationPage.php:384
 msgid "Disconnect"
 msgstr ""
 
@@ -117,8 +117,8 @@ msgstr ""
 
 #: src/Admin/AiPanel.php:198
 #: src/Admin/AiPanel.php:233
-#: src/Admin/ConfigurationPage.php:354
-#: src/Admin/ConfigurationPage.php:372
+#: src/Admin/ConfigurationPage.php:365
+#: src/Admin/ConfigurationPage.php:383
 #: src/Admin/CouponsPage.php:408
 #: src/Admin/Entries/EntriesPage.php:435
 #: src/Admin/Entries/EntriesPage.php:602
@@ -130,8 +130,8 @@ msgstr ""
 #: src/Admin/AiPanel.php:259
 #: src/Admin/Buttons/ButtonEditor.php:112
 #: src/Admin/ConfigurationPage.php:163
-#: src/Admin/ConfigurationPage.php:314
-#: src/Admin/ConfigurationPage.php:355
+#: src/Admin/ConfigurationPage.php:324
+#: src/Admin/ConfigurationPage.php:366
 msgid "Connect"
 msgstr ""
 
@@ -454,7 +454,7 @@ msgstr ""
 #: src/Admin/Buttons/ButtonEditor.php:1064
 #: src/Admin/Buttons/ButtonsPage.php:1327
 #: src/Admin/DesignControls.php:782
-#: src/Admin/Entries/PaymentEmailSettings.php:135
+#: src/Admin/Entries/PaymentEmailSettings.php:136
 #: src/Admin/LookControls.php:687
 msgid "Preview"
 msgstr ""
@@ -581,10 +581,10 @@ msgstr ""
 #: src/Admin/Buttons/ButtonEditor.php:185
 #: src/Admin/Buttons/ButtonsPage.php:554
 #: src/Admin/ConfigurationPage.php:239
-#: src/Admin/ConfigurationPage.php:248
+#: src/Admin/ConfigurationPage.php:258
 #: src/Admin/DashboardWidget.php:179
-#: src/Admin/Menu.php:130
-#: src/Admin/Menu.php:131
+#: src/Admin/Menu.php:133
+#: src/Admin/Menu.php:134
 msgid "Configuration"
 msgstr ""
 
@@ -629,7 +629,7 @@ msgstr ""
 
 #: src/Admin/Buttons/ButtonEditor.php:213
 #: src/Admin/CheckoutSettingsPage.php:331
-#: src/Admin/ConfigurationPage.php:253
+#: src/Admin/ConfigurationPage.php:263
 msgid "Unsaved changes"
 msgstr ""
 
@@ -642,7 +642,7 @@ msgid "Save button"
 msgstr ""
 
 #: src/Admin/Buttons/ButtonEditor.php:250
-#: src/Admin/CheckoutSettingsPage.php:392
+#: src/Admin/CheckoutSettingsPage.php:404
 msgid "The AI's changes, not saved yet"
 msgstr ""
 
@@ -663,7 +663,7 @@ msgid "Prices the AI set"
 msgstr ""
 
 #: src/Admin/Buttons/ButtonEditor.php:265
-#: src/Admin/CheckoutSettingsPage.php:395
+#: src/Admin/CheckoutSettingsPage.php:407
 msgid "Back to the chat"
 msgstr ""
 
@@ -672,7 +672,7 @@ msgid "What the payer sees first, and the address of its pay page."
 msgstr ""
 
 #: src/Admin/Buttons/ButtonEditor.php:309
-#: src/Admin/ConfigurationForm.php:230
+#: src/Admin/ConfigurationForm.php:277
 #: src/Admin/MessagesFields.php:112
 msgid "Title"
 msgstr ""
@@ -1494,7 +1494,7 @@ msgstr ""
 #: src/Admin/Buttons/ButtonsController.php:435
 #: src/Admin/Buttons/DemoPage.php:136
 #: src/Admin/CheckoutSettingsPage.php:181
-#: src/Admin/ConfigurationForm.php:104
+#: src/Admin/ConfigurationForm.php:107
 #: src/Admin/CouponsPage.php:118
 #: src/Admin/CouponsPage.php:168
 #: src/Ai/AiController.php:237
@@ -1836,7 +1836,7 @@ msgstr ""
 
 #: src/Admin/Buttons/ButtonsPage.php:331
 #: src/Admin/Buttons/ButtonsPage.php:349
-#: src/Admin/ConfigurationForm.php:214
+#: src/Admin/ConfigurationForm.php:261
 #: src/Admin/LookControls.php:454
 #: src/Admin/LookControls.php:495
 #: src/Admin/LookControls.php:950
@@ -1992,7 +1992,6 @@ msgid "Spots are split by a field on this page, so the page always shows."
 msgstr ""
 
 #: src/Admin/Buttons/ButtonsPage.php:374
-#: src/Admin/ConfigurationForm.php:444
 msgid "Limits"
 msgstr ""
 
@@ -2754,7 +2753,7 @@ msgid "Download SVG"
 msgstr ""
 
 #: src/Admin/Buttons/ButtonsPage.php:1375
-#: src/Admin/Entries/PaymentEmailSettings.php:109
+#: src/Admin/Entries/PaymentEmailSettings.php:110
 msgid "Insert a tag"
 msgstr ""
 
@@ -3086,24 +3085,34 @@ msgid "The other settings were saved."
 msgstr ""
 
 #: src/Admin/CheckoutSettingsPage.php:309
-#: src/Admin/ConfigurationPage.php:243
+#: src/Admin/ConfigurationPage.php:252
 msgid "Settings saved."
 msgstr ""
 
 #: src/Admin/CheckoutSettingsPage.php:332
-#: src/Admin/ConfigurationPage.php:255
+#: src/Admin/ConfigurationPage.php:265
 msgid "Save Settings"
 msgstr ""
 
-#: src/Admin/CheckoutSettingsPage.php:393
+#. translators: %s: link to Configuration › Texts
+#: src/Admin/CheckoutSettingsPage.php:349
+#, php-format
+msgid "These are the popup and page after paying. The words on the form, its buttons and its error messages are in %s."
+msgstr ""
+
+#: src/Admin/CheckoutSettingsPage.php:350
+msgid "Configuration › Texts"
+msgstr ""
+
+#: src/Admin/CheckoutSettingsPage.php:405
 msgid "Look them over and save to put them live on every button that follows the Default Design. Leave without saving and the Default Design stays as it was."
 msgstr ""
 
-#: src/Admin/CheckoutSettingsPage.php:410
+#: src/Admin/CheckoutSettingsPage.php:422
 msgid "Default button design"
 msgstr ""
 
-#: src/Admin/CheckoutSettingsPage.php:411
+#: src/Admin/CheckoutSettingsPage.php:423
 msgid "Every button set to Default design wears this, so many buttons across your site look the same and change together. A button can still have its own in its editor, under Design."
 msgstr ""
 
@@ -3153,415 +3162,435 @@ msgstr ""
 msgid "Runs only on pages where this button is, in its own scope, after the checkout script. scope is the list of this button's elements. An error shows in the browser console and stops nothing else."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:157
-msgid "Write any of these in your own words or language. Blank keeps the original, which follows the site's language. Keep words in {braces}: the payer sees the number, price or name there."
+#: src/Admin/ConfigurationForm.php:209
+msgid "Most sites never need to change these: blank keeps the original, which follows the site's language. Open a group to write any of them in your own words or language. Keep words in {braces}: the payer sees the number, price or name there."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:197
-#: src/Admin/ConfigurationForm.php:231
-#: src/Pdf/ReceiptPdf.php:171
-msgid "Receipt"
+#: src/Admin/ConfigurationForm.php:246
+msgid "Receipt look"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:198
-msgid "The PDF the payer gets and you can download from any paid payment. It is black and white unless you switch colours on."
+#: src/Admin/ConfigurationForm.php:246
+msgid "The PDF the payer gets: logo, business details, title, message, colours and barcode. Black and white unless you switch colours on."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:202
+#: src/Admin/ConfigurationForm.php:249
 msgid "Logo"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:204
+#: src/Admin/ConfigurationForm.php:251
 msgid "No logo"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:205
+#: src/Admin/ConfigurationForm.php:252
 #: src/Admin/LookControls.php:931
 msgid "My site's logo"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:206
+#: src/Admin/ConfigurationForm.php:253
 #: src/Admin/LookControls.php:932
 msgid "An image of mine"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:210
+#: src/Admin/ConfigurationForm.php:257
 #: src/Admin/LookControls.php:416
 #: src/Admin/LookControls.php:946
 msgid "Image"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:213
+#: src/Admin/ConfigurationForm.php:260
 #: src/Admin/LookControls.php:494
 #: src/Admin/LookControls.php:949
 msgid "Choose image"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:217
+#: src/Admin/ConfigurationForm.php:264
 msgid "In grey tones, or in its own colours when colours are on. A wide logo on a white or transparent background works best."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:220
+#: src/Admin/ConfigurationForm.php:267
 msgid "Business name"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:222
+#: src/Admin/ConfigurationForm.php:269
 msgid "Blank uses the site's name. With a logo, the name is only printed when you fill this in."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:225
+#: src/Admin/ConfigurationForm.php:272
 msgid "Business details"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:226
+#: src/Admin/ConfigurationForm.php:273
 msgid "Address, tax number, phone…"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:227
+#: src/Admin/ConfigurationForm.php:274
 msgid "Printed under the name, one line each."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:234
-#: src/Admin/Entries/PaymentEmailSettings.php:102
+#: src/Admin/ConfigurationForm.php:278
+#: src/Pdf/ReceiptPdf.php:171
+msgid "Receipt"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:281
+#: src/Admin/Entries/PaymentEmailSettings.php:103
 msgid "Message"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:235
+#: src/Admin/ConfigurationForm.php:282
 msgid "See you next time!"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:236
+#: src/Admin/ConfigurationForm.php:283
 msgid "Printed at the bottom, above the thank-you line."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:241
+#: src/Admin/ConfigurationForm.php:288
 #: src/Admin/DesignControls.php:526
 #: src/Admin/DesignControls.php:677
 #: src/Admin/LookControls.php:215
 msgid "Colours"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:242
+#: src/Admin/ConfigurationForm.php:289
 msgid "Off prints in black and white, logo included. On keeps the logo's own colours and uses one colour for the title, the total and the PAID line."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:246
+#: src/Admin/ConfigurationForm.php:293
 #: src/Admin/DesignControls.php:290
 msgid "Colour"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:248
+#: src/Admin/ConfigurationForm.php:295
 msgid "Pick the receipt colour"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:255
+#: src/Admin/ConfigurationForm.php:302
 msgid "Barcode with the reference"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:256
+#: src/Admin/ConfigurationForm.php:303
 msgid "The strip of bars at the bottom, like a shop receipt."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:271
+#: src/Admin/ConfigurationForm.php:318
 msgid "Payment emails"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:272
+#: src/Admin/ConfigurationForm.php:319
 msgid "Sent once ifthenpay confirms a payment, never before."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:278
+#: src/Admin/ConfigurationForm.php:325
 msgid "Receipt to the payer"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:279
+#: src/Admin/ConfigurationForm.php:326
 msgid "Only when the button asks for an email."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:285
+#: src/Admin/ConfigurationForm.php:332
 msgid "Attach a PDF receipt"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:286
-msgid "A copy the payer can keep. You can also download it from any paid payment."
+#: src/Admin/ConfigurationForm.php:333
+msgid "A copy the payer can keep. Its look is set in Receipt look, below."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:292
+#: src/Admin/ConfigurationForm.php:339
 msgid "Tell me about every payment"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:293
+#: src/Admin/ConfigurationForm.php:340
 msgid "With the amount, the payer and a link to it."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:297
-#: src/Admin/ConfigurationForm.php:355
+#: src/Admin/ConfigurationForm.php:344
+#: src/Admin/ConfigurationForm.php:402
 msgid "Send it to"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:314
+#: src/Admin/ConfigurationForm.php:361
 msgid "Payment reminders"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:315
+#: src/Admin/ConfigurationForm.php:362
 msgid "One email to a payer who started a payment and hasn't paid, shortly before the link runs out, with the link to finish it."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:321
+#: src/Admin/ConfigurationForm.php:368
 msgid "Remind payers who haven't paid"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:322
+#: src/Admin/ConfigurationForm.php:369
 msgid "Only when the button asked for an email. Each payment is reminded once, never after it is paid, failed or expired."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:326
+#: src/Admin/ConfigurationForm.php:373
 msgid "Send it"
 msgstr ""
 
 #. translators: %d: hours
-#: src/Admin/ConfigurationForm.php:332
+#: src/Admin/ConfigurationForm.php:379
 #, php-format
 msgid "%d hour before the link runs out"
 msgid_plural "%d hours before the link runs out"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/ConfigurationForm.php:343
+#: src/Admin/ConfigurationForm.php:390
 msgid "Weekly summary"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:344
+#: src/Admin/ConfigurationForm.php:391
 msgid "Every Monday at 08:00: last week's revenue and its change, the top methods and customers, and the money still waiting."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:350
+#: src/Admin/ConfigurationForm.php:397
 msgid "Send the weekly summary"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:351
+#: src/Admin/ConfigurationForm.php:398
 msgid "An email in the same look as these screens."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:359
+#: src/Admin/ConfigurationForm.php:406
 msgid "Send a test now"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:376
+#: src/Admin/ConfigurationForm.php:423
 #: src/Admin/ConfigurationPage.php:232
 msgid "Pay links"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:377
+#: src/Admin/ConfigurationForm.php:424
 msgid "Every button has its own pay page. Changing the base breaks links you already shared."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:381
+#: src/Admin/ConfigurationForm.php:428
 msgid "Link base"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:385
+#: src/Admin/ConfigurationForm.php:432
 msgid "button"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:390
-msgid "Make a new signing secret (every signed link made so far stops working)"
+#: src/Admin/ConfigurationForm.php:435
+#: src/Admin/DesignControls.php:104
+msgid "Advanced"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:404
-msgid "When the plugin is deleted"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:405
-msgid "Payments, discount codes and reminders are your accounting history, so they stay in the database unless you say otherwise."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:410
-msgid "Also delete all payments, discount codes and reminders when the plugin is deleted"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:412
-msgid "Your settings, keys and buttons are always removed. This cannot be undone."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:433
-msgid "It builds pay buttons, so it opens once your ifthenpay account is connected."
+#: src/Admin/ConfigurationForm.php:435
+msgid "The secret behind links that carry an amount."
 msgstr ""
 
 #: src/Admin/ConfigurationForm.php:436
-msgid "Connect ifthenpay first"
+msgid "A pay link that sets the amount carries a signature made with a secret kept on this site, so nobody can change the price in the address. A new secret cancels every signed link you already shared."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:445
-msgid "Every message is billed to your own key, so cap how many go out. A stuck key or a held-down Enter can never run up the bill past these."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:450
-msgid "Messages per hour, per admin"
+#: src/Admin/ConfigurationForm.php:439
+msgid "Make a new secret now and cancel the signed links so far"
 msgstr ""
 
 #: src/Admin/ConfigurationForm.php:454
-msgid "Messages per day, whole site"
+msgid "When the plugin is deleted"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:456
-msgid "0 means no daily limit. Counted from midnight UTC."
+#: src/Admin/ConfigurationForm.php:455
+msgid "Payments, discount codes and reminders are your accounting history, so they stay in the database unless you say otherwise."
 msgstr ""
 
 #: src/Admin/ConfigurationForm.php:460
+msgid "Also delete all payments, discount codes and reminders when the plugin is deleted"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:462
+msgid "Your settings, keys and buttons are always removed. This cannot be undone."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:483
+msgid "It builds pay buttons, so it opens once your ifthenpay account is connected."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:486
+msgid "Connect ifthenpay first"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:494
+msgid "How it works"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:495
+msgid "Faster or more careful, safer or more surprising. Change these any time; the next message uses them."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:501
+msgid "Thinking"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:504
+msgid "Quick"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:504
+msgid "Answers in seconds."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:505
+#: src/Admin/ConfigurationForm.php:516
+msgid "Balanced"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:505
+msgid "A little slower, more careful."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:506
+msgid "Deep"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:506
+msgid "Slowest and dearest, for big forms."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:508
+msgid "Gemini and ChatGPT's reasoning models only. Claude always answers straight away."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:512
+msgid "Creativity"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:515
+msgid "Focused"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:515
+msgid "Sticks closely to what you ask."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:516
+msgid "Good ideas, no surprises."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:517
+msgid "Creative"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:517
+msgid "Bolder looks and wording."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:519
+msgid "Not used by ChatGPT's reasoning models, which pick their own."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:525
+msgid "Try other models when yours is busy"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:526
+msgid "Up to two more from your key, so a busy moment doesn't stop you. Off, it only ever uses the model you picked."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:532
+msgid "Let the AI set prices"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:533
+msgid "The amount, its range and the price of each option. Off, it keeps your prices and you set new ones in the editor."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:539
+msgid "Limits and advanced"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:539
+msgid "Message caps, chat memory, answer size and timeouts. The defaults suit most sites; every message is billed to your own key, so these stop a stuck key from running up the bill."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:543
+msgid "Messages per hour, per admin"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:547
+msgid "Messages per day, whole site"
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:549
+msgid "0 means no daily limit. Counted from midnight UTC."
+msgstr ""
+
+#: src/Admin/ConfigurationForm.php:553
 msgid "Chat memory"
 msgstr ""
 
 #. translators: %d: how many earlier chat messages go along with each new one
-#: src/Admin/ConfigurationForm.php:464
+#: src/Admin/ConfigurationForm.php:557
 #, php-format
 msgid "The last %d message"
 msgid_plural "The last %d messages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/ConfigurationForm.php:467
+#: src/Admin/ConfigurationForm.php:560
 msgid "How much of the chat goes along with each message. The button itself always goes in full; a shorter memory costs less."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:470
+#: src/Admin/ConfigurationForm.php:563
 msgid "Keep chats for"
 msgstr ""
 
 #. translators: %d: number of days
-#: src/Admin/ConfigurationForm.php:474
+#: src/Admin/ConfigurationForm.php:567
 #, php-format
 msgid "%d day"
 msgid_plural "%d days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/ConfigurationForm.php:477
+#: src/Admin/ConfigurationForm.php:570
 msgid "After that, a button's chat starts fresh. Saved buttons are never touched."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:480
+#: src/Admin/ConfigurationForm.php:573
 msgid "Longest answer"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:484
+#: src/Admin/ConfigurationForm.php:577
 msgid "Short (8,192 tokens)"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:485
+#: src/Admin/ConfigurationForm.php:578
 msgid "Long (16,000 tokens)"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:486
+#: src/Admin/ConfigurationForm.php:579
 msgid "Longest (32,000 tokens)"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:493
+#: src/Admin/ConfigurationForm.php:586
 msgid "The most the AI may write in one answer. A button or checkout it draws in code is long, and a cap that is too small cuts it off. You only pay for what it writes. Some models stop at 16,000, so pick Long if one refuses the longest."
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:496
+#: src/Admin/ConfigurationForm.php:589
 msgid "Wait for each model"
 msgstr ""
 
 #. translators: %d: seconds
-#: src/Admin/ConfigurationForm.php:500
+#: src/Admin/ConfigurationForm.php:593
 msgid "Follow Thinking"
 msgstr ""
 
 #. translators: %d: seconds
-#: src/Admin/ConfigurationForm.php:500
+#: src/Admin/ConfigurationForm.php:593
 #, php-format
 msgid "%d seconds"
 msgstr ""
 
-#: src/Admin/ConfigurationForm.php:503
+#: src/Admin/ConfigurationForm.php:596
 msgid "How long one model may take before the next one is tried. Long answers, like a drawn checkout, can need two minutes. Your host has to allow a request to last as long as this and a second try; if a message ends with a timeout page, lower it."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:510
-msgid "How it works"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:511
-msgid "Faster or more careful, safer or more surprising. Change these any time; the next message uses them."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:517
-msgid "Thinking"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:520
-msgid "Quick"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:520
-msgid "Answers in seconds."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:521
-#: src/Admin/ConfigurationForm.php:532
-msgid "Balanced"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:521
-msgid "A little slower, more careful."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:522
-msgid "Deep"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:522
-msgid "Slowest and dearest, for big forms."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:524
-msgid "Gemini and ChatGPT's reasoning models only. Claude always answers straight away."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:528
-msgid "Creativity"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:531
-msgid "Focused"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:531
-msgid "Sticks closely to what you ask."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:532
-msgid "Good ideas, no surprises."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:533
-msgid "Creative"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:533
-msgid "Bolder looks and wording."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:535
-msgid "Not used by ChatGPT's reasoning models, which pick their own."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:541
-msgid "Try other models when yours is busy"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:542
-msgid "Up to two more from your key, so a busy moment doesn't stop you. Off, it only ever uses the model you picked."
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:548
-msgid "Let the AI set prices"
-msgstr ""
-
-#: src/Admin/ConfigurationForm.php:549
-msgid "The amount, its range and the price of each option. Off, it keeps your prices and you set new ones in the editor."
 msgstr ""
 
 #: src/Admin/ConfigurationPage.php:145
@@ -3621,51 +3650,61 @@ msgstr ""
 msgid "Data"
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:268
+#. translators: %s: why the payment email wasn't saved
+#: src/Admin/ConfigurationPage.php:250
+#, php-format
+msgid "Settings saved, but the payment email was not: %s"
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:278
 msgid "Drawn in your checkout's look."
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:269
+#: src/Admin/ConfigurationPage.php:279
 msgid "Change it in Default Design"
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:300
+#: src/Admin/ConfigurationPage.php:310
 msgid "ifthenpay account"
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:301
-msgid "Your Backoffice Key unlocks the Gateway Keys and payment methods on your ifthenpay contract. Each button picks its own Gateway Key in its editor, under Configuration."
+#: src/Admin/ConfigurationPage.php:311
+msgid "Your Backoffice Key unlocks the Gateway Keys and payment methods on your ifthenpay contract. Each button picks its own Gateway Key in the Configuration tab of its editor."
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:306
+#: src/Admin/ConfigurationPage.php:316
 msgid "Connected"
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:330
+#: src/Admin/ConfigurationPage.php:328
+msgid "Connecting and disconnecting are saved straight away, so there is nothing to save on this tab."
+msgstr ""
+
+#: src/Admin/ConfigurationPage.php:341
 msgid "Connect to ifthenpay"
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:331
+#: src/Admin/ConfigurationPage.php:342
 msgid "Paste the Backoffice Key from your ifthenpay account. It stays on this site and is never shown again."
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:334
+#: src/Admin/ConfigurationPage.php:345
 msgid "Backoffice Key"
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:340
+#: src/Admin/ConfigurationPage.php:351
 msgid "Insert your backoffice key here.."
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:349
+#: src/Admin/ConfigurationPage.php:360
 msgid "The key from your ifthenpay Backoffice account."
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:368
+#: src/Admin/ConfigurationPage.php:379
 msgid "Disconnect ifthenpay?"
 msgstr ""
 
-#: src/Admin/ConfigurationPage.php:369
+#: src/Admin/ConfigurationPage.php:380
 msgid "This clears the Backoffice Key, Gateway Key and payment methods. Your entries stay, and you can connect again at any time."
 msgstr ""
 
@@ -3880,10 +3919,6 @@ msgstr ""
 
 #: src/Admin/DesignControls.php:103
 msgid "Your own colour, shape and size."
-msgstr ""
-
-#: src/Admin/DesignControls.php:104
-msgid "Advanced"
 msgstr ""
 
 #: src/Admin/DesignControls.php:104
@@ -4601,7 +4636,7 @@ msgstr ""
 #: src/Admin/Entries/EntriesController.php:385
 #: src/Admin/Entries/EntriesController.php:410
 #: src/Admin/Entries/EntriesController.php:773
-#: src/Admin/Entries/PaymentEmailSettings.php:313
+#: src/Admin/Entries/PaymentEmailSettings.php:340
 #: src/Ajax/SettingsController.php:227
 msgid "You are not allowed to do this."
 msgstr ""
@@ -4616,7 +4651,7 @@ msgstr ""
 
 #: src/Admin/Entries/EntriesController.php:516
 #: src/Admin/Entries/EntriesController.php:599
-#: src/Admin/Entries/PaymentEmailSettings.php:228
+#: src/Admin/Entries/PaymentEmailSettings.php:255
 #: src/Mail/PaymentEmailTemplate.php:50
 #: src/Repository/TransactionStore.php:787
 msgid "Customer name"
@@ -4629,7 +4664,7 @@ msgstr ""
 
 #: src/Admin/Entries/EntriesController.php:518
 #: src/Admin/Entries/EntriesController.php:600
-#: src/Admin/Entries/PaymentEmailSettings.php:232
+#: src/Admin/Entries/PaymentEmailSettings.php:259
 #: src/Mail/PaymentEmailTemplate.php:51
 #: src/Repository/TransactionStore.php:794
 msgid "Customer email"
@@ -5468,72 +5503,76 @@ msgid "Payment request email"
 msgstr ""
 
 #: src/Admin/Entries/PaymentEmailSettings.php:95
-msgid "What customers get from \"Send payment email\". Click a tag to drop a payment detail where your cursor is — it's filled in for each customer when the email goes out. This panel has its own Save button."
+msgid "What customers get from \"Send payment email\": the subject and the message, with tags for their payment details."
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:104
+#: src/Admin/Entries/PaymentEmailSettings.php:98
+msgid "Click a tag to drop a payment detail where your cursor is; it is filled in for each customer when the email goes out. Save Settings keeps this too, or save just this email below."
+msgstr ""
+
+#: src/Admin/Entries/PaymentEmailSettings.php:105
 msgid "Subject"
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:117
+#: src/Admin/Entries/PaymentEmailSettings.php:118
 msgid "Hover or focus a tag to see what it becomes."
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:122
+#: src/Admin/Entries/PaymentEmailSettings.php:123
 msgid "Body (HTML)"
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:125
+#: src/Admin/Entries/PaymentEmailSettings.php:126
 msgid "Add image"
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:129
+#: src/Admin/Entries/PaymentEmailSettings.php:130
 msgid "Inline styles and tables work best in mail clients. Scripts, forms, embeds and event handlers are removed when you save."
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:136
+#: src/Admin/Entries/PaymentEmailSettings.php:137
 msgid "With sample data"
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:140
+#: src/Admin/Entries/PaymentEmailSettings.php:141
 msgid "Subject:"
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:144
+#: src/Admin/Entries/PaymentEmailSettings.php:145
 msgid "Email preview"
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:150
+#: src/Admin/Entries/PaymentEmailSettings.php:151
 msgid "Reset to default"
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:152
+#: src/Admin/Entries/PaymentEmailSettings.php:153
 msgid "Save payment email"
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:172
+#: src/Admin/Entries/PaymentEmailSettings.php:202
 msgid "Enter a subject."
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:176
+#: src/Admin/Entries/PaymentEmailSettings.php:206
 msgid "The email body is empty."
 msgstr ""
 
 #. translators: %s: the {payment_url} tag
-#: src/Admin/Entries/PaymentEmailSettings.php:183
+#: src/Admin/Entries/PaymentEmailSettings.php:214
 #, php-format
 msgid "Add the %s tag to the body (e.g. as a button's link), or your customer has no way to pay."
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:204
+#: src/Admin/Entries/PaymentEmailSettings.php:230
 msgid "Payment email saved. Some HTML that isn't allowed in emails was removed — the editor now shows what will be sent."
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:205
+#: src/Admin/Entries/PaymentEmailSettings.php:231
 msgid "Payment email saved."
 msgstr ""
 
-#: src/Admin/Entries/PaymentEmailSettings.php:297
+#: src/Admin/Entries/PaymentEmailSettings.php:324
 msgid "The email body is too long."
 msgstr ""
 
@@ -7848,7 +7887,7 @@ msgid "Popup after paying"
 msgstr ""
 
 #: src/Checkout/CheckoutTexts.php:182
-msgid "Its titles and messages are on the Messages tab."
+msgid "Its titles and messages are in Default Design › Messages."
 msgstr ""
 
 #: src/Checkout/CheckoutTexts.php:185

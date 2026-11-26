@@ -29,6 +29,9 @@ class ConfigurationForm {
 	public const FORM_ID     = 'iftp-btn-config-form';
 	public const SAVE_ACTION = 'iftp_btn_save_config';
 
+	// Transient (plus the user id) holding why the payment email wasn't saved, for the toast after the redirect.
+	public const EMAIL_ERROR_KEY = 'iftp_btn_email_error_';
+
 	private const TABS = array( 'texts', 'emails', 'links', 'ai', 'data' );
 
 	/**
@@ -142,9 +145,58 @@ class ConfigurationForm {
 			Plugin::flush_rewrites();
 		}
 
+		// The payment email is saved with the rest, so Save Settings never drops what was typed in its editor.
+		$notice = 'saved';
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by check_admin_referer() above.
+		if ( $this->gateway->is_connected() && isset( $_POST['payment_email'] ) && is_array( $_POST['payment_email'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the body is HTML, so PaymentEmailTemplate cleans it with its own allow-list.
+			$email  = wp_unslash( $_POST['payment_email'] );
+			$stored = ( new PaymentEmailSettings( $this->gateway ) )->store(
+				is_string( $email['subject'] ?? null ) ? $email['subject'] : '',
+				is_string( $email['body'] ?? null ) ? str_replace( "\r\n", "\n", $email['body'] ) : ''
+			);
+
+			if ( ! $stored['ok'] ) {
+				set_transient( self::EMAIL_ERROR_KEY . get_current_user_id(), $stored['message'], MINUTE_IN_SECONDS );
+				$notice = 'email_invalid';
+			}
+		}
+
 		// Back to the tab they saved from.
-		wp_safe_redirect( add_query_arg( 'iftp_notice', 'saved', ConfigurationPage::url() ) . ( in_array( $tab, self::TABS, true ) ? '#' . $tab : '' ) );
+		wp_safe_redirect( add_query_arg( 'iftp_notice', $notice, ConfigurationPage::url() ) . ( in_array( $tab, self::TABS, true ) ? '#' . $tab : '' ) );
 		exit;
+	}
+
+	/**
+	 * Opens a card that folds away on its heading, like the Default Design's: a long tab shows only what is being worked on.
+	 *
+	 * @param string $id          Its key; the page remembers whether it was left open.
+	 * @param string $title_id    The heading's id.
+	 * @param string $title       The heading.
+	 * @param string $description The line under it.
+	 * @param bool   $open        Whether it starts open.
+	 * @param string $attributes  Extra attributes, already escaped.
+	 */
+	public static function open_card( string $id, string $title_id, string $title, string $description, bool $open = false, string $attributes = '' ): void {
+		?>
+		<details class="iftp-btn-ecard iftp-btn-ecard--fold" data-iftp-fold="<?php echo esc_attr( $id ); ?>"<?php echo $open ? ' open' : ''; ?><?php echo $attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed attribute names from the callers. ?>>
+			<summary class="iftp-btn-ecard__intro">
+				<h2 id="<?php echo esc_attr( $title_id ); ?>" class="iftp-btn-ecard__title"><?php echo esc_html( $title ); ?></h2>
+				<p class="iftp-btn-ecard__description"><?php echo esc_html( $description ); ?></p>
+			</summary>
+			<div class="iftp-btn-ecard__body">
+		<?php
+	}
+
+	/**
+	 * Closes a card.
+	 */
+	public static function close_card(): void {
+		?>
+			</div>
+		</details>
+		<?php
 	}
 
 	/**
@@ -154,16 +206,15 @@ class ConfigurationForm {
 		$own      = $this->settings->get_texts();
 		$defaults = CheckoutTexts::defaults();
 		?>
-		<p class="iftp-btn-texts__intro"><?php esc_html_e( 'Write any of these in your own words or language. Blank keeps the original, which follows the site\'s language. Keep words in {braces}: the payer sees the number, price or name there.', 'ifthenpay-pay-button' ); ?></p>
+		<p class="iftp-btn-texts__intro"><?php esc_html_e( 'Most sites never need to change these: blank keeps the original, which follows the site\'s language. Open a group to write any of them in your own words or language. Keep words in {braces}: the payer sees the number, price or name there.', 'ifthenpay-pay-button' ); ?></p>
 		<?php
+		$first = true;
+
 		foreach ( CheckoutTexts::groups() as $group => $info ) :
+			self::open_card( 'texts-' . $group, 'iftp-btn-texts-' . $group, $info['title'], $info['description'], $first, ' data-iftp-text-view="' . esc_attr( $info['view'] ) . '"' );
+			$first = false;
 			?>
-			<section class="iftp-btn-panel" aria-labelledby="iftp-btn-texts-<?php echo esc_attr( $group ); ?>" data-iftp-text-view="<?php echo esc_attr( $info['view'] ); ?>">
-				<div class="iftp-btn-panel__intro">
-					<h2 id="iftp-btn-texts-<?php echo esc_attr( $group ); ?>" class="iftp-btn-panel__title"><?php echo esc_html( $info['title'] ); ?></h2>
-					<p class="iftp-btn-panel__description"><?php echo esc_html( $info['description'] ); ?></p>
-				</div>
-				<div class="iftp-btn-panel__body iftp-btn-texts">
+				<div class="iftp-btn-texts">
 					<?php
 					foreach ( $info['items'] as $key => $hint ) :
 						$field_id = 'iftp-btn-text-' . str_replace( '_', '-', $key );
@@ -179,8 +230,8 @@ class ConfigurationForm {
 						</div>
 					<?php endforeach; ?>
 				</div>
-			</section>
 			<?php
+			self::close_card();
 		endforeach;
 	}
 
@@ -192,12 +243,8 @@ class ConfigurationForm {
 		$thumb = $look['logo_id'] > 0 ? wp_get_attachment_image_url( $look['logo_id'], 'medium' ) : false;
 		$full  = $look['logo_id'] > 0 ? wp_get_attachment_image_url( $look['logo_id'], 'large' ) : false;
 		?>
-		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-receipt-title" data-iftp-receipt>
-			<div class="iftp-btn-panel__intro">
-				<h2 id="iftp-btn-receipt-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Receipt', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'The PDF the payer gets and you can download from any paid payment. It is black and white unless you switch colours on.', 'ifthenpay-pay-button' ); ?></p>
-			</div>
-			<div class="iftp-btn-panel__body iftp-btn-stack">
+		<?php self::open_card( 'config-receipt', 'iftp-btn-receipt-title', __( 'Proof of payment look', 'ifthenpay-pay-button' ), __( 'The PDF the payer keeps as proof of payment. It is not an invoice and not valid for tax purposes. Logo, business details, title, message, colours and barcode. Black and white unless you switch colours on.', 'ifthenpay-pay-button' ), false, ' data-iftp-receipt' ); ?>
+			<div class="iftp-btn-stack">
 				<div class="iftp-btn-field">
 					<label class="iftp-btn-field__label" for="iftp-btn-receipt-logo"><?php esc_html_e( 'Logo', 'ifthenpay-pay-button' ); ?></label>
 					<select class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-receipt-logo" name="receipt[logo]" data-iftp-receipt-logo>
@@ -228,7 +275,7 @@ class ConfigurationForm {
 				</div>
 				<div class="iftp-btn-field">
 					<label class="iftp-btn-field__label" for="iftp-btn-receipt-title-input"><?php esc_html_e( 'Title', 'ifthenpay-pay-button' ); ?></label>
-					<input type="text" class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-receipt-title-input" name="receipt[title]" maxlength="24" value="<?php echo esc_attr( $look['title'] ); ?>" placeholder="<?php echo esc_attr( __( 'Receipt', 'ifthenpay-pay-button' ) ); ?>" />
+					<input type="text" class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-receipt-title-input" name="receipt[title]" maxlength="24" value="<?php echo esc_attr( $look['title'] ); ?>" placeholder="<?php echo esc_attr( __( 'Proof of payment', 'ifthenpay-pay-button' ) ); ?>" />
 				</div>
 				<div class="iftp-btn-field">
 					<label class="iftp-btn-field__label" for="iftp-btn-receipt-message"><?php esc_html_e( 'Message', 'ifthenpay-pay-button' ); ?></label>
@@ -245,7 +292,7 @@ class ConfigurationForm {
 				<div class="iftp-btn-field" data-iftp-receipt-accent <?php echo $look['color'] ? '' : 'hidden'; ?>>
 					<label class="iftp-btn-field__label" for="iftp-btn-receipt-accent"><?php esc_html_e( 'Colour', 'ifthenpay-pay-button' ); ?></label>
 					<span class="iftp-btn-color">
-						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( $look['accent'] ); ?>" aria-label="<?php esc_attr_e( 'Pick the receipt colour', 'ifthenpay-pay-button' ); ?>" data-iftp-receipt-swatch />
+						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( $look['accent'] ); ?>" aria-label="<?php esc_attr_e( 'Pick the proof of payment colour', 'ifthenpay-pay-button' ); ?>" data-iftp-receipt-swatch />
 						<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="iftp-btn-receipt-accent" name="receipt[accent]" value="<?php echo esc_attr( $look['accent'] ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-receipt-hex />
 					</span>
 				</div>
@@ -257,7 +304,7 @@ class ConfigurationForm {
 					</span>
 				</label>
 			</div>
-		</section>
+		<?php self::close_card(); ?>
 		<?php
 	}
 
@@ -275,15 +322,15 @@ class ConfigurationForm {
 				<label class="iftp-btn-np__toggle">
 					<input type="checkbox" class="iftp-btn-switch" name="receipt_payer" value="1" <?php checked( $this->settings->get_receipt_payer() ); ?> />
 					<span class="iftp-btn-np__toggle-text">
-						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Receipt to the payer', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Proof of payment to the payer', 'ifthenpay-pay-button' ); ?></span>
 						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Only when the button asks for an email.', 'ifthenpay-pay-button' ); ?></span>
 					</span>
 				</label>
 				<label class="iftp-btn-np__toggle">
 					<input type="checkbox" class="iftp-btn-switch" name="receipt_pdf" value="1" <?php checked( $this->settings->get_receipt_pdf() ); ?> />
 					<span class="iftp-btn-np__toggle-text">
-						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Attach a PDF receipt', 'ifthenpay-pay-button' ); ?></span>
-						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'A copy the payer can keep. You can also download it from any paid payment.', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Attach a PDF proof of payment', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'A copy the payer can keep. Its look is set in Proof of payment look, below.', 'ifthenpay-pay-button' ); ?></span>
 					</span>
 				</label>
 				<label class="iftp-btn-np__toggle">
@@ -301,12 +348,12 @@ class ConfigurationForm {
 		</section>
 
 		<?php
+		$this->render_receipt_look();
+
 		// The template editor needs a connected account, like the "Send payment email" action it belongs to.
 		if ( $this->gateway->is_connected() ) {
 			( new PaymentEmailSettings( $this->gateway ) )->render_panel();
 		}
-
-		$this->render_receipt_look();
 		?>
 
 		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-reminder-panel-title">
@@ -376,7 +423,7 @@ class ConfigurationForm {
 				<h2 id="iftp-btn-links-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Pay links', 'ifthenpay-pay-button' ); ?></h2>
 				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Every button has its own pay page. Changing the base breaks links you already shared.', 'ifthenpay-pay-button' ); ?></p>
 			</div>
-			<div class="iftp-btn-panel__body">
+			<div class="iftp-btn-panel__body iftp-btn-stack">
 				<div class="iftp-btn-field">
 					<label class="iftp-btn-field__label" for="iftp-btn-pay-base"><?php esc_html_e( 'Link base', 'ifthenpay-pay-button' ); ?></label>
 					<span class="iftp-btn-affix">
@@ -385,10 +432,13 @@ class ConfigurationForm {
 						<span class="iftp-btn-affix__text">/<?php esc_html_e( 'button', 'ifthenpay-pay-button' ); ?>/</span>
 					</span>
 				</div>
+				<?php DesignControls::open_fold( 'config-links-advanced', __( 'Advanced', 'ifthenpay-pay-button' ), __( 'The secret behind links that carry an amount.', 'ifthenpay-pay-button' ) ); ?>
+				<p class="iftp-btn-field__help"><?php esc_html_e( 'A pay link that sets the amount carries a signature made with a secret kept on this site, so nobody can change the price in the address. A new secret cancels every signed link you already shared.', 'ifthenpay-pay-button' ); ?></p>
 				<label class="iftp-btn-check">
 					<input type="checkbox" name="rotate_signing" value="1" />
-					<?php esc_html_e( 'Make a new signing secret (every signed link made so far stops working)', 'ifthenpay-pay-button' ); ?>
+					<?php esc_html_e( 'Make a new secret now and cancel the signed links so far', 'ifthenpay-pay-button' ); ?>
 				</label>
+				<?php DesignControls::close_fold(); ?>
 			</div>
 		</section>
 		<?php
@@ -439,12 +489,55 @@ class ConfigurationForm {
 			<?php
 		}
 		?>
-		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-ai-limits-title">
+		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-ai-style-title">
 			<div class="iftp-btn-panel__intro">
-				<h2 id="iftp-btn-ai-limits-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Limits', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Every message is billed to your own key, so cap how many go out. A stuck key or a held-down Enter can never run up the bill past these.', 'ifthenpay-pay-button' ); ?></p>
+				<h2 id="iftp-btn-ai-style-title" class="iftp-btn-panel__title"><?php esc_html_e( 'How it works', 'ifthenpay-pay-button' ); ?></h2>
+				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Faster or more careful, safer or more surprising. Change these any time; the next message uses them.', 'ifthenpay-pay-button' ); ?></p>
 			</div>
 			<div class="iftp-btn-panel__body iftp-btn-stack">
+				<?php
+				$this->print_ai_choice(
+					'thinking',
+					__( 'Thinking', 'ifthenpay-pay-button' ),
+					$ai['thinking'],
+					array(
+						'quick'    => array( __( 'Quick', 'ifthenpay-pay-button' ), __( 'Answers in seconds.', 'ifthenpay-pay-button' ) ),
+						'balanced' => array( __( 'Balanced', 'ifthenpay-pay-button' ), __( 'A little slower, more careful.', 'ifthenpay-pay-button' ) ),
+						'deep'     => array( __( 'Deep', 'ifthenpay-pay-button' ), __( 'Slowest and dearest, for big forms.', 'ifthenpay-pay-button' ) ),
+					),
+					__( 'Gemini and ChatGPT\'s reasoning models only. Claude always answers straight away.', 'ifthenpay-pay-button' )
+				);
+				$this->print_ai_choice(
+					'creativity',
+					__( 'Creativity', 'ifthenpay-pay-button' ),
+					$ai['creativity'],
+					array(
+						'focused'  => array( __( 'Focused', 'ifthenpay-pay-button' ), __( 'Sticks closely to what you ask.', 'ifthenpay-pay-button' ) ),
+						'balanced' => array( __( 'Balanced', 'ifthenpay-pay-button' ), __( 'Good ideas, no surprises.', 'ifthenpay-pay-button' ) ),
+						'creative' => array( __( 'Creative', 'ifthenpay-pay-button' ), __( 'Bolder looks and wording.', 'ifthenpay-pay-button' ) ),
+					),
+					__( 'Not used by ChatGPT\'s reasoning models, which pick their own.', 'ifthenpay-pay-button' )
+				);
+				?>
+				<label class="iftp-btn-np__toggle">
+					<input type="checkbox" class="iftp-btn-switch" name="ai[fallback]" value="1" <?php checked( $ai['fallback'] ); ?> />
+					<span class="iftp-btn-np__toggle-text">
+						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Try other models when yours is busy', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Up to two more from your key, so a busy moment doesn\'t stop you. Off, it only ever uses the model you picked.', 'ifthenpay-pay-button' ); ?></span>
+					</span>
+				</label>
+				<label class="iftp-btn-np__toggle">
+					<input type="checkbox" class="iftp-btn-switch" name="ai[prices]" value="1" <?php checked( $ai['prices'] ); ?> />
+					<span class="iftp-btn-np__toggle-text">
+						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Let the AI set prices', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'The amount, its range and the price of each option. Off, it keeps your prices and you set new ones in the editor.', 'ifthenpay-pay-button' ); ?></span>
+					</span>
+				</label>
+			</div>
+		</section>
+
+		<?php self::open_card( 'config-ai-limits', 'iftp-btn-ai-limits-title', __( 'Limits and advanced', 'ifthenpay-pay-button' ), __( 'Message caps, chat memory, answer size and timeouts. The defaults suit most sites; every message is billed to your own key, so these stop a stuck key from running up the bill.', 'ifthenpay-pay-button' ) ); ?>
+			<div class="iftp-btn-stack">
 				<div class="iftp-btn-config__pair">
 					<div class="iftp-btn-field">
 						<label class="iftp-btn-field__label" for="iftp-btn-ai-hourly"><?php esc_html_e( 'Messages per hour, per admin', 'ifthenpay-pay-button' ); ?></label>
@@ -503,54 +596,7 @@ class ConfigurationForm {
 					<p class="iftp-btn-field__help" id="iftp-btn-ai-wait-help"><?php esc_html_e( 'How long one model may take before the next one is tried. Long answers, like a drawn checkout, can need two minutes. Your host has to allow a request to last as long as this and a second try; if a message ends with a timeout page, lower it.', 'ifthenpay-pay-button' ); ?></p>
 				</div>
 			</div>
-		</section>
-
-		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-ai-style-title">
-			<div class="iftp-btn-panel__intro">
-				<h2 id="iftp-btn-ai-style-title" class="iftp-btn-panel__title"><?php esc_html_e( 'How it works', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Faster or more careful, safer or more surprising. Change these any time; the next message uses them.', 'ifthenpay-pay-button' ); ?></p>
-			</div>
-			<div class="iftp-btn-panel__body iftp-btn-stack">
-				<?php
-				$this->print_ai_choice(
-					'thinking',
-					__( 'Thinking', 'ifthenpay-pay-button' ),
-					$ai['thinking'],
-					array(
-						'quick'    => array( __( 'Quick', 'ifthenpay-pay-button' ), __( 'Answers in seconds.', 'ifthenpay-pay-button' ) ),
-						'balanced' => array( __( 'Balanced', 'ifthenpay-pay-button' ), __( 'A little slower, more careful.', 'ifthenpay-pay-button' ) ),
-						'deep'     => array( __( 'Deep', 'ifthenpay-pay-button' ), __( 'Slowest and dearest, for big forms.', 'ifthenpay-pay-button' ) ),
-					),
-					__( 'Gemini and ChatGPT\'s reasoning models only. Claude always answers straight away.', 'ifthenpay-pay-button' )
-				);
-				$this->print_ai_choice(
-					'creativity',
-					__( 'Creativity', 'ifthenpay-pay-button' ),
-					$ai['creativity'],
-					array(
-						'focused'  => array( __( 'Focused', 'ifthenpay-pay-button' ), __( 'Sticks closely to what you ask.', 'ifthenpay-pay-button' ) ),
-						'balanced' => array( __( 'Balanced', 'ifthenpay-pay-button' ), __( 'Good ideas, no surprises.', 'ifthenpay-pay-button' ) ),
-						'creative' => array( __( 'Creative', 'ifthenpay-pay-button' ), __( 'Bolder looks and wording.', 'ifthenpay-pay-button' ) ),
-					),
-					__( 'Not used by ChatGPT\'s reasoning models, which pick their own.', 'ifthenpay-pay-button' )
-				);
-				?>
-				<label class="iftp-btn-np__toggle">
-					<input type="checkbox" class="iftp-btn-switch" name="ai[fallback]" value="1" <?php checked( $ai['fallback'] ); ?> />
-					<span class="iftp-btn-np__toggle-text">
-						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Try other models when yours is busy', 'ifthenpay-pay-button' ); ?></span>
-						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Up to two more from your key, so a busy moment doesn\'t stop you. Off, it only ever uses the model you picked.', 'ifthenpay-pay-button' ); ?></span>
-					</span>
-				</label>
-				<label class="iftp-btn-np__toggle">
-					<input type="checkbox" class="iftp-btn-switch" name="ai[prices]" value="1" <?php checked( $ai['prices'] ); ?> />
-					<span class="iftp-btn-np__toggle-text">
-						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Let the AI set prices', 'ifthenpay-pay-button' ); ?></span>
-						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'The amount, its range and the price of each option. Off, it keeps your prices and you set new ones in the editor.', 'ifthenpay-pay-button' ); ?></span>
-					</span>
-				</label>
-			</div>
-		</section>
+		<?php self::close_card(); ?>
 		<?php
 	}
 

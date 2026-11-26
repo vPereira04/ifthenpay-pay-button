@@ -321,6 +321,11 @@ body.iftp-btn-screen .iftp-btn-tabs__tab {
 	font-weight: 700;
 }
 
+/* The current tab's pill fades in with its shadow, instead of snapping on. */
+body.iftp-btn-screen .iftp-btn-tabs__tab {
+	transition: background-color var(--iftp-fast) var(--iftp-ease), box-shadow var(--iftp-mid) var(--iftp-ease), color var(--iftp-fast) var(--iftp-ease);
+}
+
 body.iftp-btn-screen .iftp-btn-segmented__option:hover:not([aria-selected="true"]),
 body.iftp-btn-screen .iftp-btn-seg__button:hover:not([aria-pressed="true"]),
 body.iftp-btn-screen .iftp-btn-seg__option:hover > span,
@@ -372,11 +377,12 @@ body.iftp-btn-screen .iftp-btn-affix__text:last-child {
 	border-radius: 0 14px 14px 0;
 }
 
-body.iftp-btn-screen .iftp-btn-affix .iftp-btn-field__control {
+/* .wrap, so these beat the glass rule for every text input above and the field reads as one address. */
+body.iftp-btn-screen .wrap .iftp-btn-affix .iftp-btn-field__control {
 	border-radius: 0 14px 14px 0;
 }
 
-body.iftp-btn-screen .iftp-btn-affix .iftp-btn-field__control:not(:last-child) {
+body.iftp-btn-screen .wrap .iftp-btn-affix .iftp-btn-field__control:not(:last-child) {
 	border-radius: 0;
 }
 

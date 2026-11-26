@@ -191,8 +191,11 @@
 		if ( tab ) {
 			tab.addEventListener( 'click', function () {
 				window.setTimeout( function () {
-					editor.refresh();
-					refreshPreview();
+					// Closed, it has nothing to measure or preview yet; opening it starts both.
+					if ( panel.open ) {
+						editor.refresh();
+						refreshPreview();
+					}
 				}, 0 );
 			} );
 		}
@@ -271,5 +274,42 @@
 			} );
 	} );
 
-	refreshPreview();
+	// CodeMirror keeps its own copy; the page's Save Settings posts the textarea, so it gets written back first.
+	const pageForm = bodyArea.closest( 'form' );
+
+	if ( pageForm ) {
+		pageForm.addEventListener( 'submit', function () {
+			if ( editor ) {
+				editor.save();
+			}
+		} );
+	}
+
+	// Closed until opened: CodeMirror can't measure itself while hidden, and the preview waits until it is wanted.
+	const fold = panel.closest( 'details' ) || panel;
+	let started = false;
+
+	function start() {
+		if ( started ) {
+			return;
+		}
+
+		started = true;
+
+		if ( editor ) {
+			editor.refresh();
+		}
+
+		refreshPreview();
+	}
+
+	if ( 'DETAILS' === fold.tagName && ! fold.open ) {
+		fold.addEventListener( 'toggle', function () {
+			if ( fold.open ) {
+				start();
+			}
+		} );
+	} else {
+		start();
+	}
 }() );

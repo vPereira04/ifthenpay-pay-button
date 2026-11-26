@@ -299,8 +299,19 @@ class LookControls {
 									<?php esc_html_e( 'Same as the light one', 'ifthenpay-pay-button' ); ?>
 								</label>
 							</div>
+							<div class="iftp-btn-field">
+								<label class="iftp-btn-field__label" for="iftp-btn-look-dark_page"><?php esc_html_e( 'Dark page', 'ifthenpay-pay-button' ); ?></label>
+								<span class="iftp-btn-color<?php echo '' === $look['dark_page'] ? ' is-auto' : ''; ?>" data-iftp-dark-page>
+									<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( '' !== $look['dark_page'] ? $look['dark_page'] : $look['dark_surface'] ); ?>" aria-label="<?php esc_attr_e( 'Pick the colour', 'ifthenpay-pay-button' ); ?>" data-iftp-color-for="iftp-btn-look-dark_page" />
+									<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="iftp-btn-look-dark_page" name="<?php echo esc_attr( $this->name( 'dark_page' ) ); ?>" value="<?php echo esc_attr( '' !== $look['dark_page'] ? $look['dark_page'] : $look['dark_surface'] ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-look="dark_page" />
+								</span>
+								<label class="iftp-btn-check">
+									<input type="checkbox" name="<?php echo esc_attr( $this->name( 'dark_page_auto' ) ); ?>" value="1" <?php checked( '' === $look['dark_page'] ); ?> data-iftp-look="dark_page_auto" />
+									<?php esc_html_e( 'Deepened from the light page', 'ifthenpay-pay-button' ); ?>
+								</label>
+							</div>
 						</div>
-						<p class="iftp-btn-field__help" data-iftp-when-dark="auto"><?php esc_html_e( 'The lighter shades, the lines and the pay page\'s background are mixed from these, as in the light look.', 'ifthenpay-pay-button' ); ?></p>
+						<p class="iftp-btn-field__help" data-iftp-when-dark="auto"><?php esc_html_e( 'The lighter shades and the lines are mixed from these, as in the light look. The pay page keeps the light page\'s colour, just deeper, unless you pick one.', 'ifthenpay-pay-button' ); ?></p>
 					</div>
 				</details>
 
@@ -1023,8 +1034,7 @@ class LookControls {
 			'counter'  => array( __( 'Counter', 'ifthenpay-pay-button' ), __( 'A big % over a hairline', 'ifthenpay-pay-button' ) ),
 			'gauge'    => array( __( 'Gauge', 'ifthenpay-pay-button' ), __( 'A half dial, a slice a page', 'ifthenpay-pay-button' ) ),
 			'pixel'    => array( __( 'Pixel', 'ifthenpay-pay-button' ), __( 'Chunky 8-bit health bar blocks', 'ifthenpay-pay-button' ) ),
-			'pizza'    => array( __( 'Pizza', 'ifthenpay-pay-button' ), __( 'A wedge a page, six to a pizza; whole on the last page', 'ifthenpay-pay-button' ) ),
-			'donuts'   => array( __( 'Donuts', 'ifthenpay-pay-button' ), __( 'A glazed donut per page, sprinkles when done', 'ifthenpay-pay-button' ) ),
+			'pizza'    => array( __( 'Pie', 'ifthenpay-pay-button' ), __( 'A round chart, a slice a page; whole on the last page', 'ifthenpay-pay-button' ) ),
 		);
 		$titles         = array(
 			__( 'Plan', 'ifthenpay-pay-button' ),

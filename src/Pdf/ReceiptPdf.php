@@ -102,7 +102,7 @@ final class ReceiptPdf {
 	 * @phpstan-param Transaction $record
 	 */
 	public static function filename( array $record ): string {
-		return 'receipt-' . sanitize_file_name( $record['ref'] ) . '.pdf';
+		return 'proof-of-payment-' . sanitize_file_name( $record['ref'] ) . '.pdf';
 	}
 
 	/**
@@ -168,7 +168,7 @@ final class ReceiptPdf {
 		}
 
 		$y    += self::LEADING;
-		$title = strtoupper( '' !== trim( $look['title'] ) ? $look['title'] : __( 'Receipt', 'ifthenpay-pay-button' ) );
+		$title = strtoupper( '' !== trim( $look['title'] ) ? $look['title'] : __( 'Proof of payment', 'ifthenpay-pay-button' ) );
 		$doc->text( $mid - $doc->width( $title, self::SIZE, true, true ) / 2, $y, $title, self::SIZE, true, $accent, false, true );
 		$y += self::LEADING;
 		$doc->text( $left, $y, $dashes, self::SIZE, false, self::BLACK, false, true );
@@ -178,7 +178,7 @@ final class ReceiptPdf {
 		$head = array(
 			array( __( 'Date', 'ifthenpay-pay-button' ), $when ),
 			array( __( 'Method', 'ifthenpay-pay-button' ), $record['pay_method'] ),
-			array( __( 'Receipt no.', 'ifthenpay-pay-button' ), $record['ref'] ),
+			array( __( 'Payment ref.', 'ifthenpay-pay-button' ), $record['ref'] ),
 			array( __( 'Name', 'ifthenpay-pay-button' ), $record['customer_name'] ),
 			array( __( 'Email', 'ifthenpay-pay-button' ), $record['customer_email'] ),
 			array( __( 'Your reference', 'ifthenpay-pay-button' ), $record['external_ref'] ),
@@ -219,7 +219,7 @@ final class ReceiptPdf {
 			$note = array_merge( $note, $doc->wrap( $part, self::SIZE, $width, false, true ) );
 		}
 
-		$need = ( count( $note ) + ( array() !== $note ? 1 : 0 ) ) * self::LEADING + 3 * self::LEADING + 30 + 3 * self::LEADING + ( null !== $barcode ? self::BAR_H + 3 * self::LEADING : 0 ) + 2 * self::LEADING;
+		$need = ( count( $note ) + ( array() !== $note ? 1 : 0 ) ) * self::LEADING + 3 * self::LEADING + 30 + 6 * self::LEADING + ( null !== $barcode ? self::BAR_H + 3 * self::LEADING : 0 ) + 2 * self::LEADING;
 
 		if ( $y + $need > self::BOTTOM ) {
 			$doc->add_page();
@@ -260,7 +260,15 @@ final class ReceiptPdf {
 			$doc->text( $mid - $doc->width( $label, 9, false, true ) / 2, $y, $label, 9, false, self::BLACK, false, true );
 		}
 
-		$bytes = $doc->output( sprintf( /* translators: %s: the payment's reference */ __( 'Receipt %s', 'ifthenpay-pay-button' ), $record['ref'] ) );
+		// A keepsake only: nothing here is an invoice, so it says so, as small as the reference above.
+		$y += self::LEADING * 1.5;
+
+		foreach ( $doc->wrap( __( 'Proof of payment only. Not an invoice and not valid for tax purposes.', 'ifthenpay-pay-button' ), 9, $width, false, true ) as $line ) {
+			$doc->text( $mid - $doc->width( $line, 9, false, true ) / 2, $y, $line, 9, false, self::BLACK, false, true );
+			$y += 12;
+		}
+
+		$bytes = $doc->output( sprintf( /* translators: %s: the payment's reference */ __( 'Proof of payment %s', 'ifthenpay-pay-button' ), $record['ref'] ) );
 
 		if ( $switched ) {
 			restore_previous_locale();

@@ -66,7 +66,6 @@
 }
 
 .iftp-btn-config:not([data-tab="texts"]) .iftp-btn-lookpage__aside,
-.iftp-btn-config[data-tab="backoffice"] .iftp-btn-config__save,
 .iftp-btn-config[data-tab="backoffice"] .iftp-btn-csettings__bar [data-iftp-dirty] {
 	display: none;
 }
@@ -74,6 +73,23 @@
 .iftp-btn-config .iftp-btn-csettings__bar > .iftp-btn-btn--primary {
 	min-height: 48px;
 	padding: 0 22px;
+	white-space: nowrap;
+	transition: opacity var(--iftp-mid) var(--iftp-ease), visibility 0s;
+}
+
+/* Backoffice has nothing to save here: Save fades out but keeps its place, so the tabs don't shift. Resizing the bar frame by frame makes its glass blur redraw out of place. */
+.iftp-btn-config[data-tab="backoffice"] .iftp-btn-csettings__bar > .iftp-btn-config__save {
+	opacity: 0;
+	pointer-events: none;
+	visibility: hidden;
+	transition: opacity var(--iftp-fast) var(--iftp-ease), visibility 0s linear var(--iftp-fast);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.iftp-btn-config .iftp-btn-csettings__bar > .iftp-btn-btn--primary {
+		transition: none;
+	}
 }
 
 .iftp-btn-config__gateway,
@@ -108,6 +124,15 @@
 	margin: 0 0 10px;
 	color: var(--iftp-muted);
 	font-size: 12.5px;
+}
+
+.iftp-btn-config__pair > .iftp-btn-field + .iftp-btn-field {
+	margin-top: 0;
+}
+
+.iftp-btn-connection__note {
+	flex-basis: 100%;
+	margin: 0;
 }
 
 .iftp-btn-config__pair {

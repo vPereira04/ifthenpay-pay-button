@@ -194,7 +194,7 @@ Further down, **Popups and footer** styles the popups after paying and the payme
 
 #### Step 14 — Choose what happens after payment
 
-1. **After payment**: show the Configuration › Messages setting, or a popup, a page or a URL just for this button.
+1. **After payment**: show the Default Design › Messages setting, or a popup, a page or a URL just for this button.
 
 (screenshot 14)
 
@@ -245,15 +245,16 @@ A button set to **The site's look** in its **Checkout design** tab uses this one
 #### Optional — Rewrite the payer's texts, in any language
 
 1. Open the **Texts** tab.
-2. Rewrite any text: buttons, labels, spots, the popup and the error messages. Blank keeps the original. Keep the words in `{braces}`.
+2. Open a group (**Checkout form** is open already) and rewrite any text: buttons, labels, spots, the popup and the error messages. Blank keeps the original. Keep the words in `{braces}`.
 
 (screenshot 19)
 
 #### Optional — Payment emails, the receipt and the weekly summary
 
 1. Open **Configuration › Emails**.
-2. **Receipt to the payer** and **Tell me about every payment**: pick who gets an email for each payment.
-3. **Payment request email**: write the email your customers get from Send payment email, with tags and a live preview. This panel has its own **Save payment email** button.
+2. **Receipt to the payer**, **Attach a PDF receipt** and **Tell me about every payment**: pick who gets an email for each payment.
+3. **Receipt look**: open it to dress the PDF receipt (next step).
+4. **Payment request email**: open it to write the email your customers get from Send payment email, with tags and a live preview. Its own **Save payment email** button keeps just that email; **Save Settings** keeps it too.
 
 (screenshot 20)
 
@@ -261,7 +262,7 @@ Further down the same tab, **Send the weekly summary** sends an email every Mond
 
 #### Optional — Dress the PDF receipt
 
-1. Open **Configuration › Emails** and find the **Receipt** panel.
+1. Open **Configuration › Emails** and open **Receipt look**.
 2. Choose the **logo**: your site's, or an image of yours from the Media Library.
 3. The **business name**. With a logo it is only printed when you fill this in.
 4. **Business details**: address, tax number or phone, a line each.
@@ -273,7 +274,7 @@ Further down the same tab, **Send the weekly summary** sends an email every Mond
 
 (screenshot 21)
 
-The start of every pay link, e.g. `/pay/your-button/`, is the **Link base** under **Configuration › Pay links**.
+The start of every pay link, e.g. `/pay/your-button/`, is the **Link base** under **Configuration › Pay links**. Under **Advanced** there, **Make a new secret now** cancels the signed links you already shared.
 
 #### Following your payments
 
@@ -353,7 +354,7 @@ Yes. `iftp_btn_payment_url( $button_id, array( 'amount' => 49.90, 'reference' =>
 
 <details>
 <summary><strong>Can I change every word the payer sees?</strong></summary>
-Yes. **Configuration › Texts** rewrites every label, button and message of the checkout, in any language. The popups after payment are in **Configuration › Messages**.
+Yes. **Configuration › Texts** rewrites every label, button and message of the checkout, in any language. The popups after payment are in **Default Design › Messages**.
 </details>
 
 <details>
@@ -462,9 +463,9 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
     ![Default Design: messages after paying](.wordpress-org/screenshot-18.png)
 19. **(Admin Only) Configuration › Texts: every word the payer reads, in your own words or language**
     ![Checkout texts](.wordpress-org/screenshot-19.png)
-20. **(Admin Only) Configuration › Emails: the payer's receipt, a note for every payment and the payment request email**
+20. **(Admin Only) Configuration › Emails: the payer's receipt, its look and the payment request email**
     ![Payment emails and the payment request email](.wordpress-org/screenshot-20.png)
-21. **(Admin Only) Configuration › Emails › Receipt: the logo, business details, message, colours and barcode of the PDF receipt**
+21. **(Admin Only) Configuration › Emails › Receipt look: the logo, business details, message, colours and barcode of the PDF receipt**
     ![Receipt settings](.wordpress-org/screenshot-21.png)
 22. **(Admin Only) Payments: every payment, its status and the totals**
     ![Payments](.wordpress-org/screenshot-22.png)

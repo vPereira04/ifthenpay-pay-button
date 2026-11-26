@@ -179,7 +179,7 @@ class CheckoutTexts {
 			),
 			'popup'    => array(
 				'title'       => __( 'Popup after paying', 'ifthenpay-pay-button' ),
-				'description' => __( 'Its titles and messages are on the Messages tab.', 'ifthenpay-pay-button' ),
+				'description' => __( 'Its titles and messages are in Default Design › Messages.', 'ifthenpay-pay-button' ),
 				'view'        => 'paid',
 				'items'       => array(
 					'checking'    => __( 'While it asks ifthenpay how the payment went.', 'ifthenpay-pay-button' ),

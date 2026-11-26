@@ -165,7 +165,7 @@ class ConfigurationPage {
 					'invalidKey' => __( 'Invalid Backoffice Key...', 'ifthenpay-pay-button' ),
 					'disconnect' => __( 'Disconnect', 'ifthenpay-pay-button' ),
 					'sending'    => __( 'Sending…', 'ifthenpay-pay-button' ),
-					'pickImage'  => __( 'Choose the receipt logo', 'ifthenpay-pay-button' ),
+					'pickImage'  => __( 'Choose the proof of payment logo', 'ifthenpay-pay-button' ),
 					'useImage'   => __( 'Use this image', 'ifthenpay-pay-button' ),
 					'error'      => __( 'Something went wrong. Please try again.', 'ifthenpay-pay-button' ),
 				),
@@ -240,7 +240,17 @@ class ConfigurationPage {
 			<?php
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag from the redirect after a checked save.
 			if ( isset( $_GET['iftp_notice'] ) ) {
-				Toast::add( esc_html__( 'Settings saved.', 'ifthenpay-pay-button' ) );
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag from the redirect after a checked save.
+				$why = 'email_invalid' === $_GET['iftp_notice'] ? get_transient( ConfigurationForm::EMAIL_ERROR_KEY . get_current_user_id() ) : false;
+
+				if ( is_string( $why ) && '' !== $why ) {
+					delete_transient( ConfigurationForm::EMAIL_ERROR_KEY . get_current_user_id() );
+					// The rest is saved; only the payment email was refused, and the toast says why.
+					/* translators: %s: why the payment email wasn't saved */
+					Toast::add( esc_html( sprintf( __( 'Settings saved, but the payment email was not: %s', 'ifthenpay-pay-button' ), $why ) ), 'error' );
+				} else {
+					Toast::add( esc_html__( 'Settings saved.', 'ifthenpay-pay-button' ) );
+				}
 			}
 			?>
 
@@ -298,7 +308,7 @@ class ConfigurationPage {
 		<section class="iftp-btn-panel iftp-btn-connection" aria-labelledby="iftp-btn-connection-title">
 			<div class="iftp-btn-panel__intro">
 				<h2 id="iftp-btn-connection-title" class="iftp-btn-panel__title"><?php esc_html_e( 'ifthenpay account', 'ifthenpay-pay-button' ); ?></h2>
-				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Your Backoffice Key unlocks the Gateway Keys and payment methods on your ifthenpay contract. Each button picks its own Gateway Key in its editor, under Configuration.', 'ifthenpay-pay-button' ); ?></p>
+				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Your Backoffice Key unlocks the Gateway Keys and payment methods on your ifthenpay contract. Each button picks its own Gateway Key in the Configuration tab of its editor.', 'ifthenpay-pay-button' ); ?></p>
 			</div>
 			<div class="iftp-btn-panel__body">
 				<p class="iftp-btn-connection__status iftp-btn-connection__status--<?php echo $connected ? 'connected' : 'disconnected'; ?>">
@@ -315,6 +325,7 @@ class ConfigurationPage {
 					</button>
 				<?php endif; ?>
 				<p class="iftp-btn-connection__message" data-iftp-connection-message role="alert"></p>
+				<p class="iftp-btn-field__help iftp-btn-connection__note"><?php esc_html_e( 'Connecting and disconnecting are saved straight away, so there is nothing to save on this tab.', 'ifthenpay-pay-button' ); ?></p>
 			</div>
 		</section>
 		<?php

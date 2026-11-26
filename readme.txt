@@ -68,7 +68,7 @@ All settings are made in Pay Button in your WordPress admin and in your ifthenpa
 13. **Step 11 — Checkout design:** Open the Design tab and pick Checkout & pay page [1]. Keep the site's look (Default Design › Checkout & pay page) or give this button its own look [2]. Start from a look, then change the colours, the card's opacity and glass blur, dark mode, corners and fields [3]. The preview follows every change: checkout, pay page and each popup, in light and dark [4] (screenshot 11).
 14. **Step 12 — Page progress and pay page:** Page progress shows the steps of a long form in seven ways: bars, named bars, one line, numbers, dots, ring or just words [1]. Pay page sets what sits behind the checkout card: soft glow, gradient, plain, an image or a video (file, YouTube or Vimeo) [2]. Gradients come soft, aurora or diagonal, and an effect adds crystals, waves, bokeh or grain [3] (screenshot 12).
 15. **Step 13 — Button design:** Open the Design tab and pick The button [1] and write the Button text [2]. Choose Default design (the one in Default Design › Button, shared by every button that uses it), Match my theme, or Custom: start from a preset, then pick the style (filled, outline, soft, gradient, glass, 3D, neon, brutal or ghost), colours, corners, border, size, hover and attention effects, and icon [3]. Click Save button [4] (screenshot 13).
-16. **Step 14 — After payment:** Open the After payment tab and use When paid [1]: show the Configuration › Messages setting, or a popup, a page or a URL just for this button (screenshot 14).
+16. **Step 14 — After payment:** Open the After payment tab and use When paid [1]: show the Default Design › Messages setting, or a popup, a page or a URL just for this button (screenshot 14).
 
 Optional extras:
 
@@ -78,8 +78,8 @@ Optional extras:
 * **Build or edit with AI:** Describe the button, or what to change, in your own words and send; Build with AI on the Buttons screen starts a new one, and Edit with AI in the editor changes this one. Each message is billed to your own AI account [1]. Or start from an idea [2]. The preview is the real pay page, redrawn after every answer, and never takes payments [3]. See it on Desktop or Phone, or at Full page [4] (screenshot 16). A button the AI builds starts switched off, so check its prices, then turn on Take payments.
 * **Default design:** Open Pay Button › Default Design [1]. Start from a look (each one sets the pay page background too), then tweak the colours, shape, fonts, pay page background and Custom CSS [2]. Or click Edit with AI and describe the look in a chat: the AI's version opens here as a draft to check and save [3]. The preview follows every change: checkout, pay page and each popup [4]. Click Save Settings [5] (screenshot 17). The Button tab sets the default button design that every button set to Default design wears.
 * **Messages after paying:** In Default Design, open the Messages tab (a button can set its own in its Configuration tab) [1], choose what happens when paid: a popup message, a WordPress page or a custom URL [2]. Write the title and message for each outcome (Paid, Pending, Failed, Cancelled), with tags like {name} or {payment_id} [3] (screenshot 18).
-* **Texts:** In the Texts tab [1], rewrite any text the payer reads: buttons, labels, spots, the popup and the error messages, in any language. Blank keeps the original; keep the words in {braces} [2] (screenshot 19).
-* **Links & emails:** In Configuration › Pay links, the Link base is the start of every pay link, e.g. /pay/your-button/. In Configuration › Emails, switch on the Receipt to the payer and Tell me about every payment [1], and write the Payment request email your customers get from Send payment email, with tags and a live preview [2] (screenshot 20). Send the weekly summary emails the week's payments every Monday. Further down, the Receipt panel dresses the PDF receipt: its logo, your site's or an image of yours [1], the business name [2] and details [3], a title [4], a message at the bottom [5], an optional colour with the logo's own colours [6] and the barcode [7] (screenshot 21). Click Save Settings to keep them.
+* **Texts:** In the Texts tab [1], open a group and rewrite any text the payer reads: buttons, labels, spots, the popup and the error messages, in any language. Blank keeps the original; keep the words in {braces} [1] (screenshot 19).
+* **Links & emails:** In Configuration › Pay links, the Link base is the start of every pay link, e.g. /pay/your-button/; under Advanced there, Make a new secret now cancels the signed links you already shared. In Configuration › Emails, switch on the Receipt to the payer and Tell me about every payment [1], open Receipt look to dress the PDF receipt: its logo, your site's or an image of yours, the business name and details, a title, a message, an optional colour and the barcode [2], and open Payment request email to write the email your customers get from Send payment email, with tags and a live preview [3] (screenshots 20 and 21). Send the weekly summary emails the week's payments every Monday. Click Save Settings to keep them.
 
 Following your payments: Pay Button › Payments [1] shows Performance over 7 days, 30 days or 12 months and Revenue by method [2], totals by status [3], search, filters, columns and CSV export [4], and New payment to create a payment link for a customer or record one you took another way [5] (screenshot 22). View opens a payment: its amount and status [1], the transaction and the submitted data [2], and actions to change the status, copy the payment link or send the payment email [3] (screenshot 23).
 
@@ -129,7 +129,7 @@ Yes. `iftp_btn_payment_url( $button_id, array( 'amount' => 49.90, 'reference' =>
 
 = Can I change every word the payer sees? =
 
-Yes. Configuration › Texts rewrites every label, button and message of the checkout, in any language. The popups after payment are in Configuration › Messages.
+Yes. Configuration › Texts rewrites every label, button and message of the checkout, in any language. The popups after payment are in Default Design › Messages.
 
 = Is there a sandbox? =
 
@@ -222,8 +222,8 @@ All network requests are performed server-side over HTTPS, except the logo image
 17. (Admin Only) Default Design › Checkout & pay page: the look of every checkout, pay page and popup
 18. (Admin Only) Default Design › Messages: what the payer sees after paying
 19. (Admin Only) Configuration › Texts: every word the payer reads, in your own words or language
-20. (Admin Only) Configuration › Emails: the payer's receipt, a note for every payment and the payment request email
-21. (Admin Only) Configuration › Emails › Receipt: the logo, business details, message, colours and barcode of the PDF receipt
+20. (Admin Only) Configuration › Emails: the payer's receipt, its look and the payment request email
+21. (Admin Only) Configuration › Emails › Receipt look: the logo, business details, message, colours and barcode of the PDF receipt
 22. (Admin Only) Payments: every payment, its status and the totals
 23. (Admin Only) A payment's details
 24. (Customers Experience) Pay buttons on a page

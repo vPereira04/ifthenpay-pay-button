@@ -239,11 +239,11 @@ class PaymentsCommand {
 	 * : The payment's reference.
 	 *
 	 * [--file=<path>]
-	 * : Where to write it. Default: receipt-<ref>.pdf in the current folder.
+	 * : Where to write it. Default: proof-of-payment-<ref>.pdf in the current folder.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp iftp-btn payments receipt IFTP_ABC123 --file=/tmp/receipt.pdf
+	 *     wp iftp-btn payments receipt IFTP_ABC123 --file=/tmp/proof-of-payment.pdf
 	 *
 	 * @param array<int, string>    $args       Positional args.
 	 * @param array<string, string> $assoc_args Flags.

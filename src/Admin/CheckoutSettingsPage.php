@@ -341,6 +341,18 @@ class CheckoutSettingsPage {
 							<?php $this->render_button( $design ); ?>
 						</div>
 						<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-messages" aria-labelledby="iftp-btn-tab-messages" data-iftp-panel="messages">
+							<p class="iftp-btn-texts__intro">
+								<?php
+								echo wp_kses(
+									sprintf(
+										/* translators: %s: link to Configuration › Texts */
+										__( 'These are the popup and page after paying. The words on the form, its buttons and its error messages are in %s.', 'ifthenpay-pay-button' ),
+										'<a href="' . esc_url( ConfigurationPage::url() . '#texts' ) . '">' . esc_html__( 'Configuration › Texts', 'ifthenpay-pay-button' ) . '</a>'
+									),
+									array( 'a' => array( 'href' => array() ) )
+								);
+								?>
+							</p>
 							<?php MessagesFields::render( $this->settings->get_confirmation(), true ); ?>
 						</div>
 					</div>

@@ -356,19 +356,19 @@ class EntriesPage {
 			'confirmResendButton'   => __( 'Send email', 'ifthenpay-pay-button' ),
 			'resendSending'         => __( 'Sending…', 'ifthenpay-pay-button' ),
 			'resendError'           => __( 'Could not send the payment email. Please try again.', 'ifthenpay-pay-button' ),
-			'confirmReceiptTitle'   => __( 'Resend the receipt?', 'ifthenpay-pay-button' ),
+			'confirmReceiptTitle'   => __( 'Resend the proof of payment?', 'ifthenpay-pay-button' ),
 			/* translators: %s: customer email address */
-			'confirmReceiptMessage' => __( 'The payer will get their receipt again at %s.', 'ifthenpay-pay-button' ),
-			'receiptSent'           => __( 'Receipt sent.', 'ifthenpay-pay-button' ),
-			'receiptError'          => __( 'Could not send the receipt. Check that this site can send mail.', 'ifthenpay-pay-button' ),
-			'bulkReceiptTitle'      => __( 'Resend receipts?', 'ifthenpay-pay-button' ),
+			'confirmReceiptMessage' => __( 'The payer will get their proof of payment again at %s.', 'ifthenpay-pay-button' ),
+			'receiptSent'           => __( 'Proof of payment sent.', 'ifthenpay-pay-button' ),
+			'receiptError'          => __( 'Could not send the proof of payment. Check that this site can send mail.', 'ifthenpay-pay-button' ),
+			'bulkReceiptTitle'      => __( 'Resend proofs of payment?', 'ifthenpay-pay-button' ),
 			/* translators: %s: number of selected entries */
-			'bulkReceiptMessage'    => __( 'The payers of the %s selected paid payments will each get their receipt again. The notice to you is not sent again.', 'ifthenpay-pay-button' ),
-			'bulkReceiptButton'     => __( 'Resend receipts', 'ifthenpay-pay-button' ),
+			'bulkReceiptMessage'    => __( 'The payers of the %s selected paid payments will each get their proof of payment again. The notice to you is not sent again.', 'ifthenpay-pay-button' ),
+			'bulkReceiptButton'     => __( 'Resend proofs of payment', 'ifthenpay-pay-button' ),
 			/* translators: 1: entries handled so far, 2: entries in total */
-			'bulkReceipting'        => __( 'Sending receipts… %1$s of %2$s', 'ifthenpay-pay-button' ),
+			'bulkReceipting'        => __( 'Sending proofs of payment… %1$s of %2$s', 'ifthenpay-pay-button' ),
 			/* translators: %s: number of receipts sent */
-			'bulkReceiptSent'       => __( 'Receipts sent: %s.', 'ifthenpay-pay-button' ),
+			'bulkReceiptSent'       => __( 'Proofs of payment sent: %s.', 'ifthenpay-pay-button' ),
 			/* translators: %s: number of entries skipped */
 			'bulkReceiptSkipped'    => __( 'Skipped (not paid, or no customer email): %s.', 'ifthenpay-pay-button' ),
 			/* translators: %s: number of entries that failed */
@@ -683,7 +683,7 @@ class EntriesPage {
 				<?php // Shown by entries.js only while every selected entry is pending. ?>
 				<option value="email" data-iftp-bulk-email hidden disabled><?php esc_html_e( 'Send payment email', 'ifthenpay-pay-button' ); ?></option>
 				<?php // Shown by entries.js only while every selected entry is paid and has a customer email. ?>
-				<option value="receipt" data-iftp-bulk-receipt hidden disabled><?php esc_html_e( 'Resend receipt', 'ifthenpay-pay-button' ); ?></option>
+				<option value="receipt" data-iftp-bulk-receipt hidden disabled><?php esc_html_e( 'Resend proof of payment', 'ifthenpay-pay-button' ); ?></option>
 				<option value="export-csv"><?php esc_html_e( 'Export selected as CSV', 'ifthenpay-pay-button' ); ?></option>
 				<option value="export-json"><?php esc_html_e( 'Export selected as JSON', 'ifthenpay-pay-button' ); ?></option>
 				<option value="export-accounting"><?php esc_html_e( 'Export selected as accounting CSV (paid only)', 'ifthenpay-pay-button' ); ?></option>

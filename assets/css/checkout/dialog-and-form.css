@@ -1152,7 +1152,7 @@ html:has(.iftp-btn-sheet[open]) body {
 	display: flex;
 	flex-direction: column;
 	min-height: 0;
-	position: var(--iftp-edge-pos, static);
+	position: var(--iftp-edge-pos, relative);
 	padding-top: var(--iftp-card-pad, 0);
 	color: var(--iftp-ink);
 	font-family: var(--iftp-font);
@@ -1165,6 +1165,17 @@ html:has(.iftp-btn-sheet[open]) body {
 .iftp-btn-form *::before,
 .iftp-btn-form *::after {
 	box-sizing: border-box;
+}
+
+/* The card's inset edge, again over the content: the scrolling body has its own background and would hide it at the sides. */
+.iftp-btn-form::after {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	border-radius: inherit;
+	content: "";
+	box-shadow: var(--iftp-card-ring-in, 0 0 #0000);
+	pointer-events: none;
 }
 
 /* The awning edge: a layer across the top of the card, the form dropped clear of it (CheckoutLook::card_awning). */

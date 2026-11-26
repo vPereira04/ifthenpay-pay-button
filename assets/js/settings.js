@@ -9,6 +9,19 @@
 
 	var i18n = iftpBtnSettings.i18n;
 
+	// A required field inside a closed card can't show its message, so the card opens first.
+	document.addEventListener(
+		'invalid',
+		function ( event ) {
+			var card = event.target.closest ? event.target.closest( 'details:not([open])' ) : null;
+
+			if ( card ) {
+				card.open = true;
+			}
+		},
+		true
+	);
+
 	function post( action, data ) {
 		var body = new URLSearchParams();
 

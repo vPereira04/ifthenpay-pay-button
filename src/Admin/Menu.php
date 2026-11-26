@@ -125,6 +125,9 @@ class Menu {
 			$this->entries_page->add_page( self::SLUG );
 		}
 
+		$this->coupons_page->add_page( self::SLUG );
+		$this->checkout_page->add_page( self::SLUG );
+
 		$settings_hook = add_submenu_page(
 			self::SLUG,
 			__( 'Configuration', 'ifthenpay-pay-button' ),
@@ -137,9 +140,6 @@ class Menu {
 		if ( is_string( $settings_hook ) ) {
 			$this->settings_page->set_hook( $settings_hook );
 		}
-
-		$this->coupons_page->add_page( self::SLUG );
-		$this->checkout_page->add_page( self::SLUG );
 	}
 
 	/**
