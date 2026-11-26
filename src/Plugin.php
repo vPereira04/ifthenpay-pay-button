@@ -14,6 +14,7 @@ use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
 use Ifthenpay\PayButton\Admin\Buttons\DemoPage;
 use Ifthenpay\PayButton\Admin\CheckoutSettingsPage;
 use Ifthenpay\PayButton\Admin\ConfigurationPage;
+use Ifthenpay\PayButton\Admin\CouponsPage;
 use Ifthenpay\PayButton\Admin\DashboardWidget;
 use Ifthenpay\PayButton\Admin\Entries\EntriesController;
 use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
@@ -24,10 +25,14 @@ use Ifthenpay\PayButton\Api\ReturnHandler;
 use Ifthenpay\PayButton\Api\Webhook\WebhookController;
 use Ifthenpay\PayButton\Api\Webhook\WebhookRegistrar;
 use Ifthenpay\PayButton\Bridge\InvoiceHook;
+use Ifthenpay\PayButton\Cli\CodesCommand;
+use Ifthenpay\PayButton\Cli\PaymentsCommand;
+use Ifthenpay\PayButton\Cli\RemindersCommand;
 use Ifthenpay\PayButton\Bridge\OutgoingWebhook;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
 use Ifthenpay\PayButton\Checkout\RestController;
 use Ifthenpay\PayButton\Cron\ExpiredPaymentsCron;
+use Ifthenpay\PayButton\Cron\PaymentRemindersCron;
 use Ifthenpay\PayButton\Cron\WeeklySummaryCron;
 use Ifthenpay\PayButton\Frontend\Block;
 use Ifthenpay\PayButton\Frontend\ButtonRenderer;
@@ -35,6 +40,7 @@ use Ifthenpay\PayButton\Frontend\PayPage;
 use Ifthenpay\PayButton\Frontend\Shortcode;
 use Ifthenpay\PayButton\Mail\ReceiptEmail;
 use Ifthenpay\PayButton\Repository\CheckoutSettings;
+use Ifthenpay\PayButton\Repository\ExtrasSchema;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
 use Ifthenpay\PayButton\Repository\TransactionStore;
 
@@ -89,6 +95,7 @@ class Plugin {
 	public function boot(): void {
 		// Activation creates the table too; this catches schema upgrades on update.
 		TransactionStore::maybe_create_table();
+		ExtrasSchema::maybe_create();
 
 		add_filter( 'user_has_cap', array( self::class, 'grant_admin_cap' ) );
 		add_action( 'init', array( ButtonRepository::class, 'register_post_type' ) );
@@ -114,7 +121,7 @@ class Plugin {
 		if ( is_admin() ) {
 			$entries = new EntriesPage( $transactions, $settings );
 
-			( new Menu( $settings, new ButtonsPage( $buttons, $settings, $transactions ), $entries, new ConfigurationPage( $settings ), new CheckoutSettingsPage( new CheckoutSettings() ) ) )->register();
+			( new Menu( $settings, new ButtonsPage( $buttons, $settings, $transactions ), $entries, new ConfigurationPage( $settings ), new CheckoutSettingsPage( new CheckoutSettings() ), new CouponsPage( null, $buttons ) ) )->register();
 			( new SettingsController( $settings ) )->register();
 			( new EntriesController( $entries, null, $settings ) )->register();
 			( new ButtonsController( $buttons ) )->register();
@@ -129,6 +136,13 @@ class Plugin {
 			( new WebhookRegistrar() )->register();
 			( new ExpiredPaymentsCron() )->register();
 			( new WeeklySummaryCron() )->register();
+			( new PaymentRemindersCron() )->register();
+		}
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			\WP_CLI::add_command( 'iftp-btn payments', new PaymentsCommand( $transactions ) );
+			\WP_CLI::add_command( 'iftp-btn codes', new CodesCommand() );
+			\WP_CLI::add_command( 'iftp-btn reminders', new RemindersCommand() );
 		}
 
 		// On init, so the checkout on the front end gets the logo swap too.

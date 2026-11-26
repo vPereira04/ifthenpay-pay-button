@@ -1070,7 +1070,7 @@ class LookControls {
 	 * @phpstan-param Look $look
 	 */
 	private function print_fx_styles( array $look ): void {
-		$styles         = array(
+		$styles = array(
 			'none'      => array( __( 'None', 'ifthenpay-pay-button' ), __( 'Just the background', 'ifthenpay-pay-button' ) ),
 			'crystals'  => array( __( 'Crystals', 'ifthenpay-pay-button' ), __( 'Low-poly facets of light', 'ifthenpay-pay-button' ) ),
 			'waves'     => array( __( 'Waves', 'ifthenpay-pay-button' ), __( 'Flowing bands, like silk', 'ifthenpay-pay-button' ) ),

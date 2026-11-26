@@ -1,9 +1,9 @@
 === ifthenpay | Pay Button ===
 Contributors: ifthenpay
 Tags: payments, pay button, donations, multibanco, mb way
-Requires at least: 6.4
+Requires at least: 6.6
 Tested up to: 7.1
-Requires PHP: 7.4
+Requires PHP: 8.2
 Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -48,7 +48,7 @@ All settings are made in Pay Button in your WordPress admin and in your ifthenpa
 * An active ifthenpay merchant account — [subscribe here](https://ifthenpay.com/aderir/) to obtain your credentials.
 * Your ifthenpay Backoffice Key, and a Gateway Key for ifthenpay Pay Button (request it from ifthenpay support/helpdesk).
 * The payment methods you want enabled on that Gateway Key (our helpdesk team will guide you).
-* WordPress 6.4+ and PHP 7.4+. No other plugin is needed.
+* WordPress 6.6+ and PHP 8.2+. No other plugin is needed.
 * HTTPS (SSL) enabled on your site.
 
 == Installation ==

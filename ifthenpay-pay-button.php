@@ -4,8 +4,8 @@
  * Plugin URI: https://ifthenpay.com
  * Description: Take ifthenpay payments anywhere: pay buttons for any page, shareable payment links, and a link builder for plugins ifthenpay has no integration with.
  * Version: 1.0.0
- * Requires at least: 6.4
- * Requires PHP: 7.4
+ * Requires at least: 6.6
+ * Requires PHP: 8.2
  * Author: ifthenpay
  * Author URI: https://ifthenpay.com
  * License: GPLv2 or later
@@ -65,8 +65,10 @@ register_activation_hook(
 		}
 
 		\Ifthenpay\PayButton\Repository\TransactionStore::maybe_create_table();
+		\Ifthenpay\PayButton\Repository\ExtrasSchema::maybe_create();
 		\Ifthenpay\PayButton\Cron\ExpiredPaymentsCron::schedule();
 		\Ifthenpay\PayButton\Cron\WeeklySummaryCron::schedule();
+		\Ifthenpay\PayButton\Cron\PaymentRemindersCron::schedule();
 
 		// So the webhook and the pay links resolve right away instead of 404ing until the next flush.
 		\Ifthenpay\PayButton\Plugin::flush_rewrites();
@@ -79,6 +81,7 @@ register_deactivation_hook(
 		if ( class_exists( \Ifthenpay\PayButton\Plugin::class ) ) {
 			\Ifthenpay\PayButton\Cron\ExpiredPaymentsCron::unschedule();
 			\Ifthenpay\PayButton\Cron\WeeklySummaryCron::unschedule();
+			\Ifthenpay\PayButton\Cron\PaymentRemindersCron::unschedule();
 		}
 
 		flush_rewrite_rules();

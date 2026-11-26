@@ -754,6 +754,13 @@ class FormFields {
 			return $out;
 		}
 
+		$ids = array_filter( array_map( 'absint', array_values( $item['images'] ) ) );
+
+		if ( array() !== $ids ) {
+			// I load the attachments and their meta in one go, not one query per picture.
+			_prime_post_caches( $ids, false, true );
+		}
+
 		foreach ( $item['images'] as $label => $id ) {
 			$src = wp_get_attachment_image_src( $id, 'medium' );
 

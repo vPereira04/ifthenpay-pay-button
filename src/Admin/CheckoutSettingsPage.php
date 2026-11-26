@@ -305,7 +305,8 @@ class CheckoutSettingsPage {
 			<?php
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag from the redirect after a checked save.
 			if ( isset( $_GET['iftp_notice'] ) ) {
-				Toast::add( esc_html( 'code' === $_GET['iftp_notice'] ? __( 'The other settings were saved.', 'ifthenpay-pay-button' ) : __( 'Settings saved.', 'ifthenpay-pay-button' ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compared, never printed.
+				$notice = is_string( $_GET['iftp_notice'] ) ? sanitize_key( wp_unslash( $_GET['iftp_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compared, never printed.
+				Toast::add( esc_html( 'code' === $notice ? __( 'The other settings were saved.', 'ifthenpay-pay-button' ) : __( 'Settings saved.', 'ifthenpay-pay-button' ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compared, never printed.
 
 				foreach ( self::rejected_code() as $message ) {
 					Toast::add( esc_html( $message ), 'error' );
@@ -364,7 +365,7 @@ class CheckoutSettingsPage {
 	 */
 	private function ai_chat(): string {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only picks which version to show; saving checks its own nonce.
-		$asked = isset( $_GET[ AiStudioPage::DRAFT_VAR ] ) ? sanitize_key( wp_unslash( $_GET[ AiStudioPage::DRAFT_VAR ] ) ) : '';
+		$asked = isset( $_GET[ AiStudioPage::DRAFT_VAR ] ) && is_string( $_GET[ AiStudioPage::DRAFT_VAR ] ) ? sanitize_key( wp_unslash( $_GET[ AiStudioPage::DRAFT_VAR ] ) ) : '';
 
 		return '' !== $asked ? ( new Studio() )->resolve( Studio::site_button(), $asked ) : '';
 	}

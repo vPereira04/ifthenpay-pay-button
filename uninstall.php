@@ -1,6 +1,6 @@
 <?php
 /**
- * Uninstall routine — removes every option, transient, cron hook and the custom transactions table.
+ * Uninstall routine — removes every option, transient, cron hook and button; the payment tables stay unless the merchant chose to delete them.
  *
  * @package Ifthenpay\PayButton
  */
@@ -18,6 +18,9 @@ if ( file_exists( $iftp_btn_autoload ) ) {
 // Everything here lives per site (options, transients, cron, the prefixed table), so on a network I run it on each one.
 $iftp_btn_uninstall_site = static function (): void {
 	global $wpdb;
+
+	// Read before the settings go: the payment records stay unless the merchant asked for them to be deleted.
+	$iftp_btn_delete_data = class_exists( \Ifthenpay\PayButton\Repository\CheckoutSettings::class ) && ( new \Ifthenpay\PayButton\Repository\CheckoutSettings() )->get_delete_data();
 
 	if ( class_exists( \Ifthenpay\PayButton\Repository\SettingsRepository::class ) ) {
 		$settings = new \Ifthenpay\PayButton\Repository\SettingsRepository();
@@ -61,15 +64,22 @@ $iftp_btn_uninstall_site = static function (): void {
 		wp_delete_post( (int) $iftp_btn_button_id, true );
 	}
 
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time DDL cleanup on uninstall; custom plugin table with no WP Core API.
-	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . 'iftp_btn_transactions' ) );
+	// Payments, discount codes, their uses and the sent reminders: only when the merchant chose to delete them.
+	if ( $iftp_btn_delete_data ) {
+		foreach ( array( 'iftp_btn_transactions', 'iftp_btn_coupons', 'iftp_btn_coupon_uses', 'iftp_btn_reminders' ) as $iftp_btn_table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time DDL cleanup on uninstall; custom plugin tables with no WP Core API.
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . $iftp_btn_table ) );
+		}
+	}
 
+	delete_option( 'iftp_btn_extras_db' );
 	delete_option( 'iftp_btn_db_version' );
 	delete_transient( 'iftp_btn_callback_resync_lock' );
 	delete_transient( 'iftp_btn_backfill_lock' );
 	delete_transient( 'iftp_btn_methods_catalog' );
 	delete_transient( 'iftp_btn_gateway_rows' );
 	wp_clear_scheduled_hook( 'iftp_btn_expire_payments' );
+	wp_clear_scheduled_hook( 'iftp_btn_send_reminders' );
 	wp_clear_scheduled_hook( 'iftp_btn_weekly_summary' );
 	// Retries carry arguments, which wp_clear_scheduled_hook() only matches one set at a time.
 	wp_unschedule_hook( 'iftp_btn_retry_webhook' );
@@ -95,3 +105,5 @@ if ( is_multisite() ) {
 delete_metadata( 'user', 0, 'iftp_btn_entries_hidden_cols', '', true );
 delete_metadata( 'user', 0, 'iftp_btn_entries_col_order', '', true );
 delete_metadata( 'user', 0, 'iftp_btn_entries_per_page', '', true );
+delete_metadata( 'user', 0, 'iftp_btn_tour_seen', '', true );
+delete_metadata( 'user', 0, 'iftp_btn_welcome_skipped', '', true );

@@ -62,6 +62,13 @@ class Menu {
 	private CheckoutSettingsPage $checkout_page;
 
 	/**
+	 * The Discount codes screen.
+	 *
+	 * @var CouponsPage
+	 */
+	private CouponsPage $coupons_page;
+
+	/**
 	 * Sets up the menu.
 	 *
 	 * @param SettingsRepository   $settings      Settings storage.
@@ -69,13 +76,15 @@ class Menu {
 	 * @param EntriesPage          $entries_page  The Payments screen.
 	 * @param ConfigurationPage    $settings_page The Configuration screen.
 	 * @param CheckoutSettingsPage $checkout_page The Checkout screen.
+	 * @param CouponsPage          $coupons_page  The Discount codes screen.
 	 */
-	public function __construct( SettingsRepository $settings, ButtonsPage $buttons_page, EntriesPage $entries_page, ConfigurationPage $settings_page, CheckoutSettingsPage $checkout_page ) {
+	public function __construct( SettingsRepository $settings, ButtonsPage $buttons_page, EntriesPage $entries_page, ConfigurationPage $settings_page, CheckoutSettingsPage $checkout_page, CouponsPage $coupons_page ) {
 		$this->settings      = $settings;
 		$this->buttons_page  = $buttons_page;
 		$this->entries_page  = $entries_page;
 		$this->settings_page = $settings_page;
 		$this->checkout_page = $checkout_page;
+		$this->coupons_page  = $coupons_page;
 	}
 
 	/**
@@ -90,6 +99,7 @@ class Menu {
 		$this->settings_page->register();
 		$this->entries_page->register();
 		$this->checkout_page->register();
+		$this->coupons_page->register();
 	}
 
 	/**
@@ -128,6 +138,7 @@ class Menu {
 			$this->settings_page->set_hook( $settings_hook );
 		}
 
+		$this->coupons_page->add_page( self::SLUG );
 		$this->checkout_page->add_page( self::SLUG );
 	}
 

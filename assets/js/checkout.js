@@ -716,6 +716,151 @@
 			} );
 	}
 
+	// The discount code: Apply asks the server what the code is worth and shows the new total. The code also goes
+	// along with the payment, and the server judges it again, so nothing here is trusted.
+	function bindCode( form ) {
+		const box = form.querySelector( '[data-iftp-btn-code]' );
+
+		if ( ! box ) {
+			return;
+		}
+
+		const toggle = box.querySelector( '[data-iftp-btn-code-toggle]' );
+		const row = box.querySelector( '[data-iftp-btn-code-row]' );
+		const input = box.querySelector( '[data-iftp-btn-code-input]' );
+		const apply = box.querySelector( '[data-iftp-btn-code-apply]' );
+		const note = box.querySelector( '[data-iftp-btn-code-note]' );
+		const total = form.querySelector( '[data-iftp-btn-total]' );
+		let applied = false;
+		let before = total ? total.textContent : '';
+		let timer = 0;
+
+		const say = function ( text, state ) {
+			note.textContent = text;
+			note.hidden = ! text;
+
+			if ( state ) {
+				note.setAttribute( 'data-state', state );
+			} else {
+				note.removeAttribute( 'data-state' );
+			}
+		};
+
+		const clear = function () {
+			if ( applied && total ) {
+				total.textContent = before;
+			}
+
+			applied = false;
+			input.readOnly = false;
+			apply.textContent = apply.dataset.apply;
+			say( '', '' );
+		};
+
+		const ask = function () {
+			if ( ! input.value.trim() ) {
+				return Promise.resolve();
+			}
+
+			apply.disabled = true;
+
+			return fetch( config.discountUrl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+				body: JSON.stringify( collect( form ) ),
+			} )
+				.then( function ( response ) {
+					return response.json().then( function ( body ) {
+						return { ok: response.ok, body: body };
+					} );
+				} )
+				.then( function ( result ) {
+					apply.disabled = false;
+
+					if ( ! result.ok || ! result.body || ! result.body.message || result.body.code === undefined ) {
+						if ( applied && total ) {
+							total.textContent = before;
+						}
+
+						applied = false;
+						input.readOnly = false;
+						apply.textContent = apply.dataset.apply;
+						say( ( result.body && result.body.message ) || i18n.failed, 'error' );
+
+						return;
+					}
+
+					// The undiscounted text is what the form showed just before this answer.
+					if ( total && ! applied ) {
+						before = total.textContent;
+					}
+
+					applied = true;
+					input.value = result.body.code;
+					input.readOnly = true;
+					apply.textContent = apply.dataset.remove;
+
+					if ( total ) {
+						total.textContent = result.body.text;
+					}
+
+					say( result.body.message, 'ok' );
+				} )
+				.catch( function () {
+					apply.disabled = false;
+					say( i18n.failed, 'error' );
+				} );
+		};
+
+		toggle.addEventListener( 'click', function () {
+			toggle.setAttribute( 'aria-expanded', 'true' );
+			row.hidden = false;
+			input.focus();
+		} );
+
+		apply.addEventListener( 'click', function () {
+			if ( applied ) {
+				clear();
+				input.value = '';
+				input.focus();
+
+				return;
+			}
+
+			say( '', '' );
+			ask();
+		} );
+
+		input.addEventListener( 'keydown', function ( event ) {
+			if ( event.key === 'Enter' ) {
+				// Enter in this box applies the code; it must not submit the whole payment.
+				event.preventDefault();
+				apply.click();
+			}
+		} );
+
+		// A change to the quantity or an option changes the total; the code is worked out again on the new one.
+		const recheck = function ( event ) {
+			if ( ! applied || box.contains( event.target ) ) {
+				return;
+			}
+
+			window.clearTimeout( timer );
+			timer = window.setTimeout( function () {
+				// The spot totals just rewrote the text with the price before the code; that is the one to go back to.
+				if ( total && form.dataset.unit ) {
+					before = total.textContent;
+				}
+
+				ask();
+			}, 0 );
+		};
+
+		form.addEventListener( 'change', recheck );
+		form.addEventListener( 'input', recheck );
+	}
+
 	function bindForm( form ) {
 		const steps = Array.prototype.slice.call( form.querySelectorAll( '[data-iftp-btn-step]' ) );
 		const bars = form.querySelectorAll( '[data-iftp-btn-bar]' );
@@ -976,6 +1121,7 @@
 		form.addEventListener( 'change', progress );
 		progress();
 		bindSpots( form );
+		bindCode( form );
 
 		form.querySelectorAll( '[data-iftp-btn-preset]' ).forEach( function ( preset ) {
 			preset.addEventListener( 'click', function () {

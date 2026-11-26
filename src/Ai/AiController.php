@@ -242,6 +242,9 @@ class AiController {
 		$latest = Studio::latest( $thread );
 		$button = new Button( 0, '' !== $latest['title'] ? $latest['title'] : __( 'Your title', 'ifthenpay-pay-button' ), '', true, $latest['config'] );
 
+		// The draft's code hasn't been read by anyone yet, so the page runs sandboxed: it can draw and move, but it can't reach the admin session.
+		header( 'Content-Security-Policy: sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox' );
+
 		// The same demo page as every other preview: the button first, and the form once it is clicked.
 		( new DemoPage( $this->buttons ) )->show( $button );
 		exit;

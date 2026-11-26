@@ -111,6 +111,18 @@ class CheckoutTexts {
 			'link_no_amount'   => __( 'This payment link is missing its amount.', 'ifthenpay-pay-button' ),
 			'rate_limited'     => __( 'Too many attempts. Please wait a minute and try again.', 'ifthenpay-pay-button' ),
 			'busy'             => __( 'A lot of people are paying right now. Please try again.', 'ifthenpay-pay-button' ),
+			// Discount codes.
+			'code_have'        => __( 'Have a discount code?', 'ifthenpay-pay-button' ),
+			'code_label'       => __( 'Discount code', 'ifthenpay-pay-button' ),
+			'code_apply'       => __( 'Apply', 'ifthenpay-pay-button' ),
+			'code_remove'      => __( 'Remove', 'ifthenpay-pay-button' ),
+			/* translators: {code} and {discount} stay as they are: the code and the amount it takes off */
+			'code_applied'     => __( '{code} applied: {discount} off.', 'ifthenpay-pay-button' ),
+			'code_invalid'     => __( 'That code is not valid.', 'ifthenpay-pay-button' ),
+			'code_expired'     => __( 'That code has expired.', 'ifthenpay-pay-button' ),
+			'code_used_up'     => __( 'That code has been used up.', 'ifthenpay-pay-button' ),
+			/* translators: {min} stays as it is: the smallest total the code works on */
+			'code_minimum'     => __( 'That code works from {min}.', 'ifthenpay-pay-button' ),
 			// Only screen readers say these.
 			'one_less'         => __( 'One less', 'ifthenpay-pay-button' ),
 			'one_more'         => __( 'One more', 'ifthenpay-pay-button' ),
@@ -208,6 +220,22 @@ class CheckoutTexts {
 					'link_no_amount'   => '',
 					'rate_limited'     => '',
 					'busy'             => '',
+				),
+			),
+			'codes'    => array(
+				'title'       => __( 'Discount codes', 'ifthenpay-pay-button' ),
+				'description' => __( 'Shown under the last page of a button that has a discount code it can use.', 'ifthenpay-pay-button' ),
+				'view'        => 'checkout',
+				'items'       => array(
+					'code_have'    => __( 'The link that opens the code box.', 'ifthenpay-pay-button' ),
+					'code_label'   => '',
+					'code_apply'   => '',
+					'code_remove'  => '',
+					'code_applied' => '',
+					'code_invalid' => '',
+					'code_expired' => '',
+					'code_used_up' => '',
+					'code_minimum' => '',
 				),
 			),
 			'a11y'     => array(

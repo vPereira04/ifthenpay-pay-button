@@ -57,7 +57,7 @@ All settings are made in **Pay Button** in your WordPress admin and in your ifth
 - An active ifthenpay merchant account — [subscribe here](https://ifthenpay.com/aderir/) to obtain your credentials.
 - Your ifthenpay **Backoffice Key**, and a **Gateway Key** for ifthenpay Pay Button (request it from ifthenpay support/helpdesk).
 - The payment methods you want enabled on that Gateway Key (our helpdesk team will guide you).
-- WordPress 6.4+ and PHP 7.4+.
+- WordPress 6.6+ and PHP 8.2+.
 - HTTPS (SSL) enabled on your site.
 
 No other plugin is needed.

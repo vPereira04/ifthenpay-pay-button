@@ -403,8 +403,8 @@
 			}
 		}
 
-		// Light, System or Dark, from the switch above the preview. The demo page inside the frame follows the saved pick by itself;
-		// this covers a browser that won't keep it, and the full-page tab follows the same way.
+		// Light, System or Dark, from the switch above the preview. The sandboxed demo page inside the frame can't read the saved pick,
+		// so it is told here, and the full-page tab follows the same way.
 		const scheme = window.iftpBtnScheme;
 
 		function paintScheme() {
@@ -412,9 +412,10 @@
 				return;
 			}
 
-			try {
-				scheme.applyTo( iframe.contentDocument, scheme.mode() );
-			} catch ( e ) {}
+			// The frame is sandboxed, so its document can't be reached: it is told, and paints itself (see scheme.js).
+			if ( iframe.contentWindow ) {
+				iframe.contentWindow.postMessage( { iftpBtnScheme: scheme.mode() }, '*' );
+			}
 		}
 
 		iframe.addEventListener( 'load', function () {

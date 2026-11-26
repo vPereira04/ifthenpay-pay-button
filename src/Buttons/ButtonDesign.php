@@ -42,15 +42,15 @@ class ButtonDesign {
 	// What the AI builder can set: it can't pick or colour the shipped drawings.
 	public const AI_SOURCES = array( self::SOURCE_THEME, self::SOURCE_CUSTOM );
 
-	public const VARIANTS      = array( 'filled', 'outline', 'soft', 'aurora', 'split', 'halo', 'glass', '3d', 'neon', 'brutal', 'ghost', 'luxe', 'beam', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut', 'checker', 'hazard', 'scanline', 'marquee', 'pixel', 'blueprint', 'spectrum', 'glazed', 'frosting', 'pizza', 'football', 'basketball', 'deadlift', 'running', 'coder', 'medic', 'music', 'pilot', 'school', 'book', 'cartoon' );
+	public const VARIANTS = array( 'filled', 'outline', 'soft', 'aurora', 'split', 'halo', 'glass', '3d', 'neon', 'brutal', 'ghost', 'luxe', 'beam', 'clay', 'ticket', 'gloss', 'ring', 'stripe', 'cut', 'checker', 'hazard', 'scanline', 'marquee', 'pixel', 'blueprint', 'spectrum', 'glazed', 'frosting', 'pizza', 'football', 'basketball', 'deadlift', 'running', 'coder', 'medic', 'music', 'pilot', 'school', 'book', 'cartoon' );
 	// Styles no longer offered in the picker. They still draw, so a button that already uses one keeps its look.
 	public const RETIRED_VARIANTS = array( 'glazed', 'frosting', 'pizza', 'football', 'basketball', 'deadlift', 'running', 'coder', 'pilot', 'school', 'book' );
-	public const SIZES         = array( 'sm', 'md', 'lg' );
-	public const ICON_STYLES   = array( 'outline', 'filled', 'duotone' );
-	public const ICONS         = array( 'none', 'lock', 'card', 'arrow', 'heart', 'cart', 'gift', 'ticket', 'calendar', 'star', 'sparkles', 'paw', 'leaf', 'bolt' );
-	public const EFFECTS       = array( 'none', 'lift', 'grow', 'shine', 'glow', 'fill', 'nudge', 'gild', 'tilt' );
-	public const ATTENTIONS    = array( 'none', 'pulse', 'ripple', 'heartbeat', 'wiggle', 'bounce', 'shimmer', 'breathe', 'orbit' );
-	public const BORDER_STYLES = array( 'solid', 'dashed', 'dotted', 'double' );
+	public const SIZES            = array( 'sm', 'md', 'lg' );
+	public const ICON_STYLES      = array( 'outline', 'filled', 'duotone' );
+	public const ICONS            = array( 'none', 'lock', 'card', 'arrow', 'heart', 'cart', 'gift', 'ticket', 'calendar', 'star', 'sparkles', 'paw', 'leaf', 'bolt' );
+	public const EFFECTS          = array( 'none', 'lift', 'grow', 'shine', 'glow', 'fill', 'nudge', 'gild', 'tilt' );
+	public const ATTENTIONS       = array( 'none', 'pulse', 'ripple', 'heartbeat', 'wiggle', 'bounce', 'shimmer', 'breathe', 'orbit' );
+	public const BORDER_STYLES    = array( 'solid', 'dashed', 'dotted', 'double' );
 
 	// The spectrum style: a gradient of the merchant's own colour stops.
 	public const SPECTRUM_SHAPES  = array( 'linear', 'radial', 'conic' );

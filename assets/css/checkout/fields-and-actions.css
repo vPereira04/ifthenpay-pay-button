@@ -871,6 +871,81 @@ fieldset .iftp-btn-form__help {
 	white-space: nowrap;
 }
 
+/* The discount code: a quiet link until the payer wants it, then an input with Apply. */
+.iftp-btn-form__code {
+	display: grid;
+	gap: 8px;
+	margin-top: 4px;
+}
+
+.iftp-btn-form .iftp-btn-form__code-toggle {
+	justify-self: start;
+	margin: 0;
+	padding: 0;
+	color: var(--iftp-brand);
+	background: none;
+	border: 0;
+	font: inherit;
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	cursor: pointer;
+}
+
+.iftp-btn-form .iftp-btn-form__code-toggle[aria-expanded="true"] {
+	display: none;
+}
+
+.iftp-btn-form__code-row {
+	display: flex;
+	gap: 8px;
+}
+
+.iftp-btn-form__code-row[hidden] {
+	display: none;
+}
+
+.iftp-btn-form .iftp-btn-form__code-input {
+	flex: 1 1 auto;
+	min-width: 0;
+	text-transform: uppercase;
+}
+
+.iftp-btn-form .iftp-btn-form__code-input::placeholder {
+	text-transform: none;
+}
+
+.iftp-btn-form .iftp-btn-form__code-apply {
+	flex: none;
+	min-height: 44px;
+	margin: 0;
+	padding: 0 18px;
+	color: var(--iftp-brand);
+	background: var(--iftp-brand-tint);
+	border: 0;
+	border-radius: var(--iftp-field-r);
+	font: inherit;
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.iftp-btn-form .iftp-btn-form__code-apply:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.iftp-btn-form .iftp-btn-form__code-note {
+	margin: 0;
+	font-size: 14px;
+	color: color-mix(in srgb, var(--iftp-failed) 62%, var(--iftp-ink));
+}
+
+.iftp-btn-form .iftp-btn-form__code-note[data-state="ok"] {
+	color: color-mix(in srgb, var(--iftp-paid) 70%, var(--iftp-ink));
+}
+
 /* --------------------------------------------------------------------------
    Actions and footer
    -------------------------------------------------------------------------- */

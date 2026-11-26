@@ -49,6 +49,7 @@ class EntriesPage {
 	public const VIEW_NONCE        = 'iftp_btn_view_entry';
 	public const ENTRY_VAR         = 'entry';
 	public const EXPORT_ACTION     = 'iftp_btn_export';
+	public const RECEIPT_ACTION    = 'iftp_btn_receipt_pdf';
 	public const EXPORT_CSV        = 'csv';
 	public const EXPORT_XLS        = 'xls';
 	public const EXPORT_JSON       = 'json';
@@ -243,11 +244,17 @@ class EntriesPage {
 	 * @return Transaction|null
 	 */
 	private function requested_entry(): ?array {
-		if ( ! $this->wants_single_entry() || ! isset( $_GET['_wpnonce'] ) || false === wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ), self::VIEW_NONCE ) ) {
+		if ( ! $this->wants_single_entry() ) {
 			return null;
 		}
 
-		$ref = sanitize_text_field( wp_unslash( $_GET[ self::ENTRY_VAR ] ?? '' ) );
+		$nonce = isset( $_GET['_wpnonce'] ) && is_string( $_GET['_wpnonce'] ) ? sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+
+		if ( ! wp_verify_nonce( $nonce, self::VIEW_NONCE ) ) {
+			return null;
+		}
+
+		$ref = isset( $_GET[ self::ENTRY_VAR ] ) && is_string( $_GET[ self::ENTRY_VAR ] ) ? sanitize_text_field( wp_unslash( $_GET[ self::ENTRY_VAR ] ) ) : '';
 
 		return '' !== $ref ? $this->transactions->get( $ref ) : null;
 	}

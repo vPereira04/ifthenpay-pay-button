@@ -76,9 +76,11 @@ class WeeklySummaryEmail {
 		/* translators: 1: site name, 2: revenue, e.g. "1.234,56 €", 3: change, e.g. "▲ 12.4%" */
 		$subject = sprintf( __( '%1$s · your ifthenpay week: %2$s (%3$s)', 'ifthenpay-pay-button' ), $site, $revenue['display'], self::delta_text( $revenue ) );
 
+		$logo = 'https://ifthenpay.com/docs/en/assets/images/ifthenpay.png'; // phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- email clients can't load local plugin assets; the logo is disclosed under External Services in the readme.
+
 		$body = '<div style="margin:0;padding:40px 12px;background-color:#eef1f6;font-family:-apple-system,BlinkMacSystemFont,&apos;Segoe UI&apos;,Inter,Helvetica,Arial,sans-serif;color:#2f3a50">'
 			. '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;margin:0 auto;border-collapse:separate">'
-			. '<tr><td align="center" style="padding:0 0 22px"><img src="https://ifthenpay.com/docs/en/assets/images/ifthenpay.png" alt="ifthenpay" width="112" style="display:block;max-width:100%;height:auto;border:0"></td></tr>'
+			. '<tr><td align="center" style="padding:0 0 22px"><img src="' . esc_url( $logo ) . '" alt="ifthenpay" width="112" style="display:block;max-width:100%;height:auto;border:0"></td></tr>'
 			. '<tr><td style="background-color:#fafbfd;border:1px solid #e2e6ee;border-top:4px solid #00609c;border-radius:20px;padding:32px">'
 			. '<p style="margin:0;font-size:12px;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;color:#66708a">' . esc_html__( 'Your week', 'ifthenpay-pay-button' ) . ' · ' . esc_html( $site ) . '</p>'
 			. '<p style="margin:10px 0 2px;font-size:13px;color:#66708a">' . esc_html__( 'Revenue, last 7 days', 'ifthenpay-pay-button' ) . '</p>'

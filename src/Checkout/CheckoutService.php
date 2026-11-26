@@ -14,6 +14,7 @@ use Ifthenpay\PayButton\Bridge\PayLinks;
 use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Buttons\FormFields;
 use Ifthenpay\PayButton\Buttons\Spots;
+use Ifthenpay\PayButton\Repository\CouponStore;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
 use Ifthenpay\PayButton\Repository\TransactionStore;
 use WP_Error;
@@ -33,8 +34,9 @@ class CheckoutService {
 	public const HONEYPOT = 'website';
 
 	// Every start costs an ifthenpay API call, so a loop mustn't be able to run them up.
-	private const PER_IP_PER_MINUTE   = 10;
-	private const PER_SITE_PER_MINUTE = 60;
+	private const PER_IP_PER_MINUTE     = 10;
+	private const PER_SITE_PER_MINUTE   = 60;
+	private const CODE_TRIES_PER_MINUTE = 15;
 
 	private const NOTE_MAX_LENGTH  = 500;
 	private const FIELD_MAX_LENGTH = 191;
@@ -75,6 +77,13 @@ class CheckoutService {
 	private SpotCounter $spots;
 
 	/**
+	 * Discount codes.
+	 *
+	 * @var Discounts
+	 */
+	private Discounts $discounts;
+
+	/**
 	 * Sets up the service.
 	 *
 	 * @param SettingsRepository|null $settings     Gateway settings.
@@ -88,6 +97,63 @@ class CheckoutService {
 		$this->links        = $links ?? new PaymentLinks( $this->settings, null, $this->transactions );
 		$this->pay_links    = $pay_links ?? new PayLinks();
 		$this->spots        = new SpotCounter( $this->transactions );
+		$this->discounts    = new Discounts();
+	}
+
+	/**
+	 * What a discount code would do to the total right now, for the checkout's "Apply". Nothing is stored.
+	 *
+	 * @param Button               $button The button.
+	 * @param array<string, mixed> $input  The raw input, like start()'s.
+	 * @return array{code: string, subtotal: float, discount: float, total: float}|WP_Error
+	 */
+	public function quote( Button $button, array $input ) {
+		if ( $this->code_tries_exceeded() ) {
+			return new WP_Error( 'iftp_btn_rate_limited', CheckoutTexts::get( 'rate_limited' ), array( 'status' => 429 ) );
+		}
+
+		$available = $this->availability( $button );
+
+		if ( is_wp_error( $available ) ) {
+			return $available;
+		}
+
+		$code = is_scalar( $input['discount_code'] ?? null ) ? CouponStore::normalize( (string) $input['discount_code'] ) : '';
+		$link = $this->read_link( $button, $input );
+
+		if ( is_wp_error( $link ) ) {
+			return $link;
+		}
+
+		// A link with a signed amount is the merchant's own price; codes don't apply to it.
+		if ( '' === $code || $link['signed'] ) {
+			return new WP_Error( 'iftp_btn_code_invalid', CheckoutTexts::get( 'code_invalid' ), array( 'status' => 400 ) );
+		}
+
+		$spot = $this->read_spot( $button, $input, $link );
+
+		if ( is_wp_error( $spot ) ) {
+			return $spot;
+		}
+
+		$subtotal = $this->resolve_amount( $button, $input, $link, $spot );
+
+		if ( is_wp_error( $subtotal ) ) {
+			return $subtotal;
+		}
+
+		$applied = $this->discounts->apply( $code, $button, $subtotal );
+
+		if ( is_wp_error( $applied ) ) {
+			return $applied;
+		}
+
+		return array(
+			'code'     => $applied['coupon']['code'],
+			'subtotal' => $subtotal,
+			'discount' => $applied['discount'],
+			'total'    => $applied['total'],
+		);
 	}
 
 	/**
@@ -149,7 +215,7 @@ class CheckoutService {
 			return $snapshot;
 		}
 
-		$spot = $this->read_spot( $button, $input );
+		$spot = $this->read_spot( $button, $input, $link );
 
 		if ( is_wp_error( $spot ) ) {
 			return $spot;
@@ -167,6 +233,30 @@ class CheckoutService {
 				'value' => $button->title,
 			),
 		);
+
+		// A code takes its amount off before anything is stored; a signed link already has the merchant's own price.
+		$code    = is_scalar( $input['discount_code'] ?? null ) ? CouponStore::normalize( (string) $input['discount_code'] ) : '';
+		$applied = null;
+
+		if ( '' !== $code ) {
+			$applied = $link['signed'] ? new WP_Error( 'iftp_btn_code_invalid', CheckoutTexts::get( 'code_invalid' ), array( 'status' => 400 ) ) : $this->discounts->apply( $code, $button, $amount );
+
+			if ( is_wp_error( $applied ) ) {
+				return $applied;
+			}
+
+			$extra['discount'] = array(
+				'label' => __( 'Discount code', 'ifthenpay-pay-button' ),
+				'value' => sprintf(
+					/* translators: 1: the code, 2: what it took off, 3: the total before it */
+					__( '%1$s: -%2$s (was %3$s)', 'ifthenpay-pay-button' ),
+					$applied['coupon']['code'],
+					self::format_money( $applied['discount'] ),
+					self::format_money( $amount )
+				),
+			);
+			$amount            = $applied['total'];
+		}
 
 		if ( $button->config['spots']['quantity'] ) {
 			$extra['quantity'] = array(
@@ -214,6 +304,14 @@ class CheckoutService {
 			return $generic;
 		}
 
+		// Two payers can race for the last use of a code; whoever comes second gives the payment up.
+		if ( null !== $applied && ! $this->discounts->claim( $applied, $record['ref'] ) ) {
+			$this->transactions->mark_failed( $record['ref'] );
+			$this->transactions->release_spots( $record['ref'] );
+
+			return new WP_Error( 'iftp_btn_code_used_up', CheckoutTexts::get( 'code_used_up' ), array( 'status' => 400 ) );
+		}
+
 		$url = $this->links->create_link_for_button( $record, $button );
 
 		if ( '' === $url ) {
@@ -233,6 +331,23 @@ class CheckoutService {
 		do_action( 'iftp_btn_payment_started', $record['ref'], $button->id );
 
 		return $url;
+	}
+
+	/**
+	 * Whether this address has tried codes too often this minute, so a script can't walk through guesses.
+	 */
+	private function code_tries_exceeded(): bool {
+		$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		$key = 'iftp_btn_rlc_' . md5( wp_salt() . $ip ) . '_' . (int) floor( time() / MINUTE_IN_SECONDS );
+		$n   = (int) get_transient( $key );
+
+		if ( $n >= self::CODE_TRIES_PER_MINUTE ) {
+			return true;
+		}
+
+		set_transient( $key, $n + 1, 2 * MINUTE_IN_SECONDS );
+
+		return false;
 	}
 
 	/**
@@ -272,19 +387,23 @@ class CheckoutService {
 	/**
 	 * How many spots the payer takes, and on which options.
 	 *
-	 * @param Button               $button The button.
-	 * @param array<string, mixed> $input  The raw input, already checked by collect_fields().
+	 * @param Button                                                $button The button.
+	 * @param array<string, mixed>                                  $input  The raw input, already checked by collect_fields().
+	 * @param array{reference: string, signed: bool, amount: float} $link What read_link() found.
 	 * @return array{count: int, options: array<int, string>, extra: array<int, string>}|WP_Error
 	 */
-	private function read_spot( Button $button, array $input ) {
+	private function read_spot( Button $button, array $input, array $link ) {
 		$spots = $button->config['spots'];
 		$count = 1;
 
 		if ( $spots['quantity'] ) {
 			$raw = is_scalar( $input['quantity'] ?? null ) ? trim( (string) $input['quantity'] ) : '1';
 
-			if ( ! ctype_digit( $raw ) || (int) $raw < 1 || (int) $raw > $spots['max_each'] ) {
-				return new WP_Error( 'iftp_btn_bad_quantity', CheckoutTexts::get( 'bad_quantity', array( 'max' => $spots['max_each'] ) ), array( 'status' => 400 ) );
+			// A signed total is the price of one booking, so it can't be stretched over more spots.
+			$most = $link['signed'] ? 1 : $spots['max_each'];
+
+			if ( ! ctype_digit( $raw ) || (int) $raw < 1 || (int) $raw > $most ) {
+				return new WP_Error( 'iftp_btn_bad_quantity', CheckoutTexts::get( 'bad_quantity', array( 'max' => $most ) ), array( 'status' => 400 ) );
 			}
 
 			$count = (int) $raw;
@@ -324,6 +443,11 @@ class CheckoutService {
 			return $link['amount'];
 		}
 
+		// "From the link" takes its total from a signed link only: a typed amount would let anyone pay what they like.
+		if ( Button::MODE_LINK === $button->mode() ) {
+			return new WP_Error( 'iftp_btn_no_amount', CheckoutTexts::get( 'link_no_amount' ), array( 'status' => 400 ) );
+		}
+
 		if ( Button::MODE_FIXED === $button->mode() ) {
 			$unit = array() === $spot['options'] ? Spots::unit_price( $button, '' ) : array_sum( array_map( static fn( string $option ): float => Spots::unit_price( $button, $option ), $spot['options'] ) );
 			// Priced options on the other fields (accessories, say) add to every spot.
@@ -342,11 +466,7 @@ class CheckoutService {
 		$amount = '' !== $raw ? (float) $raw : 0.0;
 
 		if ( $amount <= 0 ) {
-			$message = Button::MODE_LINK === $button->mode()
-				? CheckoutTexts::get( 'link_no_amount' )
-				: CheckoutTexts::get( 'enter_amount' );
-
-			return new WP_Error( 'iftp_btn_no_amount', $message, array( 'status' => 400 ) );
+			return new WP_Error( 'iftp_btn_no_amount', CheckoutTexts::get( 'enter_amount' ), array( 'status' => 400 ) );
 		}
 
 		if ( $amount < $button->config['min'] || $amount > $button->config['max'] ) {

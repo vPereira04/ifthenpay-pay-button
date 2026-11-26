@@ -12,6 +12,7 @@ namespace Ifthenpay\PayButton\Admin\Entries;
 use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
 use Ifthenpay\PayButton\Buttons\ButtonRepository;
 use Ifthenpay\PayButton\Mail\ReceiptEmail;
+use Ifthenpay\PayButton\Pdf\ReceiptPdf;
 use Ifthenpay\PayButton\Repository\TransactionStore;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -280,6 +281,13 @@ class SingleEntryView {
 					echo esc_html( sprintf( __( 'Sends the payment button to %s', 'ifthenpay-pay-button' ), $record['customer_email'] ) );
 					?>
 				</p>
+			<?php endif; ?>
+
+			<?php if ( ReceiptPdf::available( $record ) ) : ?>
+				<a class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-entry-card__action" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . EntriesPage::RECEIPT_ACTION . '&ref=' . rawurlencode( $record['ref'] ) ), EntriesPage::RECEIPT_ACTION . '_' . $record['ref'] ) ); ?>">
+					<svg class="iftp-btn-btn__icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2v8m0 0 3-3m-3 3L5 7M3 13h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					<span><?php esc_html_e( 'Download receipt (PDF)', 'ifthenpay-pay-button' ); ?></span>
+				</a>
 			<?php endif; ?>
 
 			<?php if ( ReceiptEmail::can_resend( $record ) ) : ?>

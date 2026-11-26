@@ -21,14 +21,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Texts, Emails, Pay links and AI: what the payer reads, who gets emailed, where links live and how the AI
- * behaves. One form across the four tabs, so a save keeps them all; the Backoffice tab saves on its own.
+ * behaves. One form across the five tabs, so a save keeps them all; the Backoffice tab saves on its own.
  */
 class ConfigurationForm {
 
 	public const FORM_ID     = 'iftp-btn-config-form';
 	public const SAVE_ACTION = 'iftp_btn_save_config';
 
-	private const TABS = array( 'texts', 'emails', 'links', 'ai' );
+	private const TABS = array( 'texts', 'emails', 'links', 'ai', 'data' );
 
 	/**
 	 * Checkout settings.
@@ -63,7 +63,7 @@ class ConfigurationForm {
 	}
 
 	/**
-	 * The form and its four tabs.
+	 * The form and its five tabs.
 	 *
 	 * @param bool $connected Whether a Backoffice Key is connected.
 	 */
@@ -86,6 +86,9 @@ class ConfigurationForm {
 			<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-ai" aria-labelledby="iftp-btn-tab-ai" data-iftp-panel="ai">
 				<?php $this->render_ai( $connected ); ?>
 			</div>
+			<div class="iftp-btn-tabpanel" role="tabpanel" id="iftp-btn-panel-data" aria-labelledby="iftp-btn-tab-data" data-iftp-panel="data">
+				<?php $this->render_data(); ?>
+			</div>
 		</form>
 		<?php
 	}
@@ -107,6 +110,10 @@ class ConfigurationForm {
 		$this->settings->set_texts( CheckoutTexts::sanitize( isset( $_POST['texts'] ) && is_array( $_POST['texts'] ) ? wp_unslash( $_POST['texts'] ) : array() ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		$this->settings->set_receipt_payer( isset( $_POST['receipt_payer'] ) );
+		$this->settings->set_receipt_pdf( isset( $_POST['receipt_pdf'] ) );
+		$this->settings->set_delete_data( isset( $_POST['delete_data'] ) );
+		$this->settings->set_reminder_enabled( isset( $_POST['reminder_on'] ) );
+		$this->settings->set_reminder_hours( (int) $text( 'reminder_hours' ) );
 		$this->settings->set_notify_admin( isset( $_POST['notify_admin'] ) );
 
 		$notify = sanitize_email( $text( 'notify_email' ) );
@@ -194,6 +201,13 @@ class ConfigurationForm {
 					</span>
 				</label>
 				<label class="iftp-btn-np__toggle">
+					<input type="checkbox" class="iftp-btn-switch" name="receipt_pdf" value="1" <?php checked( $this->settings->get_receipt_pdf() ); ?> />
+					<span class="iftp-btn-np__toggle-text">
+						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Attach a PDF receipt', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'A copy the payer can keep. You can also download it from any paid payment.', 'ifthenpay-pay-button' ); ?></span>
+					</span>
+				</label>
+				<label class="iftp-btn-np__toggle">
 					<input type="checkbox" class="iftp-btn-switch" name="notify_admin" value="1" <?php checked( $this->settings->get_notify_admin() ); ?> />
 					<span class="iftp-btn-np__toggle-text">
 						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Tell me about every payment', 'ifthenpay-pay-button' ); ?></span>
@@ -203,6 +217,35 @@ class ConfigurationForm {
 				<div class="iftp-btn-field">
 					<label class="iftp-btn-field__label" for="iftp-btn-notify-email"><?php esc_html_e( 'Send it to', 'ifthenpay-pay-button' ); ?></label>
 					<input type="email" class="iftp-btn-field__control" id="iftp-btn-notify-email" name="notify_email" value="<?php echo esc_attr( $this->settings->get_notify_email_raw() ); ?>" placeholder="<?php echo esc_attr( (string) get_option( 'admin_email' ) ); ?>" />
+				</div>
+			</div>
+		</section>
+
+		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-reminder-panel-title">
+			<div class="iftp-btn-panel__intro">
+				<h2 id="iftp-btn-reminder-panel-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Payment reminders', 'ifthenpay-pay-button' ); ?></h2>
+				<p class="iftp-btn-panel__description"><?php esc_html_e( 'One email to a payer who started a payment and hasn\'t paid, shortly before the link runs out, with the link to finish it.', 'ifthenpay-pay-button' ); ?></p>
+			</div>
+			<div class="iftp-btn-panel__body iftp-btn-stack">
+				<label class="iftp-btn-np__toggle">
+					<input type="checkbox" class="iftp-btn-switch" name="reminder_on" value="1" <?php checked( $this->settings->get_reminder_enabled() ); ?> />
+					<span class="iftp-btn-np__toggle-text">
+						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Remind payers who haven\'t paid', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Only when the button asked for an email. Each payment is reminded once, never after it is paid, failed or expired.', 'ifthenpay-pay-button' ); ?></span>
+					</span>
+				</label>
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-reminder-hours"><?php esc_html_e( 'Send it', 'ifthenpay-pay-button' ); ?></label>
+					<select class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-reminder-hours" name="reminder_hours">
+						<?php foreach ( CheckoutSettings::REMINDER_CHOICES as $hours ) : ?>
+							<option value="<?php echo esc_attr( (string) $hours ); ?>" <?php selected( $this->settings->get_reminder_hours(), $hours ); ?>>
+								<?php
+								/* translators: %d: hours */
+								echo esc_html( sprintf( _n( '%d hour before the link runs out', '%d hours before the link runs out', $hours, 'ifthenpay-pay-button' ), $hours ) );
+								?>
+							</option>
+						<?php endforeach; ?>
+					</select>
 				</div>
 			</div>
 		</section>
@@ -258,6 +301,27 @@ class ConfigurationForm {
 					<input type="checkbox" name="rotate_signing" value="1" />
 					<?php esc_html_e( 'Make a new signing secret (every signed link made so far stops working)', 'ifthenpay-pay-button' ); ?>
 				</label>
+			</div>
+		</section>
+		<?php
+	}
+
+	/**
+	 * The Data tab: what happens to the payment records when the plugin is deleted.
+	 */
+	private function render_data(): void {
+		?>
+		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-data-title">
+			<div class="iftp-btn-panel__intro">
+				<h2 id="iftp-btn-data-title" class="iftp-btn-panel__title"><?php esc_html_e( 'When the plugin is deleted', 'ifthenpay-pay-button' ); ?></h2>
+				<p class="iftp-btn-panel__description"><?php esc_html_e( 'Payments, discount codes and reminders are your accounting history, so they stay in the database unless you say otherwise.', 'ifthenpay-pay-button' ); ?></p>
+			</div>
+			<div class="iftp-btn-panel__body">
+				<label class="iftp-btn-check">
+					<input type="checkbox" name="delete_data" value="1" <?php checked( $this->settings->get_delete_data() ); ?> />
+					<?php esc_html_e( 'Also delete all payments, discount codes and reminders when the plugin is deleted', 'ifthenpay-pay-button' ); ?>
+				</label>
+				<p class="iftp-btn-field__help"><?php esc_html_e( 'Your settings, keys and buttons are always removed. This cannot be undone.', 'ifthenpay-pay-button' ); ?></p>
 			</div>
 		</section>
 		<?php

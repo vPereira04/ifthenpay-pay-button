@@ -188,6 +188,7 @@ class ConfigurationPage {
 			'emails'     => __( 'Emails', 'ifthenpay-pay-button' ),
 			'links'      => __( 'Pay links', 'ifthenpay-pay-button' ),
 			'ai'         => __( 'AI', 'ifthenpay-pay-button' ),
+			'data'       => __( 'Data', 'ifthenpay-pay-button' ),
 		);
 		$look = ( new CheckoutSettings() )->get_look();
 		?>

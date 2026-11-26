@@ -33,9 +33,16 @@ class CheckoutSettings {
 
 	public const DEFAULT_PAY_BASE = 'pay';
 
+	// Hours before a link runs out that a reminder can go.
+	public const REMINDER_CHOICES = array( 6, 12, 24, 48 );
+
 	private const OPTION_CONFIRMATION   = 'iftp_btn_confirmation';
 	private const OPTION_PAY_BASE       = 'iftp_btn_pay_base';
 	private const OPTION_RECEIPT_PAYER  = 'iftp_btn_receipt_payer';
+	private const OPTION_RECEIPT_PDF    = 'iftp_btn_receipt_pdf';
+	private const OPTION_DELETE_DATA    = 'iftp_btn_delete_data';
+	private const OPTION_REMINDER_ON    = 'iftp_btn_reminder_on';
+	private const OPTION_REMINDER_HOURS = 'iftp_btn_reminder_hours';
 	private const OPTION_NOTIFY_ADMIN   = 'iftp_btn_notify_admin';
 	private const OPTION_NOTIFY_EMAIL   = 'iftp_btn_notify_email';
 	private const OPTION_SIGNING_SECRET = 'iftp_btn_signing_secret';
@@ -268,6 +275,74 @@ class CheckoutSettings {
 	}
 
 	/**
+	 * Whether the payer's receipt carries a PDF copy.
+	 */
+	public function get_receipt_pdf(): bool {
+		return '0' !== (string) get_option( self::OPTION_RECEIPT_PDF, '1' );
+	}
+
+	/**
+	 * Stores the PDF receipt switch.
+	 *
+	 * @param bool $enabled Whether to attach it.
+	 */
+	public function set_receipt_pdf( bool $enabled ): void {
+		update_option( self::OPTION_RECEIPT_PDF, $enabled ? '1' : '0', false );
+	}
+
+	/**
+	 * Whether deleting the plugin also deletes the payment records (payments, discount codes, reminders).
+	 * Off until the merchant says so: they are accounting history, and an accidental delete shouldn't lose them.
+	 */
+	public function get_delete_data(): bool {
+		return '1' === (string) get_option( self::OPTION_DELETE_DATA, '0' );
+	}
+
+	/**
+	 * Stores the delete-on-uninstall switch.
+	 *
+	 * @param bool $enabled Whether to delete the records when the plugin is deleted.
+	 */
+	public function set_delete_data( bool $enabled ): void {
+		update_option( self::OPTION_DELETE_DATA, $enabled ? '1' : '0', false );
+	}
+
+	/**
+	 * Whether payers who started a payment and didn't finish it get one reminder before their link runs out.
+	 * Off until the merchant switches it on: it emails people on its own.
+	 */
+	public function get_reminder_enabled(): bool {
+		return '1' === (string) get_option( self::OPTION_REMINDER_ON, '0' );
+	}
+
+	/**
+	 * Stores the reminder switch.
+	 *
+	 * @param bool $enabled Whether to send reminders.
+	 */
+	public function set_reminder_enabled( bool $enabled ): void {
+		update_option( self::OPTION_REMINDER_ON, $enabled ? '1' : '0', false );
+	}
+
+	/**
+	 * How many hours before a link runs out the reminder goes.
+	 */
+	public function get_reminder_hours(): int {
+		$hours = (int) get_option( self::OPTION_REMINDER_HOURS, 24 );
+
+		return in_array( $hours, self::REMINDER_CHOICES, true ) ? $hours : 24;
+	}
+
+	/**
+	 * Stores the reminder lead time, if it is one of the choices.
+	 *
+	 * @param int $hours Hours before expiry.
+	 */
+	public function set_reminder_hours( int $hours ): void {
+		update_option( self::OPTION_REMINDER_HOURS, in_array( $hours, self::REMINDER_CHOICES, true ) ? $hours : 24, false );
+	}
+
+	/**
 	 * Whether the site owner gets an email for every paid payment.
 	 */
 	public function get_notify_admin(): bool {
@@ -347,7 +422,7 @@ class CheckoutSettings {
 	 * Removes every checkout option. Used on uninstall.
 	 */
 	public function delete_all(): void {
-		foreach ( array( self::OPTION_CONFIRMATION, self::OPTION_PAY_BASE, self::OPTION_RECEIPT_PAYER, self::OPTION_NOTIFY_ADMIN, self::OPTION_NOTIFY_EMAIL, self::OPTION_SIGNING_SECRET, self::OPTION_LOOK, self::OPTION_TEXTS, self::OPTION_BUTTON_DESIGN ) as $option ) {
+		foreach ( array( self::OPTION_CONFIRMATION, self::OPTION_PAY_BASE, self::OPTION_RECEIPT_PAYER, self::OPTION_RECEIPT_PDF, self::OPTION_DELETE_DATA, self::OPTION_REMINDER_ON, self::OPTION_REMINDER_HOURS, self::OPTION_NOTIFY_ADMIN, self::OPTION_NOTIFY_EMAIL, self::OPTION_SIGNING_SECRET, self::OPTION_LOOK, self::OPTION_TEXTS, self::OPTION_BUTTON_DESIGN ) as $option ) {
 			delete_option( $option );
 		}
 	}

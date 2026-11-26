@@ -88,11 +88,12 @@ final class PaymentEmailTemplate {
 		/* translators: %s: site URL, linked to the site */
 		$sent_from = sprintf( esc_html__( 'Sent from %s', 'ifthenpay-pay-button' ), $url_link );
 
+		$logo = 'https://ifthenpay.com/docs/en/assets/images/ifthenpay.png'; // phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- email clients can't load local plugin assets; the logo is disclosed under External Services in the readme.
 		return '<div style="margin:0;padding:40px 12px;background-color:#eef1f6;font-family:-apple-system,BlinkMacSystemFont,&apos;Segoe UI&apos;,Inter,Helvetica,Arial,sans-serif;color:#2f3a50">
 	<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:540px;margin:0 auto;border-collapse:separate">
 		<tr>
 			<td align="center" style="padding:0 0 22px">
-				<img src="https://ifthenpay.com/docs/en/assets/images/ifthenpay.png" alt="ifthenpay" width="112" style="display:block;max-width:100%;height:auto;border:0">
+				<img src="' . esc_url( $logo ) . '" alt="ifthenpay" width="112" style="display:block;max-width:100%;height:auto;border:0">
 			</td>
 		</tr>
 		<tr>

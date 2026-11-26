@@ -97,6 +97,18 @@
 		}
 	} );
 
+	// A sandboxed preview can't read the saved choice or be reached by its parent, so the studio tells it which one to show.
+	window.addEventListener( 'message', function ( event ) {
+		const data = event.data;
+
+		if ( window.parent === window || event.source !== window.parent || ! data || MODES.indexOf( data.iftpBtnScheme ) === -1 ) {
+			return;
+		}
+
+		set( data.iftpBtnScheme, false );
+		applyTo( document, data.iftpBtnScheme );
+	} );
+
 	if ( query && query.addEventListener ) {
 		query.addEventListener( 'change', function () {
 			if ( 'system' === current ) {

@@ -59,14 +59,14 @@ class CheckoutLook {
 	public const PAY_BGS      = array( 'glow', 'plain', 'gradient', 'image', 'video', 'none' );
 	public const PAY_GRADS    = array( 'soft', 'aurora', 'diagonal' );
 	// Effects no longer offered in the picker. They still draw, so a button that already uses one keeps its look.
-	public const RETIRED_FX = array( 'pizza', 'code', 'diner', 'ecg', 'waveform', 'court', 'track', 'pitch', 'sky', 'gingham' );
-	public const PAY_FX       = array( 'none', 'crystals', 'waves', 'bokeh', 'grain', 'dots', 'grid', 'stripes', 'rings', 'liquid', 'mesh', 'tide', 'gilt', 'rays', 'spotlight', 'starlight', 'satin', 'confetti', 'hexagons', 'diamonds', 'scales', 'chevrons', 'bubbles', 'fireflies', 'pixels', 'sprinkles', 'pizza', 'gingham', 'pitch', 'court', 'track', 'code', 'diner', 'ecg', 'waveform', 'sky' );
-	public const ANIMS        = array( 'grow', 'rise', 'slide', 'zoom', 'blur', 'drawer', 'voxel', 'waves', 'shutter', 'curtain', 'iris', 'ripple', 'pixelate', 'shatter', 'stripes', 'confetti', 'none' );
-	public const PAY_BLURS    = array( 'none', 'soft', 'frosted', 'tilt', 'vignette' );
-	public const VIDEO_SRCS   = array( 'file', 'link' );
-	public const VIDEO_TYPES  = array( 'video/mp4', 'video/webm' );
-	public const VIDEO_LOOPS  = array( 'all', 'part' );
-	public const DARK_MODES   = array( 'off', 'auto' );
+	public const RETIRED_FX  = array( 'pizza', 'code', 'diner', 'ecg', 'waveform', 'court', 'track', 'pitch', 'sky', 'gingham' );
+	public const PAY_FX      = array( 'none', 'crystals', 'waves', 'bokeh', 'grain', 'dots', 'grid', 'stripes', 'rings', 'liquid', 'mesh', 'tide', 'gilt', 'rays', 'spotlight', 'starlight', 'satin', 'confetti', 'hexagons', 'diamonds', 'scales', 'chevrons', 'bubbles', 'fireflies', 'pixels', 'sprinkles', 'pizza', 'gingham', 'pitch', 'court', 'track', 'code', 'diner', 'ecg', 'waveform', 'sky' );
+	public const ANIMS       = array( 'grow', 'rise', 'slide', 'zoom', 'blur', 'drawer', 'voxel', 'waves', 'shutter', 'curtain', 'iris', 'ripple', 'pixelate', 'shatter', 'stripes', 'confetti', 'none' );
+	public const PAY_BLURS   = array( 'none', 'soft', 'frosted', 'tilt', 'vignette' );
+	public const VIDEO_SRCS  = array( 'file', 'link' );
+	public const VIDEO_TYPES = array( 'video/mp4', 'video/webm' );
+	public const VIDEO_LOOPS = array( 'all', 'part' );
+	public const DARK_MODES  = array( 'off', 'auto' );
 
 	public const MAX_RADIUS       = 32;
 	public const MAX_FIELD_RADIUS = 24;

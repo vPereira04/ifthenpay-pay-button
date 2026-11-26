@@ -119,6 +119,23 @@ class RestController {
 
 		register_rest_route(
 			self::NAMESPACE,
+			'/discount',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'discount' ),
+				'permission_callback' => array( $this, 'can_start' ),
+				'args'                => array(
+					'button' => array(
+						'type'     => 'integer',
+						'required' => true,
+						'minimum'  => 1,
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
 			'/payments/(?P<ref>[A-Za-z0-9_]{1,191})',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
@@ -221,6 +238,50 @@ class RestController {
 		}
 
 		return new WP_REST_Response( array( 'redirect' => $result ), 201 );
+	}
+
+	/**
+	 * POST /discount: what a code would take off the payer's total, for the checkout's "Apply". Nothing is stored.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @phpstan-param WP_REST_Request<array<string, mixed>> $request
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function discount( WP_REST_Request $request ) {
+		$button = $this->buttons->find( (int) $request->get_param( 'button' ) );
+
+		if ( null === $button ) {
+			return new WP_Error( 'iftp_btn_unknown', CheckoutTexts::get( 'unavailable' ), array( 'status' => 404 ) );
+		}
+
+		$body  = $request->get_json_params();
+		$input = is_array( $body ) ? array_filter( $body, 'is_scalar' ) : array();
+		$quote = ( new CheckoutService() )->quote( $button, $input );
+
+		if ( is_wp_error( $quote ) ) {
+			return $quote;
+		}
+
+		$response = new WP_REST_Response(
+			array(
+				'code'     => $quote['code'],
+				'discount' => $quote['discount'],
+				'total'    => $quote['total'],
+				'message'  => CheckoutTexts::get(
+					'code_applied',
+					array(
+						'code'     => $quote['code'],
+						'discount' => CheckoutService::format_money( $quote['discount'] ),
+					)
+				),
+				'subtotal' => CheckoutService::format_money( $quote['subtotal'] ),
+				'text'     => CheckoutService::format_money( $quote['total'] ),
+			),
+			200
+		);
+		$response->header( 'Cache-Control', 'no-store' );
+
+		return $response;
 	}
 
 	/**

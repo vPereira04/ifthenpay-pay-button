@@ -24,6 +24,7 @@ use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Checkout\CheckoutService;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
 use Ifthenpay\PayButton\Checkout\CustomCode;
+use Ifthenpay\PayButton\Checkout\Discounts;
 use Ifthenpay\PayButton\Checkout\RestController;
 use Ifthenpay\PayButton\Checkout\SpotCounter;
 use Ifthenpay\PayButton\Checkout\TestMode;
@@ -379,6 +380,7 @@ class ButtonRenderer {
 			'checkoutUrl' => esc_url_raw( rest_url( RestController::NAMESPACE . '/checkout' ) ),
 			'statusUrl'   => esc_url_raw( rest_url( RestController::NAMESPACE . '/payments/' ) ),
 			'opensUrl'    => esc_url_raw( rest_url( RestController::NAMESPACE . '/opens' ) ),
+			'discountUrl' => esc_url_raw( rest_url( RestController::NAMESPACE . '/discount' ) ),
 			// The merchant trying their own buttons shouldn't count as payers who walked away.
 			'countOpens'  => ! current_user_can( Plugin::admin_cap() ),
 			'resultVar'   => ReturnHandler::RESULT_VAR,
@@ -533,6 +535,24 @@ class ButtonRenderer {
 	}
 
 	/**
+	 * The discount code box: a link that opens an input and Apply. checkout.js asks the server what the code is worth.
+	 *
+	 * @param string $id Unique id prefix of the form.
+	 */
+	private static function print_code_box( string $id ): void {
+		?>
+		<div class="iftp-btn-form__code" data-iftp-btn-code>
+			<button type="button" class="iftp-btn-form__code-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $id ); ?>-code" data-iftp-btn-code-toggle><?php echo esc_html( CheckoutTexts::get( 'code_have' ) ); ?></button>
+			<div class="iftp-btn-form__code-row" id="<?php echo esc_attr( $id ); ?>-code" hidden data-iftp-btn-code-row>
+				<input type="text" class="iftp-btn-form__input iftp-btn-form__code-input" name="discount_code" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="<?php echo esc_attr( CheckoutTexts::get( 'code_label' ) ); ?>" data-iftp-btn-code-input />
+				<button type="button" class="iftp-btn-form__code-apply" data-iftp-btn-code-apply data-apply="<?php echo esc_attr( CheckoutTexts::get( 'code_apply' ) ); ?>" data-remove="<?php echo esc_attr( CheckoutTexts::get( 'code_remove' ) ); ?>"><?php echo esc_html( CheckoutTexts::get( 'code_apply' ) ); ?></button>
+			</div>
+			<p class="iftp-btn-form__code-note" role="status" aria-live="polite" hidden data-iftp-btn-code-note></p>
+		</div>
+		<?php
+	}
+
+	/**
 	 * The checkout form for one button: a fixed header (and step bar), a body that scrolls on its own, and
 	 * fixed actions. Page breaks in the button's form split the body into steps; checkout.js walks them.
 	 *
@@ -623,6 +643,11 @@ class ButtonRenderer {
 						<?php
 						foreach ( $step['items'] as $item ) {
 							$this->print_item( $button, $item, $context );
+						}
+
+						// Under the last page, so the payer has seen the whole price. A signed link has the merchant's own price.
+						if ( $index === $count - 1 && ! $signed && ! $preview && ( new Discounts() )->offered( $button ) ) {
+							self::print_code_box( $id );
 						}
 						?>
 					</div>

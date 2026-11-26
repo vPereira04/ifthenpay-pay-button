@@ -12,6 +12,7 @@ namespace Ifthenpay\PayButton\Mail;
 use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
 use Ifthenpay\PayButton\Checkout\CheckoutService;
 use Ifthenpay\PayButton\Dates;
+use Ifthenpay\PayButton\Pdf\ReceiptPdf;
 use Ifthenpay\PayButton\Repository\CheckoutSettings;
 use Ifthenpay\PayButton\Repository\TransactionStore;
 
@@ -138,7 +139,9 @@ class ReceiptEmail {
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 		$reply   = (string) get_option( 'admin_email' );
 
-		return wp_mail(
+		$pdf = $this->settings->get_receipt_pdf() ? self::write_pdf( $record, $pairs ) : '';
+
+		$sent = wp_mail(
 			$record['customer_email'],
 			/* translators: %s: the site name */
 			sprintf( __( 'Your payment to %s', 'ifthenpay-pay-button' ), $site ),
@@ -152,8 +155,31 @@ class ReceiptEmail {
 				$pairs,
 				''
 			),
-			is_email( $reply ) ? array_merge( $headers, array( 'Reply-To: ' . $reply ) ) : $headers
+			is_email( $reply ) ? array_merge( $headers, array( 'Reply-To: ' . $reply ) ) : $headers,
+			'' !== $pdf ? array( $pdf ) : array()
 		);
+
+		if ( '' !== $pdf ) {
+			wp_delete_file( $pdf );
+		}
+
+		return $sent;
+	}
+
+	/**
+	 * Writes the receipt PDF to a temporary file wp_mail() can attach, named like the download.
+	 *
+	 * @param array<string, mixed>                            $record The transaction row.
+	 * @param array<int, array{label: string, value: string}> $pairs  The submitted details.
+	 * @phpstan-param Transaction $record
+	 * @return string The file's path, or '' when it couldn't be written (the email then goes without it).
+	 */
+	private static function write_pdf( array $record, array $pairs ): string {
+		$dir  = get_temp_dir();
+		$path = trailingslashit( $dir ) . wp_unique_filename( $dir, ReceiptPdf::filename( $record ) );
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- a short-lived temp file to attach; WP_Filesystem is for the content folders.
+		return false !== file_put_contents( $path, ReceiptPdf::build( $record, $pairs ) ) ? $path : '';
 	}
 
 	/**

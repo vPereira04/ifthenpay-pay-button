@@ -92,20 +92,20 @@ class DesignControls {
 	 * @phpstan-param ButtonDesignConfig $design
 	 */
 	public function render( array $design ): void {
-		$custom      = ButtonDesign::SOURCE_CUSTOM === $design['source'];
-		$own         = ButtonDesign::SOURCE_SITE !== $design['source'];
-		$auto        = '' === $design['text'];
-		$auto2       = '' === $design['color2'];
-		$auto_bc     = '' === $design['border_color'];
-		$sources     = array(
+		$custom   = ButtonDesign::SOURCE_CUSTOM === $design['source'];
+		$own      = ButtonDesign::SOURCE_SITE !== $design['source'];
+		$auto     = '' === $design['text'];
+		$auto2    = '' === $design['color2'];
+		$auto_bc  = '' === $design['border_color'];
+		$sources  = array(
 			ButtonDesign::SOURCE_SITE     => array( __( 'Default design', 'ifthenpay-pay-button' ), __( 'The same as every button set to it.', 'ifthenpay-pay-button' ) ),
 			ButtonDesign::SOURCE_THEME    => array( __( 'Match my theme', 'ifthenpay-pay-button' ), __( 'Looks like the other buttons on your site.', 'ifthenpay-pay-button' ) ),
 			ButtonDesign::SOURCE_CUSTOM   => array( __( 'Custom', 'ifthenpay-pay-button' ), __( 'Your own colour, shape and size.', 'ifthenpay-pay-button' ) ),
 			ButtonDesign::SOURCE_ADVANCED => array( __( 'Advanced', 'ifthenpay-pay-button' ), __( 'Drawn buttons for businesses, in your colours.', 'ifthenpay-pay-button' ) ),
 			ButtonDesign::SOURCE_CODE     => array( __( 'My own code', 'ifthenpay-pay-button' ), __( 'No styles from us. Your CSS and JavaScript do it.', 'ifthenpay-pay-button' ) ),
 		);
-		$sources     = $this->with_site ? $sources : array_intersect_key( $sources, array_flip( ButtonDesign::OWN_SOURCES ) );
-		$variants    = array(
+		$sources  = $this->with_site ? $sources : array_intersect_key( $sources, array_flip( ButtonDesign::OWN_SOURCES ) );
+		$variants = array(
 			'filled'     => __( 'Filled', 'ifthenpay-pay-button' ),
 			'outline'    => __( 'Outline', 'ifthenpay-pay-button' ),
 			'soft'       => __( 'Soft', 'ifthenpay-pay-button' ),

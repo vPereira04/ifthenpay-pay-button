@@ -14,6 +14,7 @@ use Ifthenpay\PayButton\Buttons\Button;
 use Ifthenpay\PayButton\Dates;
 use Ifthenpay\PayButton\Mail\PaymentEmailSender;
 use Ifthenpay\PayButton\Mail\ReceiptEmail;
+use Ifthenpay\PayButton\Pdf\ReceiptPdf;
 use Ifthenpay\PayButton\Repository\SettingsRepository;
 use Ifthenpay\PayButton\Repository\TransactionStore;
 
@@ -94,6 +95,7 @@ class EntriesController {
 		add_action( 'wp_ajax_iftp_btn_send_payment_emails', array( $this, 'send_payment_emails' ) );
 		add_action( 'wp_ajax_iftp_btn_resend_receipts', array( $this, 'resend_receipts' ) );
 		add_action( 'admin_post_' . EntriesPage::EXPORT_ACTION, array( $this, 'export' ) );
+		add_action( 'admin_post_' . EntriesPage::RECEIPT_ACTION, array( $this, 'receipt_pdf' ) );
 	}
 
 	/**
@@ -369,6 +371,33 @@ class EntriesController {
 		}
 
 		wp_send_json_success( $result );
+	}
+
+	/**
+	 * Admin-post: downloads a paid payment's receipt as a PDF.
+	 */
+	public function receipt_pdf(): void {
+		$ref = isset( $_GET['ref'] ) && is_string( $_GET['ref'] ) ? sanitize_text_field( wp_unslash( $_GET['ref'] ) ) : '';
+
+		check_admin_referer( EntriesPage::RECEIPT_ACTION . '_' . $ref );
+
+		if ( ! $this->page->can_access() ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'ifthenpay-pay-button' ), '', array( 'response' => 403 ) );
+		}
+
+		$record = $this->transactions->get( $ref );
+
+		if ( null === $record || ! ReceiptPdf::available( $record ) ) {
+			wp_die( esc_html__( 'Only a paid payment has a receipt.', 'ifthenpay-pay-button' ), '', array( 'response' => 404 ) );
+		}
+
+		nocache_headers();
+		header( 'Content-Type: application/pdf' );
+		header( 'Content-Disposition: attachment; filename="' . ReceiptPdf::filename( $record ) . '"' );
+		header( 'X-Content-Type-Options: nosniff' );
+
+		echo ReceiptPdf::build( $record, $this->transactions->entry_data_pairs( $record ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- binary PDF, not HTML.
+		exit;
 	}
 
 	/**
