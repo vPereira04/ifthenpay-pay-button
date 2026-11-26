@@ -36,10 +36,14 @@ class CheckoutSettings {
 	// Hours before a link runs out that a reminder can go.
 	public const REMINDER_CHOICES = array( 6, 12, 24, 48 );
 
+	// The receipt's colour until the merchant picks one.
+	public const RECEIPT_ACCENT = '#00609c';
+
 	private const OPTION_CONFIRMATION   = 'iftp_btn_confirmation';
 	private const OPTION_PAY_BASE       = 'iftp_btn_pay_base';
 	private const OPTION_RECEIPT_PAYER  = 'iftp_btn_receipt_payer';
 	private const OPTION_RECEIPT_PDF    = 'iftp_btn_receipt_pdf';
+	private const OPTION_RECEIPT_LOOK   = 'iftp_btn_receipt_look';
 	private const OPTION_DELETE_DATA    = 'iftp_btn_delete_data';
 	private const OPTION_REMINDER_ON    = 'iftp_btn_reminder_on';
 	private const OPTION_REMINDER_HOURS = 'iftp_btn_reminder_hours';
@@ -291,6 +295,63 @@ class CheckoutSettings {
 	}
 
 	/**
+	 * What the merchant put on their receipts: logo, name, details, title, message and the barcode switch.
+	 *
+	 * @return array{logo: string, logo_id: int, name: string, details: string, title: string, message: string, barcode: bool, color: bool, accent: string}
+	 */
+	public function get_receipt_look(): array {
+		$saved = get_option( self::OPTION_RECEIPT_LOOK, array() );
+		$saved = is_array( $saved ) ? $saved : array();
+		$logo  = is_string( $saved['logo'] ?? null ) && in_array( $saved['logo'], array( 'site', 'image' ), true ) ? $saved['logo'] : 'none';
+
+		return array(
+			'logo'    => $logo,
+			'logo_id' => is_numeric( $saved['logo_id'] ?? null ) ? max( 0, (int) $saved['logo_id'] ) : 0,
+			'name'    => is_string( $saved['name'] ?? null ) ? $saved['name'] : '',
+			'details' => is_string( $saved['details'] ?? null ) ? $saved['details'] : '',
+			'title'   => is_string( $saved['title'] ?? null ) ? $saved['title'] : '',
+			'message' => is_string( $saved['message'] ?? null ) ? $saved['message'] : '',
+			'barcode' => ! isset( $saved['barcode'] ) || '0' !== (string) $saved['barcode'],
+			'color'   => isset( $saved['color'] ) && '1' === (string) $saved['color'],
+			'accent'  => is_string( $saved['accent'] ?? null ) && null !== sanitize_hex_color( $saved['accent'] ) ? strtolower( $saved['accent'] ) : self::RECEIPT_ACCENT,
+		);
+	}
+
+	/**
+	 * Stores the receipt's look, cleaning every part: single lines for the name and title, a few short lines for the rest.
+	 *
+	 * @param array<string, mixed> $input Raw values, already unslashed.
+	 */
+	public function set_receipt_look( array $input ): void {
+		$text  = static fn( string $key, int $max ): string => is_string( $input[ $key ] ?? null ) ? mb_substr( sanitize_text_field( $input[ $key ] ), 0, $max ) : '';
+		$lines = static fn( string $key, int $max ): string => is_string( $input[ $key ] ?? null ) ? mb_substr( sanitize_textarea_field( $input[ $key ] ), 0, $max ) : '';
+		$logo  = is_string( $input['logo'] ?? null ) && in_array( $input['logo'], array( 'site', 'image' ), true ) ? $input['logo'] : 'none';
+		$id    = is_numeric( $input['logo_id'] ?? null ) ? absint( $input['logo_id'] ) : 0;
+
+		// A picked image has to be an image in the library, or there is nothing to print.
+		if ( 'image' === $logo && ( $id < 1 || ! wp_attachment_is_image( $id ) ) ) {
+			$logo = 'none';
+			$id   = 0;
+		}
+
+		update_option(
+			self::OPTION_RECEIPT_LOOK,
+			array(
+				'logo'    => $logo,
+				'logo_id' => $id,
+				'name'    => $text( 'name', 60 ),
+				'details' => $lines( 'details', 240 ),
+				'title'   => $text( 'title', 24 ),
+				'message' => $lines( 'message', 200 ),
+				'barcode' => ! empty( $input['barcode'] ) ? '1' : '0',
+				'color'   => ! empty( $input['color'] ) ? '1' : '0',
+				'accent'  => is_string( $input['accent'] ?? null ) && null !== sanitize_hex_color( $input['accent'] ) ? strtolower( $input['accent'] ) : self::RECEIPT_ACCENT,
+			),
+			false
+		);
+	}
+
+	/**
 	 * Whether deleting the plugin also deletes the payment records (payments, discount codes, reminders).
 	 * Off until the merchant says so: they are accounting history, and an accidental delete shouldn't lose them.
 	 */
@@ -422,7 +483,7 @@ class CheckoutSettings {
 	 * Removes every checkout option. Used on uninstall.
 	 */
 	public function delete_all(): void {
-		foreach ( array( self::OPTION_CONFIRMATION, self::OPTION_PAY_BASE, self::OPTION_RECEIPT_PAYER, self::OPTION_RECEIPT_PDF, self::OPTION_DELETE_DATA, self::OPTION_REMINDER_ON, self::OPTION_REMINDER_HOURS, self::OPTION_NOTIFY_ADMIN, self::OPTION_NOTIFY_EMAIL, self::OPTION_SIGNING_SECRET, self::OPTION_LOOK, self::OPTION_TEXTS, self::OPTION_BUTTON_DESIGN ) as $option ) {
+		foreach ( array( self::OPTION_CONFIRMATION, self::OPTION_PAY_BASE, self::OPTION_RECEIPT_PAYER, self::OPTION_RECEIPT_PDF, self::OPTION_RECEIPT_LOOK, self::OPTION_DELETE_DATA, self::OPTION_REMINDER_ON, self::OPTION_REMINDER_HOURS, self::OPTION_NOTIFY_ADMIN, self::OPTION_NOTIFY_EMAIL, self::OPTION_SIGNING_SECRET, self::OPTION_LOOK, self::OPTION_TEXTS, self::OPTION_BUTTON_DESIGN ) as $option ) {
 			delete_option( $option );
 		}
 	}

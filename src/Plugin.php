@@ -18,6 +18,7 @@ use Ifthenpay\PayButton\Admin\CouponsPage;
 use Ifthenpay\PayButton\Admin\DashboardWidget;
 use Ifthenpay\PayButton\Admin\Entries\EntriesController;
 use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
+use Ifthenpay\PayButton\Admin\Entries\PaymentEmailSettings;
 use Ifthenpay\PayButton\Admin\Menu;
 use Ifthenpay\PayButton\Ai\AiController;
 use Ifthenpay\PayButton\Ajax\SettingsController;
@@ -123,6 +124,7 @@ class Plugin {
 
 			( new Menu( $settings, new ButtonsPage( $buttons, $settings, $transactions ), $entries, new ConfigurationPage( $settings ), new CheckoutSettingsPage( new CheckoutSettings() ), new CouponsPage( null, $buttons ) ) )->register();
 			( new SettingsController( $settings ) )->register();
+			( new PaymentEmailSettings( $settings ) )->register();
 			( new EntriesController( $entries, null, $settings ) )->register();
 			( new ButtonsController( $buttons ) )->register();
 			( new DemoPage( $buttons ) )->register();

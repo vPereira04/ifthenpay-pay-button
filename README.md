@@ -249,15 +249,29 @@ A button set to **The site's look** in its **Checkout design** tab uses this one
 
 (screenshot 19)
 
-#### Optional — Payment emails and the weekly summary
+#### Optional — Payment emails, the receipt and the weekly summary
 
 1. Open **Configuration › Emails**.
-2. **Receipt to the payer**, once ifthenpay confirms the payment.
-3. **Tell me about every payment**, sent to the address below.
-4. **Send the weekly summary**: an email every Monday with the week's payments.
-5. Click **Save Settings**.
+2. **Receipt to the payer** and **Tell me about every payment**: pick who gets an email for each payment.
+3. **Payment request email**: write the email your customers get from Send payment email, with tags and a live preview. This panel has its own **Save payment email** button.
 
 (screenshot 20)
+
+Further down the same tab, **Send the weekly summary** sends an email every Monday with the week's payments. Click **Save Settings** to keep it.
+
+#### Optional — Dress the PDF receipt
+
+1. Open **Configuration › Emails** and find the **Receipt** panel.
+2. Choose the **logo**: your site's, or an image of yours from the Media Library.
+3. The **business name**. With a logo it is only printed when you fill this in.
+4. **Business details**: address, tax number or phone, a line each.
+5. A **title** in place of "Receipt".
+6. A **message** printed at the bottom, above the thank-you line.
+7. **Colours**: off prints in black and white, logo included. On keeps the logo's colours and adds one colour of your choice.
+8. The **barcode** with the payment reference, like a shop receipt.
+9. Click **Save Settings**.
+
+(screenshot 21)
 
 The start of every pay link, e.g. `/pay/your-button/`, is the **Link base** under **Configuration › Pay links**.
 
@@ -269,7 +283,7 @@ The start of every pay link, e.g. `/pay/your-button/`, is the **Link base** unde
 4. Search, **Filters**, **Columns** and **Export** to CSV.
 5. **New payment**: create a payment link for a customer, or record one you took another way.
 
-(screenshot 21)
+(screenshot 22)
 
 Click **View** on a payment to open its details:
 
@@ -277,11 +291,11 @@ Click **View** on a payment to open its details:
 2. **Transaction**: reference, ifthenpay request and transaction IDs, the button, and the page it was paid from. **Submitted data** below lists everything the payer filled in.
 3. **Actions**: change the status by hand. A pending payment also gets **Copy payment link** and **Send payment email**.
 
-(screenshot 22)
+(screenshot 23)
 
 #### How a payment works
 
-The payer clicks a pay button on your page (screenshot 23), or opens its pay page, and fills in the checkout (screenshot 24). **Continue to payment** takes them to ifthenpay's secure page, where they choose a method and pay (screenshot 25). Back on your site, they see the Paid popup, or your page or URL, once ifthenpay confirms the payment (screenshot 26).
+The payer clicks a pay button on your page (screenshot 24), or opens its pay page, and fills in the checkout (screenshot 25). **Continue to payment** takes them to ifthenpay's secure page, where they choose a method and pay (screenshot 26). Back on your site, they see the Paid popup, or your page or URL, once ifthenpay confirms the payment (screenshot 27).
 
 Screenshots 27 to 38 show some of the designs you can make with **Checkout design**: a gradient with waves, a video background, dark mode, crystals, and looks for a donut shop, a pizzeria, a football club, a clinic, a music release, a book shop with picture cards and more.
 
@@ -448,42 +462,44 @@ Below are screenshots demonstrating key features and interfaces of the plugin:
     ![Default Design: messages after paying](.wordpress-org/screenshot-18.png)
 19. **(Admin Only) Configuration › Texts: every word the payer reads, in your own words or language**
     ![Checkout texts](.wordpress-org/screenshot-19.png)
-20. **(Admin Only) Configuration › Emails: the payer's receipt, a note for every payment and the weekly summary**
-    ![Payment emails and the weekly summary](.wordpress-org/screenshot-20.png)
-21. **(Admin Only) Payments: every payment, its status and the totals**
-    ![Payments](.wordpress-org/screenshot-21.png)
-22. **(Admin Only) A payment's details**
-    ![Payment details](.wordpress-org/screenshot-22.png)
-23. **(Customers Experience) Pay buttons on a page**
-    ![Pay buttons on a page](.wordpress-org/screenshot-23.png)
-24. **(Customers Experience) The checkout, here on the button's own pay page**
-    ![Checkout](.wordpress-org/screenshot-24.png)
-25. **(Customers Experience) ifthenpay's secure payment page**
-    ![ifthenpay payment page](.wordpress-org/screenshot-25.png)
-26. **(Customers Experience) The Paid popup back on your site**
-    ![Paid popup](.wordpress-org/screenshot-26.png)
-27. **(Design Example) Aurora gradient with waves, ring progress and priced options**
-    ![Aurora gradient with waves](.wordpress-org/screenshot-27.png)
-28. **(Design Example) A YouTube video behind the checkout**
-    ![Video background](.wordpress-org/screenshot-28.png)
-29. **(Design Example) Dark mode, following the payer's device**
-    ![Dark mode](.wordpress-org/screenshot-29.png)
-30. **(Design Example) Bubblegum pink and sprinkles: a donut shop**
-    ![Donut shop](.wordpress-org/screenshot-30.png)
-31. **(Design Example) Tomatoes, basil and olives with a step badge: a pizzeria**
-    ![Pizzeria](.wordpress-org/screenshot-31.png)
-32. **(Design Example) A football pitch behind the checkout, with suggested amounts**
-    ![Football club](.wordpress-org/screenshot-32.png)
-33. **(Design Example) A heartbeat line behind a booking form with a date and a time: a clinic**
-    ![Clinic](.wordpress-org/screenshot-33.png)
-34. **(Design Example) A dark card with a dedication field and picture options: a music release**
-    ![Music release](.wordpress-org/screenshot-34.png)
-35. **(Design Example) Picture cards in a sideways row: pick a book cover**
-    ![Picture cards in a row](.wordpress-org/screenshot-35.png)
-36. **(Design Example) Bubbles and quick amounts: a light-hearted donation page**
-    ![Donation page with bubbles](.wordpress-org/screenshot-36.png)
-37. **(Design Example) Gold on black with a soft progress: a cause to support**
-    ![Gold on black](.wordpress-org/screenshot-37.png)
+20. **(Admin Only) Configuration › Emails: the payer's receipt, a note for every payment and the payment request email**
+    ![Payment emails and the payment request email](.wordpress-org/screenshot-20.png)
+21. **(Admin Only) Configuration › Emails › Receipt: the logo, business details, message, colours and barcode of the PDF receipt**
+    ![Receipt settings](.wordpress-org/screenshot-21.png)
+22. **(Admin Only) Payments: every payment, its status and the totals**
+    ![Payments](.wordpress-org/screenshot-22.png)
+23. **(Admin Only) A payment's details**
+    ![Payment details](.wordpress-org/screenshot-23.png)
+24. **(Customers Experience) Pay buttons on a page**
+    ![Pay buttons on a page](.wordpress-org/screenshot-24.png)
+25. **(Customers Experience) The checkout, here on the button's own pay page**
+    ![Checkout](.wordpress-org/screenshot-25.png)
+26. **(Customers Experience) ifthenpay's secure payment page**
+    ![ifthenpay payment page](.wordpress-org/screenshot-26.png)
+27. **(Customers Experience) The Paid popup back on your site**
+    ![Paid popup](.wordpress-org/screenshot-27.png)
+28. **(Design Example) Aurora gradient with waves, ring progress and priced options**
+    ![Aurora gradient with waves](.wordpress-org/screenshot-28.png)
+29. **(Design Example) A YouTube video behind the checkout**
+    ![Video background](.wordpress-org/screenshot-29.png)
+30. **(Design Example) Dark mode, following the payer's device**
+    ![Dark mode](.wordpress-org/screenshot-30.png)
+31. **(Design Example) Bubblegum pink and sprinkles: a donut shop**
+    ![Donut shop](.wordpress-org/screenshot-31.png)
+32. **(Design Example) Tomatoes, basil and olives with a step badge: a pizzeria**
+    ![Pizzeria](.wordpress-org/screenshot-32.png)
+33. **(Design Example) A football pitch behind the checkout, with suggested amounts**
+    ![Football club](.wordpress-org/screenshot-33.png)
+34. **(Design Example) A heartbeat line behind a booking form with a date and a time: a clinic**
+    ![Clinic](.wordpress-org/screenshot-34.png)
+35. **(Design Example) A dark card with a dedication field and picture options: a music release**
+    ![Music release](.wordpress-org/screenshot-35.png)
+36. **(Design Example) Picture cards in a sideways row: pick a book cover**
+    ![Picture cards in a row](.wordpress-org/screenshot-36.png)
+37. **(Design Example) Bubbles and quick amounts: a light-hearted donation page**
+    ![Donation page with bubbles](.wordpress-org/screenshot-37.png)
+38. **(Design Example) Gold on black with a soft progress: a cause to support**
+    ![Gold on black](.wordpress-org/screenshot-38.png)
 
 ### Support
 

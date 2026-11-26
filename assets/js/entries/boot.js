@@ -9,7 +9,7 @@
 		return;
 	}
 
-	const { bindBulkActions, bindColumnsMenu, bindCopy, bindEmailSettings, bindExportMenu, bindFilterPanel, bindInsights, bindNavLoading, bindNewEntry, bindPerPage, bindRowDelete, bindScrollButton, bindSelection, bindSelectionCancel, confirmAction, enhance, errorOf, i18n, post, removeRefsFromSelection, restoreSelectionState, showToast } = ns;
+	const { bindBulkActions, bindColumnsMenu, bindCopy, bindExportMenu, bindFilterPanel, bindInsights, bindNavLoading, bindNewEntry, bindPerPage, bindRowDelete, bindScrollButton, bindSelection, bindSelectionCancel, confirmAction, enhance, errorOf, i18n, post, removeRefsFromSelection, restoreSelectionState, showToast } = ns;
 
 	// ---- Single entry page ----
 
@@ -158,7 +158,6 @@
 		bindBulkActions( list );
 		bindNewEntry( list );
 		bindInsights( list );
-		bindEmailSettings( list );
 		bindScrollButton( list );
 		bindColumnsMenu( list );
 		bindExportMenu( list );

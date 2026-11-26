@@ -15,6 +15,12 @@
 	box-shadow: var(--iftp-shadow-2);
 }
 
+/* A panel whose body needs the full width: the intro sits on top instead of beside it. */
+.iftp-btn-panel--stack {
+	grid-template-columns: minmax(0, 1fr);
+	gap: 18px;
+}
+
 .iftp-btn-panel__title {
 	margin: 0 0 6px;
 	color: var(--iftp-ink);

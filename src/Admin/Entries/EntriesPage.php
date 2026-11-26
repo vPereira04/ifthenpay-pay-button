@@ -94,13 +94,6 @@ class EntriesPage {
 	private EntryPresenter $presenter;
 
 	/**
-	 * The payment email editor behind the masthead's settings button.
-	 *
-	 * @var PaymentEmailSettings
-	 */
-	private PaymentEmailSettings $email_settings;
-
-	/**
 	 * The Performance section and the Revenue by method card.
 	 *
 	 * @var InsightsView|null
@@ -121,20 +114,17 @@ class EntriesPage {
 	 * @param SettingsRepository|null $settings     Settings storage.
 	 */
 	public function __construct( ?TransactionStore $transactions = null, ?SettingsRepository $settings = null ) {
-		$this->transactions   = $transactions ?? new TransactionStore();
-		$this->settings       = $settings ?? new SettingsRepository();
-		$this->view           = new ViewState( $this->transactions );
-		$this->presenter      = new EntryPresenter( $this->settings );
-		$this->email_settings = new PaymentEmailSettings( $this->settings );
+		$this->transactions = $transactions ?? new TransactionStore();
+		$this->settings     = $settings ?? new SettingsRepository();
+		$this->view         = new ViewState( $this->transactions );
+		$this->presenter    = new EntryPresenter( $this->settings );
 	}
 
 	/**
-	 * Registers the asset hook and the email editor's endpoints. The menu entry comes from Menu.
+	 * Registers the asset hook. The menu entry comes from Menu.
 	 */
 	public function register(): void {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-
-		$this->email_settings->register();
 	}
 
 	/**
@@ -269,13 +259,8 @@ class EntriesPage {
 			return;
 		}
 
-		$restore_js     = 'assets/js/entries-restore.js';
-		$email_settings = $this->email_settings->enqueue();
-		$deps           = array( Plugin::METHOD_LOGOS_HANDLE, Plugin::UI_SCRIPT_HANDLE, Plugin::CHARTS_SCRIPT_HANDLE );
-
-		if ( false !== $email_settings['editor'] ) {
-			$deps[] = 'code-editor';
-		}
+		$restore_js = 'assets/js/entries-restore.js';
+		$deps       = array( Plugin::METHOD_LOGOS_HANDLE, Plugin::UI_SCRIPT_HANDLE, Plugin::CHARTS_SCRIPT_HANDLE );
 
 		wp_enqueue_style( Plugin::ADMIN_STYLE_HANDLE );
 		Plugin::enqueue_split_script( 'iftp-btn-entries', 'assets/js/entries', array( 'core', 'view', 'selection', 'bulk', 'new-entry', 'settings', 'ui', 'tables', 'boot' ), $deps );
@@ -314,7 +299,6 @@ class EntriesPage {
 				'defaultColumnOrder' => self::HIDEABLE_COLUMNS,
 				'bulkChunkSize'      => self::BULK_CHUNK_SIZE,
 				'emailChunkSize'     => self::EMAIL_CHUNK_SIZE,
-				'emailSettings'      => $email_settings,
 				// Same separator as number_format_i18n(), decoded, since some locales store it as "&nbsp;" and JS writes textContent.
 				'numberFormat'       => array(
 					'thousands' => html_entity_decode( $wp_locale instanceof \WP_Locale ? (string) $wp_locale->number_format['thousands_sep'] : ',', ENT_QUOTES, 'UTF-8' ),
@@ -406,12 +390,6 @@ class EntriesPage {
 			/* translators: 1: column name, 2: new position, 3: number of movable columns */
 			'columnMoved'           => __( '%1$s moved to position %2$s of %3$s.', 'ifthenpay-pay-button' ),
 			'columnsReset'          => __( 'Columns reset to the default order, all shown.', 'ifthenpay-pay-button' ),
-			'emailSaving'           => __( 'Saving…', 'ifthenpay-pay-button' ),
-			'emailSaveError'        => __( 'Could not save the payment email. Please try again.', 'ifthenpay-pay-button' ),
-			'emailPreviewError'     => __( 'Could not refresh the preview.', 'ifthenpay-pay-button' ),
-			'emailResetDone'        => __( 'Default template restored. Save to keep it.', 'ifthenpay-pay-button' ),
-			'emailMediaTitle'       => __( 'Choose an image for the email', 'ifthenpay-pay-button' ),
-			'emailMediaButton'      => __( 'Insert image', 'ifthenpay-pay-button' ),
 			'genericError'          => __( 'Something went wrong. Please try again.', 'ifthenpay-pay-button' ),
 			'newEntryCreateLink'    => __( 'Create payment link', 'ifthenpay-pay-button' ),
 			'newEntryRecord'        => __( 'Record payment', 'ifthenpay-pay-button' ),
@@ -505,7 +483,6 @@ class EntriesPage {
 						<svg class="iftp-btn-btn__icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
 						<?php esc_html_e( 'New payment', 'ifthenpay-pay-button' ); ?>
 					</button>
-					<?php $this->email_settings->render_trigger(); ?>
 				</div>
 			</header>
 
@@ -652,7 +629,6 @@ class EntriesPage {
 			</div>
 
 			<?php $this->render_new_entry_dialog(); ?>
-			<?php $this->email_settings->render_dialog(); ?>
 			<?php $this->render_shared_ui(); ?>
 
 			<button type="button" class="iftp-btn-scroll-top" data-iftp-scroll-top aria-label="<?php esc_attr_e( 'Scroll to top', 'ifthenpay-pay-button' ); ?>" hidden>

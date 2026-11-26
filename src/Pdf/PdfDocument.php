@@ -35,6 +35,13 @@ final class PdfDocument {
 	private array $pages = array();
 
 	/**
+	 * The pictures drawn so far, as compressed 8-bit rows, grey or RGB.
+	 *
+	 * @var array<int, array{data: string, width: int, height: int, channels: int}>
+	 */
+	private array $images = array();
+
+	/**
 	 * Starts a new page; everything drawn after goes on it.
 	 */
 	public function add_page(): void {
@@ -46,6 +53,39 @@ final class PdfDocument {
 	 */
 	public function page_count(): int {
 		return count( $this->pages );
+	}
+
+	/**
+	 * Draws a picture, grey or in colour.
+	 *
+	 * @param string $grey   Row by row, one byte per pixel for grey (0 black to 255 white), three (red, green, blue) for colour.
+	 * @param int    $px     The picture's width in pixels.
+	 * @param int    $py     The picture's height in pixels.
+	 * @param float  $x      Left.
+	 * @param float  $y      Top.
+	 * @param float  $width  Drawn width.
+	 * @param float  $height Drawn height.
+	 * @param int    $channels 1 for grey, 3 for colour.
+	 */
+	public function image( string $grey, int $px, int $py, float $x, float $y, float $width, float $height, int $channels = 1 ): void {
+		if ( $px < 1 || $py < 1 || ! in_array( $channels, array( 1, 3 ), true ) || strlen( $grey ) !== $px * $py * $channels ) {
+			return;
+		}
+
+		$packed = gzcompress( $grey, 9 );
+
+		if ( false === $packed ) {
+			return;
+		}
+
+		$this->images[] = array(
+			'data'     => $packed,
+			'width'    => $px,
+			'height'   => $py,
+			'channels' => $channels,
+		);
+
+		$this->draw( sprintf( 'q %.2F 0 0 %.2F %.2F %.2F cm /Im%d Do Q', $width, $height, $x, self::HEIGHT - $y - $height, count( $this->images ) - 1 ) );
 	}
 
 	/**
@@ -84,15 +124,17 @@ final class PdfDocument {
 	 * @param bool            $bold  Whether it's bold.
 	 * @param array<int, int> $rgb   Colour.
 	 * @param bool            $right Whether $x is the right edge.
+	 * @param bool            $mono  Whether it's set in Courier, like a till receipt.
 	 */
-	public function text( float $x, float $y, string $text, float $size, bool $bold = false, array $rgb = array( 0, 0, 0 ), bool $right = false ): void {
+	public function text( float $x, float $y, string $text, float $size, bool $bold = false, array $rgb = array( 0, 0, 0 ), bool $right = false, bool $mono = false ): void {
 		if ( '' === $text ) {
 			return;
 		}
 
-		$x = $right ? $x - $this->width( $text, $size, $bold ) : $x;
+		$x    = $right ? $x - $this->width( $text, $size, $bold, $mono ) : $x;
+		$font = $mono ? ( $bold ? 'F4' : 'F3' ) : ( $bold ? 'F2' : 'F1' );
 
-		$this->draw( sprintf( 'BT %s rg /%s %.2F Tf %.2F %.2F Td (%s) Tj ET', self::color( $rgb ), $bold ? 'F2' : 'F1', $size, $x, self::HEIGHT - $y, self::escape( self::latin( $text ) ) ) );
+		$this->draw( sprintf( 'BT %s rg /%s %.2F Tf %.2F %.2F Td (%s) Tj ET', self::color( $rgb ), $font, $size, $x, self::HEIGHT - $y, self::escape( self::latin( $text ) ) ) );
 	}
 
 	/**
@@ -101,11 +143,16 @@ final class PdfDocument {
 	 * @param string $text UTF-8 text.
 	 * @param float  $size Font size.
 	 * @param bool   $bold Whether it's bold.
+	 * @param bool   $mono Whether it's Courier, where every character is as wide as the next.
 	 */
-	public function width( string $text, float $size, bool $bold = false ): float {
+	public function width( string $text, float $size, bool $bold = false, bool $mono = false ): float {
 		$table = $bold ? self::BOLD : self::REGULAR;
 		$total = 0;
 		$bytes = self::latin( $text );
+
+		if ( $mono ) {
+			return strlen( $bytes ) * 600 * $size / 1000;
+		}
 
 		for ( $i = 0, $n = strlen( $bytes ); $i < $n; $i++ ) {
 			$code   = ord( $bytes[ $i ] );
@@ -123,9 +170,10 @@ final class PdfDocument {
 	 * @param float  $size      Font size.
 	 * @param float  $max_width The widest a line may be.
 	 * @param bool   $bold      Whether it's bold.
+	 * @param bool   $mono      Whether it's Courier.
 	 * @return array<int, string>
 	 */
-	public function wrap( string $text, float $size, float $max_width, bool $bold = false ): array {
+	public function wrap( string $text, float $size, float $max_width, bool $bold = false, bool $mono = false ): array {
 		$lines = array();
 
 		foreach ( self::split( '/\R/', $text ) as $paragraph ) {
@@ -134,7 +182,7 @@ final class PdfDocument {
 			foreach ( self::split( '/ +/', $paragraph ) as $word ) {
 				$try = '' === $line ? $word : $line . ' ' . $word;
 
-				if ( $this->width( $try, $size, $bold ) <= $max_width ) {
+				if ( $this->width( $try, $size, $bold, $mono ) <= $max_width ) {
 					$line = $try;
 					continue;
 				}
@@ -146,10 +194,10 @@ final class PdfDocument {
 				$line = $word;
 
 				// A word wider than the line is cut where it no longer fits.
-				while ( $this->width( $line, $size, $bold ) > $max_width && mb_strlen( $line ) > 1 ) {
+				while ( $this->width( $line, $size, $bold, $mono ) > $max_width && mb_strlen( $line ) > 1 ) {
 					$cut = mb_strlen( $line ) - 1;
 
-					while ( $cut > 1 && $this->width( mb_substr( $line, 0, $cut ), $size, $bold ) > $max_width ) {
+					while ( $cut > 1 && $this->width( mb_substr( $line, 0, $cut ), $size, $bold, $mono ) > $max_width ) {
 						--$cut;
 					}
 
@@ -174,21 +222,32 @@ final class PdfDocument {
 			$this->add_page();
 		}
 
-		// Objects: 1 catalog, 2 pages, 3 and 4 the fonts, 5 the info, then a content stream and a page for each page.
+		// Objects: 1 catalog, 2 pages, 3 and 4 the fonts, 5 the info, 6 and 7 the Courier pair, then a content stream and a page for each page.
 		$objects = array();
 		$kids    = array();
 
 		$objects[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
 		$objects[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+		$objects[6] = '<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>';
+		$objects[7] = '<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold /Encoding /WinAnsiEncoding >>';
 		$objects[5] = '<< /Title (' . self::escape( self::latin( $title ) ) . ') /Producer (ifthenpay Pay Button) >>';
 
+		// Each picture is an object after the fonts, so the page streams start behind them.
+		$first   = 8 + count( $this->images );
+		$xobject = '';
+
+		foreach ( $this->images as $index => $image ) {
+			$objects[ 8 + $index ] = sprintf( '<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /%s /BitsPerComponent 8 /Filter /FlateDecode /Length %d >>', $image['width'], $image['height'], 3 === $image['channels'] ? 'DeviceRGB' : 'DeviceGray', strlen( $image['data'] ) ) . "\nstream\n" . $image['data'] . "\nendstream";
+			$xobject              .= sprintf( '/Im%d %d 0 R ', $index, 8 + $index );
+		}
+
 		foreach ( $this->pages as $index => $content ) {
-			$stream_id = 6 + $index * 2;
+			$stream_id = $first + $index * 2;
 			$page_id   = $stream_id + 1;
 			$kids[]    = $page_id . ' 0 R';
 
 			$objects[ $stream_id ] = '<< /Length ' . strlen( $content ) . " >>\nstream\n" . $content . "\nendstream";
-			$objects[ $page_id ]   = sprintf( '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %.2F %.2F] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents %d 0 R >>', self::WIDTH, self::HEIGHT, $stream_id );
+			$objects[ $page_id ]   = sprintf( '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %.2F %.2F] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 6 0 R /F4 7 0 R >> /XObject << %s>> >> /Contents %d 0 R >>', self::WIDTH, self::HEIGHT, $xobject, $stream_id );
 		}
 
 		$objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';

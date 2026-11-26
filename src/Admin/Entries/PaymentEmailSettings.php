@@ -1,6 +1,6 @@
 <?php
 /**
- * Payment email template editor, opened from the Entries masthead.
+ * The payment email editor, in Configuration › Emails.
  *
  * @package Ifthenpay\PayButton
  */
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * The "Payment email" popup behind the Entries masthead's settings button: subject, HTML body, tags and a live preview.
+ * The "Payment request email" panel of Configuration › Emails: subject, HTML body, tags and a live preview.
  */
 final class PaymentEmailSettings {
 
@@ -83,35 +83,26 @@ final class PaymentEmailSettings {
 	}
 
 	/**
-	 * The settings button that sits next to "New payment".
+	 * The editor as a panel of the Emails tab. Its fields have no name, so the page's own Save button leaves them alone;
+	 * the panel saves itself, and says so.
 	 */
-	public function render_trigger(): void {
-		$label = __( 'Payment email settings', 'ifthenpay-pay-button' );
-		?>
-		<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary iftp-btn-btn--icon" data-iftp-email-open aria-haspopup="dialog" aria-label="<?php echo esc_attr( $label ); ?>" title="<?php echo esc_attr( $label ); ?>">
-			<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg>
-		</button>
-		<?php
-	}
-
-	/**
-	 * The editor dialog. The fields start on what's saved, or the default when nothing is.
-	 */
-	public function render_dialog(): void {
+	public function render_panel(): void {
 		$template = $this->current();
 		?>
-		<dialog class="iftp-btn-dialog iftp-btn-dialog--wide" aria-labelledby="iftp-btn-email-title" aria-describedby="iftp-btn-email-desc" data-iftp-email-dialog>
-			<form class="iftp-btn-dialog__form iftp-btn-email" data-iftp-email-form novalidate>
-				<h2 id="iftp-btn-email-title" class="iftp-btn-dialog__title"><?php esc_html_e( 'Payment email', 'ifthenpay-pay-button' ); ?></h2>
-				<p id="iftp-btn-email-desc" class="iftp-btn-dialog__text"><?php esc_html_e( 'What customers get from "Send payment email". Click a tag to drop a payment detail where your cursor is — it\'s filled in for each customer when the email goes out.', 'ifthenpay-pay-button' ); ?></p>
-
+		<section class="iftp-btn-panel iftp-btn-panel--stack iftp-btn-email" aria-labelledby="iftp-btn-email-title" data-iftp-email>
+			<div class="iftp-btn-panel__intro">
+				<h2 id="iftp-btn-email-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Payment request email', 'ifthenpay-pay-button' ); ?></h2>
+				<p class="iftp-btn-panel__description"><?php esc_html_e( 'What customers get from "Send payment email". Click a tag to drop a payment detail where your cursor is — it\'s filled in for each customer when the email goes out. This panel has its own Save button.', 'ifthenpay-pay-button' ); ?></p>
+			</div>
+			<div class="iftp-btn-panel__body">
 				<p class="iftp-btn-field__error" data-iftp-email-error role="alert" hidden></p>
 
 				<div class="iftp-btn-email__editor">
 					<div class="iftp-btn-email__compose">
+						<p class="iftp-btn-email__col-head"><?php esc_html_e( 'Message', 'ifthenpay-pay-button' ); ?></p>
 						<div class="iftp-btn-field">
 							<label class="iftp-btn-field__label" for="iftp-btn-email-subject"><?php esc_html_e( 'Subject', 'ifthenpay-pay-button' ); ?></label>
-							<input type="text" class="iftp-btn-field__control" id="iftp-btn-email-subject" name="subject" maxlength="<?php echo esc_attr( (string) PaymentEmailTemplate::MAX_SUBJECT_LENGTH ); ?>" value="<?php echo esc_attr( $template['subject'] ); ?>" data-iftp-email-subject />
+							<input type="text" class="iftp-btn-field__control" id="iftp-btn-email-subject" maxlength="<?php echo esc_attr( (string) PaymentEmailTemplate::MAX_SUBJECT_LENGTH ); ?>" value="<?php echo esc_attr( $template['subject'] ); ?>" data-iftp-email-subject />
 						</div>
 
 						<div class="iftp-btn-email__tags" role="group" aria-labelledby="iftp-btn-email-tags-label">
@@ -134,14 +125,14 @@ final class PaymentEmailSettings {
 									<?php esc_html_e( 'Add image', 'ifthenpay-pay-button' ); ?>
 								</button>
 							</div>
-							<textarea class="iftp-btn-field__control iftp-btn-email__textarea" id="iftp-btn-email-body" name="body" rows="18" spellcheck="false" data-iftp-email-body><?php echo esc_textarea( $template['body'] ); ?></textarea>
+							<textarea class="iftp-btn-field__control iftp-btn-email__textarea" id="iftp-btn-email-body" rows="18" spellcheck="false" data-iftp-email-body><?php echo esc_textarea( $template['body'] ); ?></textarea>
 							<p class="iftp-btn-field__help"><?php esc_html_e( 'Inline styles and tables work best in mail clients. Scripts, forms, embeds and event handlers are removed when you save.', 'ifthenpay-pay-button' ); ?></p>
 						</div>
 					</div>
 
 					<div class="iftp-btn-email__preview">
-						<p class="iftp-btn-email__preview-head">
-							<span class="iftp-btn-email__preview-title"><?php esc_html_e( 'Preview', 'ifthenpay-pay-button' ); ?></span>
+						<p class="iftp-btn-email__col-head">
+							<?php esc_html_e( 'Preview', 'ifthenpay-pay-button' ); ?>
 							<span class="iftp-btn-email__preview-hint"><?php esc_html_e( 'With sample data', 'ifthenpay-pay-button' ); ?></span>
 						</p>
 						<div class="iftp-btn-email__preview-frame" data-iftp-email-preview-wrap>
@@ -155,15 +146,13 @@ final class PaymentEmailSettings {
 					</div>
 				</div>
 
-				<div class="iftp-btn-dialog__actions iftp-btn-dialog__actions--split">
+				<div class="iftp-btn-email__actions">
 					<button type="button" class="iftp-btn-btn iftp-btn-btn--link" data-iftp-email-reset><?php esc_html_e( 'Reset to default', 'ifthenpay-pay-button' ); ?></button>
-					<span class="iftp-btn-dialog__actions-end">
-						<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-email-cancel><?php esc_html_e( 'Cancel', 'ifthenpay-pay-button' ); ?></button>
-						<button type="submit" class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-email-submit><?php esc_html_e( 'Save', 'ifthenpay-pay-button' ); ?></button>
-					</span>
+					<span class="iftp-btn-email__status" data-iftp-email-status role="status" aria-live="polite"></span>
+					<button type="button" class="iftp-btn-btn iftp-btn-btn--primary" data-iftp-email-save><?php esc_html_e( 'Save payment email', 'ifthenpay-pay-button' ); ?></button>
 				</div>
-			</form>
-		</dialog>
+			</div>
+		</section>
 		<?php
 	}
 
@@ -315,7 +304,7 @@ final class PaymentEmailSettings {
 	}
 
 	/**
-	 * Same nonce, capability and connection check as the rest of the Entries screens.
+	 * Same nonce, capability and connection check as the Entries screens; the Configuration page sends that nonce along.
 	 */
 	private function guard(): void {
 		check_ajax_referer( EntriesPage::NONCE_ACTION, 'nonce' );

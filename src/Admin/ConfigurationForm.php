@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Ifthenpay\PayButton\Admin;
 
+use Ifthenpay\PayButton\Admin\Entries\PaymentEmailSettings;
 use Ifthenpay\PayButton\Ai\AiSettings;
 use Ifthenpay\PayButton\Checkout\CheckoutTexts;
 use Ifthenpay\PayButton\Plugin;
@@ -111,6 +112,7 @@ class ConfigurationForm {
 
 		$this->settings->set_receipt_payer( isset( $_POST['receipt_payer'] ) );
 		$this->settings->set_receipt_pdf( isset( $_POST['receipt_pdf'] ) );
+		$this->settings->set_receipt_look( isset( $_POST['receipt'] ) && is_array( $_POST['receipt'] ) ? map_deep( wp_unslash( $_POST['receipt'] ), static fn( $value ) => is_string( $value ) ? $value : '' ) : array() ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- RECEIPT_LOOK cleans each part in set_receipt_look().
 		$this->settings->set_delete_data( isset( $_POST['delete_data'] ) );
 		$this->settings->set_reminder_enabled( isset( $_POST['reminder_on'] ) );
 		$this->settings->set_reminder_hours( (int) $text( 'reminder_hours' ) );
@@ -183,6 +185,83 @@ class ConfigurationForm {
 	}
 
 	/**
+	 * The receipt's own part of the Emails tab: logo, name and details, title, a message and the barcode.
+	 */
+	private function render_receipt_look(): void {
+		$look  = $this->settings->get_receipt_look();
+		$thumb = $look['logo_id'] > 0 ? wp_get_attachment_image_url( $look['logo_id'], 'medium' ) : false;
+		$full  = $look['logo_id'] > 0 ? wp_get_attachment_image_url( $look['logo_id'], 'large' ) : false;
+		?>
+		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-receipt-title" data-iftp-receipt>
+			<div class="iftp-btn-panel__intro">
+				<h2 id="iftp-btn-receipt-title" class="iftp-btn-panel__title"><?php esc_html_e( 'Receipt', 'ifthenpay-pay-button' ); ?></h2>
+				<p class="iftp-btn-panel__description"><?php esc_html_e( 'The PDF the payer gets and you can download from any paid payment. It is black and white unless you switch colours on.', 'ifthenpay-pay-button' ); ?></p>
+			</div>
+			<div class="iftp-btn-panel__body iftp-btn-stack">
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-receipt-logo"><?php esc_html_e( 'Logo', 'ifthenpay-pay-button' ); ?></label>
+					<select class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-receipt-logo" name="receipt[logo]" data-iftp-receipt-logo>
+						<option value="none" <?php selected( $look['logo'], 'none' ); ?>><?php esc_html_e( 'No logo', 'ifthenpay-pay-button' ); ?></option>
+						<option value="site" <?php selected( $look['logo'], 'site' ); ?>><?php esc_html_e( 'My site\'s logo', 'ifthenpay-pay-button' ); ?></option>
+						<option value="image" <?php selected( $look['logo'], 'image' ); ?>><?php esc_html_e( 'An image of mine', 'ifthenpay-pay-button' ); ?></option>
+					</select>
+				</div>
+				<div class="iftp-btn-field" data-iftp-receipt-image <?php echo 'image' === $look['logo'] ? '' : 'hidden'; ?>>
+					<span class="iftp-btn-field__label"><?php esc_html_e( 'Image', 'ifthenpay-pay-button' ); ?></span>
+					<div class="iftp-btn-imagepick">
+						<span class="iftp-btn-imagepick__thumb" data-iftp-receipt-thumb<?php echo is_string( $thumb ) ? ' style="background-image: url(' . esc_url( $thumb ) . ')"' : ''; ?>></span>
+						<button type="button" class="iftp-btn-btn iftp-btn-btn--secondary" data-iftp-receipt-pick><?php esc_html_e( 'Choose image', 'ifthenpay-pay-button' ); ?></button>
+						<button type="button" class="iftp-btn-btn iftp-btn-btn--link" data-iftp-receipt-clear<?php echo is_string( $thumb ) ? '' : ' hidden'; ?>><?php esc_html_e( 'Remove', 'ifthenpay-pay-button' ); ?></button>
+						<input type="hidden" name="receipt[logo_id]" value="<?php echo esc_attr( (string) $look['logo_id'] ); ?>" data-iftp-receipt-id data-url="<?php echo esc_attr( is_string( $full ) ? $full : '' ); ?>" />
+					</div>
+					<p class="iftp-btn-field__help"><?php esc_html_e( 'In grey tones, or in its own colours when colours are on. A wide logo on a white or transparent background works best.', 'ifthenpay-pay-button' ); ?></p>
+				</div>
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-receipt-name"><?php esc_html_e( 'Business name', 'ifthenpay-pay-button' ); ?></label>
+					<input type="text" class="iftp-btn-field__control" id="iftp-btn-receipt-name" name="receipt[name]" maxlength="60" value="<?php echo esc_attr( $look['name'] ); ?>" placeholder="<?php echo esc_attr( (string) get_bloginfo( 'name' ) ); ?>" />
+					<p class="iftp-btn-field__help"><?php esc_html_e( 'Blank uses the site\'s name. With a logo, the name is only printed when you fill this in.', 'ifthenpay-pay-button' ); ?></p>
+				</div>
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-receipt-details"><?php esc_html_e( 'Business details', 'ifthenpay-pay-button' ); ?></label>
+					<textarea class="iftp-btn-field__control" id="iftp-btn-receipt-details" name="receipt[details]" rows="3" maxlength="240" placeholder="<?php esc_attr_e( 'Address, tax number, phone…', 'ifthenpay-pay-button' ); ?>"><?php echo esc_textarea( $look['details'] ); ?></textarea>
+					<p class="iftp-btn-field__help"><?php esc_html_e( 'Printed under the name, one line each.', 'ifthenpay-pay-button' ); ?></p>
+				</div>
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-receipt-title-input"><?php esc_html_e( 'Title', 'ifthenpay-pay-button' ); ?></label>
+					<input type="text" class="iftp-btn-field__control iftp-btn-field__control--short" id="iftp-btn-receipt-title-input" name="receipt[title]" maxlength="24" value="<?php echo esc_attr( $look['title'] ); ?>" placeholder="<?php echo esc_attr( __( 'Receipt', 'ifthenpay-pay-button' ) ); ?>" />
+				</div>
+				<div class="iftp-btn-field">
+					<label class="iftp-btn-field__label" for="iftp-btn-receipt-message"><?php esc_html_e( 'Message', 'ifthenpay-pay-button' ); ?></label>
+					<textarea class="iftp-btn-field__control" id="iftp-btn-receipt-message" name="receipt[message]" rows="3" maxlength="200" placeholder="<?php esc_attr_e( 'See you next time!', 'ifthenpay-pay-button' ); ?>"><?php echo esc_textarea( $look['message'] ); ?></textarea>
+					<p class="iftp-btn-field__help"><?php esc_html_e( 'Printed at the bottom, above the thank-you line.', 'ifthenpay-pay-button' ); ?></p>
+				</div>
+				<label class="iftp-btn-np__toggle">
+					<input type="checkbox" class="iftp-btn-switch" name="receipt[color]" value="1" <?php checked( $look['color'] ); ?> data-iftp-receipt-colour />
+					<span class="iftp-btn-np__toggle-text">
+						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Colours', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'Off prints in black and white, logo included. On keeps the logo\'s own colours and uses one colour for the title, the total and the PAID line.', 'ifthenpay-pay-button' ); ?></span>
+					</span>
+				</label>
+				<div class="iftp-btn-field" data-iftp-receipt-accent <?php echo $look['color'] ? '' : 'hidden'; ?>>
+					<label class="iftp-btn-field__label" for="iftp-btn-receipt-accent"><?php esc_html_e( 'Colour', 'ifthenpay-pay-button' ); ?></label>
+					<span class="iftp-btn-color">
+						<input type="color" class="iftp-btn-color__swatch" value="<?php echo esc_attr( $look['accent'] ); ?>" aria-label="<?php esc_attr_e( 'Pick the receipt colour', 'ifthenpay-pay-button' ); ?>" data-iftp-receipt-swatch />
+						<input type="text" class="iftp-btn-field__control iftp-btn-color__hex" id="iftp-btn-receipt-accent" name="receipt[accent]" value="<?php echo esc_attr( $look['accent'] ); ?>" maxlength="7" spellcheck="false" pattern="#[0-9a-fA-F]{6}" data-iftp-receipt-hex />
+					</span>
+				</div>
+				<label class="iftp-btn-np__toggle">
+					<input type="checkbox" class="iftp-btn-switch" name="receipt[barcode]" value="1" <?php checked( $look['barcode'] ); ?> />
+					<span class="iftp-btn-np__toggle-text">
+						<span class="iftp-btn-np__toggle-title"><?php esc_html_e( 'Barcode with the reference', 'ifthenpay-pay-button' ); ?></span>
+						<span class="iftp-btn-np__toggle-hint"><?php esc_html_e( 'The strip of bars at the bottom, like a shop receipt.', 'ifthenpay-pay-button' ); ?></span>
+					</span>
+				</label>
+			</div>
+		</section>
+		<?php
+	}
+
+	/**
 	 * The Emails tab: what goes out per payment, and the Monday summary.
 	 */
 	private function render_emails(): void {
@@ -220,6 +299,15 @@ class ConfigurationForm {
 				</div>
 			</div>
 		</section>
+
+		<?php
+		// The template editor needs a connected account, like the "Send payment email" action it belongs to.
+		if ( $this->gateway->is_connected() ) {
+			( new PaymentEmailSettings( $this->gateway ) )->render_panel();
+		}
+
+		$this->render_receipt_look();
+		?>
 
 		<section class="iftp-btn-panel" aria-labelledby="iftp-btn-reminder-panel-title">
 			<div class="iftp-btn-panel__intro">

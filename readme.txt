@@ -79,11 +79,11 @@ Optional extras:
 * **Default design:** Open Pay Button › Default Design [1]. Start from a look (each one sets the pay page background too), then tweak the colours, shape, fonts, pay page background and Custom CSS [2]. Or click Edit with AI and describe the look in a chat: the AI's version opens here as a draft to check and save [3]. The preview follows every change: checkout, pay page and each popup [4]. Click Save Settings [5] (screenshot 17). The Button tab sets the default button design that every button set to Default design wears.
 * **Messages after paying:** In Default Design, open the Messages tab (a button can set its own in its Configuration tab) [1], choose what happens when paid: a popup message, a WordPress page or a custom URL [2]. Write the title and message for each outcome (Paid, Pending, Failed, Cancelled), with tags like {name} or {payment_id} [3] (screenshot 18).
 * **Texts:** In the Texts tab [1], rewrite any text the payer reads: buttons, labels, spots, the popup and the error messages, in any language. Blank keeps the original; keep the words in {braces} [2] (screenshot 19).
-* **Links & emails:** In Configuration › Pay links and Emails [1], the Link base is the start of every pay link, e.g. /pay/your-button/ [2]. Switch on the Receipt to the payer [3] and Tell me about every payment [4], then click Save Settings [5] (screenshot 20).
+* **Links & emails:** In Configuration › Pay links, the Link base is the start of every pay link, e.g. /pay/your-button/. In Configuration › Emails, switch on the Receipt to the payer and Tell me about every payment [1], and write the Payment request email your customers get from Send payment email, with tags and a live preview [2] (screenshot 20). Send the weekly summary emails the week's payments every Monday. Further down, the Receipt panel dresses the PDF receipt: its logo, your site's or an image of yours [1], the business name [2] and details [3], a title [4], a message at the bottom [5], an optional colour with the logo's own colours [6] and the barcode [7] (screenshot 21). Click Save Settings to keep them.
 
-Following your payments: Pay Button › Payments [1] shows Performance over 7 days, 30 days or 12 months and Revenue by method [2], totals by status [3], search, filters, columns and CSV export [4], and New payment to create a payment link for a customer or record one you took another way [5] (screenshot 21). View opens a payment: its amount and status [1], the transaction and the submitted data [2], and actions to change the status, copy the payment link or send the payment email [3] (screenshot 22).
+Following your payments: Pay Button › Payments [1] shows Performance over 7 days, 30 days or 12 months and Revenue by method [2], totals by status [3], search, filters, columns and CSV export [4], and New payment to create a payment link for a customer or record one you took another way [5] (screenshot 22). View opens a payment: its amount and status [1], the transaction and the submitted data [2], and actions to change the status, copy the payment link or send the payment email [3] (screenshot 23).
 
-How a payment works: the payer clicks a pay button on your page (screenshot 23), or opens its pay page, and fills in the checkout (screenshot 24). Continue to payment takes them to ifthenpay's secure page, where they choose a method and pay (screenshot 25). Back on your site, they see the Paid popup, or your page or URL, once ifthenpay confirms the payment (screenshot 26). Screenshots 27 to 38 show some of the designs Checkout design can make.
+How a payment works: the payer clicks a pay button on your page (screenshot 24), or opens its pay page, and fills in the checkout (screenshot 25). Continue to payment takes them to ifthenpay's secure page, where they choose a method and pay (screenshot 26). Back on your site, they see the Paid popup, or your page or URL, once ifthenpay confirms the payment (screenshot 27). Screenshots 27 to 38 show some of the designs Checkout design can make.
 
 == Frequently Asked Questions ==
 
@@ -222,24 +222,25 @@ All network requests are performed server-side over HTTPS, except the logo image
 17. (Admin Only) Default Design › Checkout & pay page: the look of every checkout, pay page and popup
 18. (Admin Only) Default Design › Messages: what the payer sees after paying
 19. (Admin Only) Configuration › Texts: every word the payer reads, in your own words or language
-20. (Admin Only) Configuration › Emails: the payer's receipt, a note for every payment and the weekly summary
-21. (Admin Only) Payments: every payment, its status and the totals
-22. (Admin Only) A payment's details
-23. (Customers Experience) Pay buttons on a page
-24. (Customers Experience) The checkout, here on the button's own pay page
-25. (Customers Experience) ifthenpay's secure payment page
-26. (Customers Experience) The Paid popup back on your site
-27. (Design Example) Aurora gradient with waves, ring progress and priced options
-28. (Design Example) A YouTube video behind the checkout
-29. (Design Example) Dark mode, following the payer's device
-30. (Design Example) Bubblegum pink and sprinkles: a donut shop
-31. (Design Example) Tomatoes, basil and olives with a step badge: a pizzeria
-32. (Design Example) A football pitch behind the checkout, with suggested amounts
-33. (Design Example) A heartbeat line behind a booking form with a date and a time: a clinic
-34. (Design Example) A dark card with a dedication field and picture options: a music release
-35. (Design Example) Picture cards in a sideways row: pick a book cover
-36. (Design Example) Bubbles and quick amounts: a light-hearted donation page
-37. (Design Example) Gold on black with a soft progress: a cause to support
+20. (Admin Only) Configuration › Emails: the payer's receipt, a note for every payment and the payment request email
+21. (Admin Only) Configuration › Emails › Receipt: the logo, business details, message, colours and barcode of the PDF receipt
+22. (Admin Only) Payments: every payment, its status and the totals
+23. (Admin Only) A payment's details
+24. (Customers Experience) Pay buttons on a page
+25. (Customers Experience) The checkout, here on the button's own pay page
+26. (Customers Experience) ifthenpay's secure payment page
+27. (Customers Experience) The Paid popup back on your site
+28. (Design Example) Aurora gradient with waves, ring progress and priced options
+29. (Design Example) A YouTube video behind the checkout
+30. (Design Example) Dark mode, following the payer's device
+31. (Design Example) Bubblegum pink and sprinkles: a donut shop
+32. (Design Example) Tomatoes, basil and olives with a step badge: a pizzeria
+33. (Design Example) A football pitch behind the checkout, with suggested amounts
+34. (Design Example) A heartbeat line behind a booking form with a date and a time: a clinic
+35. (Design Example) A dark card with a dedication field and picture options: a music release
+36. (Design Example) Picture cards in a sideways row: pick a book cover
+37. (Design Example) Bubbles and quick amounts: a light-hearted donation page
+38. (Design Example) Gold on black with a soft progress: a cause to support
 
 == Changelog ==
 

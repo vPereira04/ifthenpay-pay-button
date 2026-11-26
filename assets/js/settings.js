@@ -197,4 +197,83 @@
 				} );
 		} );
 	}
+	// Receipt logo: the picker only shows for "An image of mine", and fills the hidden id the form saves.
+	( function () {
+		var box = document.querySelector( '[data-iftp-receipt]' );
+
+		if ( ! box ) {
+			return;
+		}
+
+		var choice = box.querySelector( '[data-iftp-receipt-logo]' );
+		var row = box.querySelector( '[data-iftp-receipt-image]' );
+		var pick = box.querySelector( '[data-iftp-receipt-pick]' );
+		var clear = box.querySelector( '[data-iftp-receipt-clear]' );
+		var thumb = box.querySelector( '[data-iftp-receipt-thumb]' );
+		var field = box.querySelector( '[data-iftp-receipt-id]' );
+		var frame = null;
+
+		function set( id, url ) {
+			field.value = id;
+			thumb.style.backgroundImage = url ? 'url("' + url.replace( /["\\]/g, '' ) + '")' : '';
+			clear.hidden = ! id;
+		}
+
+		choice.addEventListener( 'change', function () {
+			row.hidden = 'image' !== choice.value;
+		} );
+
+		// The colour picker only matters while colours are on.
+		var colours = box.querySelector( '[data-iftp-receipt-colour]' );
+		var accent = box.querySelector( '[data-iftp-receipt-accent]' );
+
+		if ( colours && accent ) {
+			colours.addEventListener( 'change', function () {
+				accent.hidden = ! colours.checked;
+			} );
+		}
+
+		// The swatch and the hex field are one colour: either one moves the other.
+		var swatch = box.querySelector( '[data-iftp-receipt-swatch]' );
+		var hex = box.querySelector( '[data-iftp-receipt-hex]' );
+
+		if ( swatch && hex ) {
+			swatch.addEventListener( 'input', function () {
+				hex.value = swatch.value;
+			} );
+
+			hex.addEventListener( 'input', function () {
+				if ( /^#[0-9a-f]{6}$/i.test( hex.value ) ) {
+					swatch.value = hex.value;
+				}
+			} );
+		}
+
+		// The Media Library sits outside the form, so it only works when wp.media is around.
+		if ( window.wp && window.wp.media ) {
+			pick.addEventListener( 'click', function () {
+				if ( ! frame ) {
+					frame = window.wp.media( {
+						title: i18n.pickImage,
+						button: { text: i18n.useImage },
+						library: { type: 'image' },
+						multiple: false,
+					} );
+
+					frame.on( 'select', function () {
+						var chosen = frame.state().get( 'selection' ).first().toJSON();
+						var sizes = chosen.sizes || {};
+
+						set( String( chosen.id ), ( sizes.medium || sizes.full || chosen ).url );
+					} );
+				}
+
+				frame.open();
+			} );
+
+			clear.addEventListener( 'click', function () {
+				set( '0', '' );
+			} );
+		}
+	}() );
 } )();

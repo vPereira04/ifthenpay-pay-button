@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace Ifthenpay\PayButton\Admin;
 
 use Ifthenpay\PayButton\Admin\Buttons\ButtonsPage;
+use Ifthenpay\PayButton\Admin\Entries\EntriesPage;
+use Ifthenpay\PayButton\Admin\Entries\PaymentEmailSettings;
 use Ifthenpay\PayButton\Ajax\SettingsController;
 use Ifthenpay\PayButton\Checkout\CheckoutLook;
 use Ifthenpay\PayButton\Frontend\ButtonRenderer;
@@ -116,6 +118,8 @@ class ConfigurationPage {
 		$settings_js = 'assets/js/settings.js';
 
 		wp_enqueue_style( Plugin::ADMIN_STYLE_HANDLE );
+		// The receipt's logo comes from the Media Library.
+		wp_enqueue_media();
 		// The tabs, the merge tag chips and the checkout preview.
 		wp_enqueue_style( 'iftp-btn-buttons' );
 		wp_enqueue_style( ButtonRenderer::STYLE_HANDLE );
@@ -146,6 +150,7 @@ class ConfigurationPage {
 
 		if ( $this->settings->is_connected() ) {
 			( new AiPanel() )->enqueue();
+			$this->enqueue_payment_email();
 		}
 
 		wp_localize_script(
@@ -160,7 +165,45 @@ class ConfigurationPage {
 					'invalidKey' => __( 'Invalid Backoffice Key...', 'ifthenpay-pay-button' ),
 					'disconnect' => __( 'Disconnect', 'ifthenpay-pay-button' ),
 					'sending'    => __( 'Sending…', 'ifthenpay-pay-button' ),
+					'pickImage'  => __( 'Choose the receipt logo', 'ifthenpay-pay-button' ),
+					'useImage'   => __( 'Use this image', 'ifthenpay-pay-button' ),
 					'error'      => __( 'Something went wrong. Please try again.', 'ifthenpay-pay-button' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * The payment request email's editor: WP's code editor, the Media Library for "Add image", and its own script.
+	 */
+	private function enqueue_payment_email(): void {
+		$email = ( new PaymentEmailSettings( $this->settings ) )->enqueue();
+		$deps  = array();
+
+		if ( false !== $email['editor'] ) {
+			$deps[] = 'code-editor';
+		}
+
+		$script = 'assets/js/payment-email.js';
+
+		wp_enqueue_script( 'iftp-btn-payment-email', Plugin::asset_url( $script ), $deps, Plugin::asset_version( $script ), true );
+		wp_localize_script(
+			'iftp-btn-payment-email',
+			'iftpBtnPaymentEmail',
+			array(
+				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+				// The two endpoints check the Entries nonce, the same as when the editor lived there.
+				'nonce'        => wp_create_nonce( EntriesPage::NONCE_ACTION ),
+				'editor'       => $email['editor'],
+				'defaults'     => $email['defaults'],
+				'previewDelay' => $email['previewDelay'],
+				'i18n'         => array(
+					'saving'       => __( 'Saving…', 'ifthenpay-pay-button' ),
+					'saveError'    => __( 'Could not save the payment email. Please try again.', 'ifthenpay-pay-button' ),
+					'previewError' => __( 'Could not refresh the preview.', 'ifthenpay-pay-button' ),
+					'resetDone'    => __( 'Default template restored. Save to keep it.', 'ifthenpay-pay-button' ),
+					'mediaTitle'   => __( 'Choose an image for the email', 'ifthenpay-pay-button' ),
+					'mediaButton'  => __( 'Insert image', 'ifthenpay-pay-button' ),
 				),
 			)
 		);
