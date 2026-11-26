@@ -1351,7 +1351,8 @@
 		const titles = i18n.titles || {};
 		const details = dialog.querySelector( '.iftp-btn-result__details' );
 
-		dress( dialog, ownLook( data.look ), 'iftp-btn-result--' + outcome );
+		// Without the server's word, the look the page already knows for this return still applies.
+		dress( dialog, ownLook( data.look ) || ownLook( config.resultLook ), 'iftp-btn-result--' + outcome );
 		dialog.querySelector( 'svg' ).innerHTML = icons[ outcome ];
 		dialog.querySelector( '.iftp-btn-result__title' ).textContent = data.title || titles[ outcome ] || '';
 
@@ -1391,6 +1392,7 @@
 		let timer = null;
 		let done = false;
 		let shown = false;
+		let failures = 0;
 		let lastOutcome = '';
 
 		openDialog( dialog );
@@ -1452,11 +1454,12 @@
 					schedule();
 				} )
 				.catch( function () {
-					if ( ! shown ) {
-						closeDialog( dialog );
-						done = true;
+					failures++;
 
-						return;
+					// A first check that fails mustn't make the payer's return vanish: I retry, then show "pending" and keep trying.
+					if ( ! shown && failures >= 3 ) {
+						shown = true;
+						renderResult( dialog, { status: 'pending' } );
 					}
 
 					schedule();

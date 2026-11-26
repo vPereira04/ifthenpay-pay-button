@@ -136,7 +136,7 @@ class RestController {
 
 		register_rest_route(
 			self::NAMESPACE,
-			'/payments/(?P<ref>[A-Za-z0-9_]{1,191})',
+			'/payments/(?P<ref>[A-Za-z0-9_-]{1,191})',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'status' ),
